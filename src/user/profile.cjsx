@@ -13,18 +13,10 @@ UserLogin = React.createClass
 
   # called by iframe when it's content is loaded and it's ready for requests
   iFrameReady: ->
-    @sendCommand('displayLogin', User.endpoints.iframe_login)
-
-  setUser: (user) ->
-    User.update(user)
+    @sendCommand('loadPage', 'profile')
 
   setTitle: (title) ->
     @setState(currentTitle: title)
-
-  # called when an login process completes
-  onLogin: (payload) ->
-    api.channel.emit 'user.receive.statusUpdate', data: payload
-    @props.onComplete()
 
   pageLoad: (page) ->
     console.log "Loaded #{page}"
@@ -66,6 +58,9 @@ UserLogin = React.createClass
         style={width: @state.width, height: @state.height, border: 0}
         id="OxAccountIframe" name="OxAccountIframe">
       </iframe>
+      <div>
+        <button onClick={@props.onComplete}>Done</button>
+      </div>
     </div>
 
 
