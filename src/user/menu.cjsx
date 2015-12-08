@@ -35,6 +35,9 @@ UserMenu = React.createClass
   update: ->
     @forceUpdate() if @isMounted()
 
+  handleLogout: ->
+    @context.close?()
+
   close: (clickEvent) ->
     clickEvent.preventDefault()
     @context.close?()

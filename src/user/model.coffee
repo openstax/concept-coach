@@ -21,12 +21,14 @@ User =
     @courses = _.compact _.map data.courses, (course) -> new Course(course) if course.is_concept_coach
 
     @channel.emit('change')
+    @channel.emit('logout.received') if @isLoggingOut
     delete @isLoggingOut
 
   logout: ->
     _.extend(this, BLANK_USER)
     @isLoggingOut = true
     @channel.emit('change')
+    @channel.emit('logout.send')
 
   get: ->
     @
