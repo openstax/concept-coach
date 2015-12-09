@@ -1274,14 +1274,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return stepState = this.getStepState(this.props);
 	  },
 	  componentWillMount: function() {
+	    this.clearKeys();
 	    if (this.props.allowKeyNext) {
-	      return keymaster('enter', this.onContinue);
+	      return this.startKeys();
 	    }
 	  },
 	  componentWillUnmount: function() {
-	    if (this.props.allowKeyNext) {
-	      return keymaster.unbind('enter');
-	    }
+	    return this.clearKeys();
 	  },
 	  shouldComponentUpdate: function(nextProps, nextState) {
 	    return !(_.isEqual(this.props, nextProps) && this.props.isContinueEnabled === this.isContinueEnabled(this.props, this.state) && this.isContinueEnabled(this.props, this.state) === this.isContinueEnabled(nextProps, nextState));
@@ -1298,10 +1297,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  updateKeyBind: function(allowKeyNext) {
 	    if (allowKeyNext) {
-	      return keymaster('enter', this.onContinue);
+	      return this.startKeys();
 	    } else {
-	      return keymaster.unbind('enter');
+	      return this.clearKeys();
 	    }
+	  },
+	  startKeys: function() {
+	    keymaster('enter', 'multiple-choice', this.onContinue);
+	    return keymaster.setScope('multiple-choice');
+	  },
+	  clearKeys: function() {
+	    keymaster.unbind('enter', 'multiple-choice');
+	    return keymaster.deleteScope('multiple-choice');
 	  },
 	  getStepState: function(props) {
 	    var step;
