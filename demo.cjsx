@@ -20,7 +20,7 @@ SETTINGS =
     MODULE_UUID: '7636a3bf-eb80-4898-8b2c-e81c1711b99f'
     CNX_URL: 'https://dev.cnx.org'
 
-settings = SETTINGS.LOCAL
+settings = SETTINGS.SERVER
 
 loadApp = ->
   unless document.readyState is 'interactive'
