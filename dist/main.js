@@ -39955,7 +39955,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 
 	  ConceptCoachAPI.prototype.handleOpened = function(eventData, scrollTo, body) {
-	    var top;
+	    var scrollY, top;
 	    if (body == null) {
 	      body = document.body;
 	    }
@@ -39963,8 +39963,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      scrollTo = _.partial(window.scrollTo, 0);
 	    }
 	    top = $(eventData.coach.el).offset().top;
+	    scrollY = $(window).scrollTop();
 	    componentModel.update({
-	      scrollY: top,
+	      scrollY: scrollY,
 	      closeScroll: function() {
 	        return scrollTo(this.scrollY);
 	      }
