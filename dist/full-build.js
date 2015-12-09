@@ -65,7 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, ConceptCoachAPI, EventEmitter2, ModalCoach, PROPS, User, _, componentModel, helpers, listenAndBroadcast, modalCoachWrapped, navigation, restAPI, setupAPIListeners,
+	var $, ConceptCoachAPI, EventEmitter2, ModalCoach, PROPS, User, _, componentModel, exercise, helpers, listenAndBroadcast, modalCoachWrapped, navigation, restAPI, setupAPIListeners,
 	  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
 	  hasProp = {}.hasOwnProperty;
 
@@ -86,6 +86,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	navigation = __webpack_require__(287);
 
 	User = __webpack_require__(296);
+
+	exercise = __webpack_require__(281);
 
 	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl'];
 
@@ -112,8 +114,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  navigation.channel.on('show.*', function(eventData) {
 	    return componentAPI.emit('view.update', navigation.getDataByView(eventData.view));
 	  });
-	  return navigation.channel.on('close.for.book', function(eventData) {
+	  navigation.channel.on('close.for.book', function(eventData) {
 	    return componentAPI.emit('book.update', eventData);
+	  });
+	  return exercise.channel.on('component.*', function(eventData) {
+	    return componentAPI.emit("exercise.component." + eventData.status, eventData);
 	  });
 	};
 
@@ -33455,7 +33460,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return userInfo = {
 	      isLoggedIn: User.isLoggedIn(),
 	      isLoaded: User.isLoaded,
-	      isRegistered: course != null ? course.isRegistered() : void 0
+	      isRegistered: (course != null ? course.isRegistered() : void 0) && ((course != null ? course.id : void 0) != null)
 	    };
 	  },
 	  updateUser: function() {
@@ -45777,6 +45782,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      step: item
 	    });
 	  },
+	  componentDidUpdate: function(prevProps, prevState) {
+	    var status, step;
+	    status = this.props.status;
+	    step = this.state.step;
+	    return channel.emit("component." + status, {
+	      status: status,
+	      step: step
+	    });
+	  },
 	  render: function() {
 	    var exerciseProps, step, taskId, wrapperProps;
 	    step = this.state.step;
@@ -46712,7 +46726,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (force == null) {
 	      force = false;
 	    }
-	    if (!(force || this.isLoggedIn())) {
+	    if (force || !this.isLoggedIn()) {
 	      return api.channel.emit('user.status.send.fetch');
 	    }
 	  },
@@ -46946,7 +46960,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.state.course.channel.off('change', this.onCourseChange);
 	  },
 	  onComplete: function() {
-	    this.state.course.persist(User);
+	    User.ensureStatusLoaded(true);
 	    return Navigation.channel.emit('show.panel', {
 	      view: 'task'
 	    });
@@ -47339,7 +47353,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	  },
 	  onComplete: function() {
-	    this.state.course.persist(User);
+	    User.ensureStatusLoaded(true);
 	    return this.showTasks();
 	  },
 	  renderComplete: function(course) {
@@ -47410,15 +47424,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (failedData != null ? failedData.stopErrorDisplay : void 0) {
 	      return;
 	    }
-	    errors = [response.status + ": " + response.statusText];
-	    if (_.isArray((ref = failedData.data) != null ? ref.errors : void 0)) {
-	      errors = errors.concat(_.flatten(_.map(failedData.data.errors, function(error) {
-	        if (error.code) {
-	          return error.code;
-	        } else {
-	          return JSON.stringify(error);
-	        }
-	      })));
+	    if (response.status === 0) {
+	      errors = ["Unknown response received from server"];
+	    } else {
+	      errors = [response.status + ": " + response.statusText];
+	      if (_.isArray((ref = failedData.data) != null ? ref.errors : void 0)) {
+	        errors = errors.concat(_.flatten(_.map(failedData.data.errors, function(error) {
+	          if (error.code) {
+	            return error.code;
+	          } else {
+	            return JSON.stringify(error);
+	          }
+	        })));
+	      }
 	    }
 	    return this.setState({
 	      errors: errors
