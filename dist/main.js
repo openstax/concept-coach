@@ -221,7 +221,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return userInfo = {
 	      isLoggedIn: User.isLoggedIn(),
 	      isLoaded: User.isLoaded,
-	      isRegistered: (course != null ? course.isRegistered() : void 0) && ((course != null ? course.id : void 0) != null)
+	      isRegistered: course != null ? course.isRegistered() : void 0
 	    };
 	  },
 	  updateUser: function() {
@@ -26856,7 +26856,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  Course.prototype.isRegistered = function() {
-	    return !(this.isIncomplete() || this.isPending());
+	    return this.id && !(this.isIncomplete() || this.isPending());
 	  };
 
 	  Course.prototype.isIncomplete = function() {
@@ -26928,7 +26928,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  Course.prototype.persist = function(user) {
 	    var other;
 	    other = user.findOrCreateCourse(this.ecosystem_book_uuid);
-	    other.name = this.to.course.name;
+	    _.extend(other, this.to.course);
 	    other.periods = [this.to.period];
 	    return user.onCourseUpdate(other);
 	  };
@@ -27070,7 +27070,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return !!this.profile_url;
 	  },
 	  onCourseUpdate: function(course) {
-	    return this.channel.emit('change');
+	    this.channel.emit('change');
+	    return this.ensureStatusLoaded(true);
 	  },
 	  removeCourse: function(course) {
 	    var index;
@@ -27296,7 +27297,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.state.course.channel.off('change', this.onCourseChange);
 	  },
 	  onComplete: function() {
-	    User.ensureStatusLoaded(true);
+	    this.state.course.persist(User);
 	    return Navigation.channel.emit('show.panel', {
 	      view: 'task'
 	    });
@@ -27689,7 +27690,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	  },
 	  onComplete: function() {
-	    User.ensureStatusLoaded(true);
+	    this.state.course.persist(User);
 	    return this.showTasks();
 	  },
 	  renderComplete: function(course) {
