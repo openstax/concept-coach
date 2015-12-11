@@ -1274,13 +1274,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return stepState = this.getStepState(this.props);
 	  },
 	  componentWillMount: function() {
-	    this.clearKeys();
 	    if (this.props.allowKeyNext) {
-	      return this.startKeys();
+	      return keymaster('enter', this.onContinue);
 	    }
 	  },
 	  componentWillUnmount: function() {
-	    return this.clearKeys();
+	    if (this.props.allowKeyNext) {
+	      return keymaster.unbind('enter');
+	    }
 	  },
 	  shouldComponentUpdate: function(nextProps, nextState) {
 	    return !(_.isEqual(this.props, nextProps) && this.props.isContinueEnabled === this.isContinueEnabled(this.props, this.state) && this.isContinueEnabled(this.props, this.state) === this.isContinueEnabled(nextProps, nextState));
@@ -1297,18 +1298,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  updateKeyBind: function(allowKeyNext) {
 	    if (allowKeyNext) {
-	      return this.startKeys();
+	      return keymaster('enter', this.onContinue);
 	    } else {
-	      return this.clearKeys();
+	      return keymaster.unbind('enter');
 	    }
-	  },
-	  startKeys: function() {
-	    keymaster('enter', 'multiple-choice', this.onContinue);
-	    return keymaster.setScope('multiple-choice');
-	  },
-	  clearKeys: function() {
-	    keymaster.unbind('enter', 'multiple-choice');
-	    return keymaster.deleteScope('multiple-choice');
 	  },
 	  getStepState: function(props) {
 	    var step;
@@ -3946,7 +3939,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var EventEmitter2, channel, initialize, loader, settings;
+	var EventEmitter2, IS_INITIALIZED, channel, initialize, loader, settings;
 
 	EventEmitter2 = __webpack_require__(5);
 
@@ -3958,11 +3951,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  wildcard: true
 	});
 
+	IS_INITIALIZED = false;
+
 	initialize = function(baseUrl) {
 	  if (settings.baseUrl == null) {
 	    settings.baseUrl = baseUrl;
 	  }
-	  return loader(channel, settings);
+	  if (!IS_INITIALIZED) {
+	    loader(channel, settings);
+	  }
+	  return IS_INITIALIZED = true;
 	};
 
 	module.exports = {
@@ -4062,11 +4060,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	  return _.delay(function() {
 	    return $.ajax(apiSetting).then(function(responseData) {
-	      var completedData, completedEvent;
+	      var completedData, completedEvent, error;
 	      delete LOADING[apiSetting.url];
-	      completedEvent = interpolate(setting.completedEvent, requestEvent.data);
-	      completedData = getResponseDataByEnv(isLocal, requestEvent, responseData);
-	      return apiEventChannel.emit(completedEvent, completedData);
+	      try {
+	        completedEvent = interpolate(setting.completedEvent, requestEvent.data);
+	        completedData = getResponseDataByEnv(isLocal, requestEvent, responseData);
+	        return apiEventChannel.emit(completedEvent, completedData);
+	      } catch (_error) {
+	        error = _error;
+	        return apiEventChannel.emit('error', {
+	          apiSetting: apiSetting,
+	          response: responseData,
+	          failedData: completedData,
+	          exception: error
+	        });
+	      }
 	    }).fail(function(response) {
 	      var failedData, failedEvent, responseJSON;
 	      delete LOADING[apiSetting.url];
@@ -26951,6 +26959,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  Course.prototype._onConfirmed = function(response) {
 	    var data;
+	    if (_.isEmpty(response)) {
+	      throw new Error("response is empty in onConfirmed");
+	    }
 	    data = response.data;
 	    if (data != null ? data.to : void 0) {
 	      _.extend(this, data.to.course);
@@ -26981,9 +26992,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  Course.prototype._onRegistered = function(response) {
 	    var data;
+	    if (_.isEmpty(response)) {
+	      throw new Error("response is empty in onRegistered");
+	    }
 	    data = response.data;
-	    _.extend(this, data);
-	    this.errors = data.errors;
+	    if (data) {
+	      _.extend(this, data);
+	    }
+	    this.errors = data != null ? data.errors : void 0;
 	    this.is_concept_coach = true;
 	    if (this.errors) {
 	      response.stopErrorDisplay = true;
@@ -27756,12 +27772,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return api.channel.off('error', this.onError);
 	  },
 	  onError: function(arg) {
-	    var errors, failedData, ref, response;
-	    response = arg.response, failedData = arg.failedData;
+	    var errors, exception, failedData, ref, response;
+	    response = arg.response, failedData = arg.failedData, exception = arg.exception;
 	    if (failedData != null ? failedData.stopErrorDisplay : void 0) {
 	      return;
 	    }
-	    if (response.status === 0) {
+	    if (exception != null) {
+	      errors = [exception.toString()];
+	    } else if (response.status === 0) {
 	      errors = ["Unknown response received from server"];
 	    } else {
 	      errors = [response.status + ": " + response.statusText];
@@ -27841,7 +27859,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var AccountsIframe, React, User, api, classnames;
+	/* WEBPACK VAR INJECTION */(function(_) {var AccountsIframe, React, User, api, classnames;
 
 	React = __webpack_require__(2);
 
@@ -27954,6 +27972,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	  componentWillMount: function() {
 	    return window.addEventListener('message', this.parseAndDispatchMessage);
 	  },
+	  safariWarning: function() {
+	    var a, browser, url;
+	    browser = window.navigator.userAgent;
+	    if (!(this.props.type === 'login' && _.contains(browser, 'Safari') && !_.contains(browser, 'Chrome'))) {
+	      return;
+	    }
+	    a = document.createElement('a');
+	    a.href = User.endpoints.accounts_iframe;
+	    url = "https://" + a.hostname + "/";
+	    return React.createElement("div", {
+	      "class": "warning"
+	    }, React.createElement("h3", null, "Warning!  You appear to be using the Safari web-browser."), "Unfortunantly, you cannot login from here. Please visit\n the ", React.createElement("a", {
+	      "target": "_blank",
+	      "href": url
+	    }, "OpenStax Account Login"), " page to login directly and then return to Concept Coach.\nAfter you do so, your login should be activated.");
+	  },
 	  render: function() {
 	    var className, me, ref, url;
 	    me = window.location.protocol + '//' + window.location.host;
@@ -27964,7 +27998,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	    return React.createElement("div", {
 	      "className": className
-	    }, React.createElement("div", {
+	    }, this.safariWarning(), React.createElement("div", {
 	      "className": "heading"
 	    }, React.createElement("h3", {
 	      "className": "title"
@@ -27987,6 +28021,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = AccountsIframe;
 
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
 /* 71 */
@@ -39913,7 +39948,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 
 	  ConceptCoachAPI.prototype.open = function(mountNode, props) {
-	    var modalNode;
+	    var modalNode, onPopStateClose;
 	    props = _.clone(props);
 	    if (props.defaultView == null) {
 	      props.defaultView = componentModel.isSame ? componentModel.view : 'task';
@@ -39928,11 +39963,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    props.close = function() {
 	      componentModel.channel.emit('close.clicked');
 	      modalCoachWrapped.unmountFrom(modalNode);
-	      return mountNode.removeChild(modalNode);
+	      if (modalNode.parentNode === mountNode) {
+	        return mountNode.removeChild(modalNode);
+	      }
 	    };
 	    User.channel.once('logout.received', function() {
 	      return props.close();
 	    });
+	    onPopStateClose = function() {
+	      props.close();
+	      return window.removeEventListener('popstate', onPopStateClose);
+	    };
+	    window.addEventListener('popstate', onPopStateClose);
 	    this.component = modalCoachWrapped.render(modalNode, props);
 	    this.close = props.close;
 	    return this.component;
