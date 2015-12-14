@@ -33312,7 +33312,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(165), ConceptCoach = ref.ConceptCoach, channel = ref.channel;
 
-	CCModal = __webpack_require__(402).CCModal;
+	CCModal = __webpack_require__(404).CCModal;
 
 	ModalCoach = React.createClass({
 	  displayName: 'ModalCoach',
@@ -33331,7 +33331,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 165 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var AccountsIframe, ConceptCoach, CourseRegistration, Dashboard, ErrorNotification, EventEmitter2, ExerciseStep, Navigation, Progress, React, SmartOverflow, SpyMode, Task, User, VIEWS, _, channel, classnames, navigation, navigator, ref, ref1,
+	var AccountsIframe, ConceptCoach, CourseRegistration, Dashboard, ErrorNotification, EventEmitter2, ExerciseStep, LoginGateway, LogoutGateway, Navigation, Progress, React, SmartOverflow, SpyMode, Task, User, VIEWS, _, channel, classnames, navigation, navigator, ref, ref1,
 	  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 	React = __webpack_require__(8);
@@ -33359,6 +33359,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	Dashboard = __webpack_require__(309).Dashboard;
 
 	Progress = __webpack_require__(310).Progress;
+
+	LoginGateway = __webpack_require__(402);
+
+	LogoutGateway = __webpack_require__(403);
 
 	User = __webpack_require__(296);
 
@@ -33506,10 +33510,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          "className": 'fa fa-spinner fa-spin'
 	        }), " Loading ...");
 	      case 'login':
-	        return React.createElement(AccountsIframe, {
-	          "type": 'login',
-	          "onComplete": this.updateUser
-	        });
+	        return React.createElement(LoginGateway, null);
 	      case 'registration':
 	        return React.createElement(CourseRegistration, React.__spread({}, this.props));
 	      case 'task':
@@ -46760,6 +46761,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.channel.emit('change');
 	    return this.ensureStatusLoaded(true);
 	  },
+	  urlForLogin: function() {
+	    return this._urlWithReturn('login');
+	  },
+	  urlForLogout: function() {
+	    return this._urlWithReturn('logout');
+	  },
+	  _urlWithReturn: function(type) {
+	    var self;
+	    self = encodeURIComponent(window.location.href);
+	    return this.endpoints[type] + '?parent=' + self;
+	  },
 	  removeCourse: function(course) {
 	    var index;
 	    index = this.courses.indexOf(course);
@@ -59513,6 +59525,130 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 402 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var LoginGateway, React, User, api;
+
+	React = __webpack_require__(8);
+
+	User = __webpack_require__(296);
+
+	api = __webpack_require__(159);
+
+	LoginGateway = React.createClass({displayName: "LoginGateway",
+	  getInitialState: function() {
+	    return {
+	      loginWindow: false
+	    };
+	  },
+	  openLogin: function(ev) {
+	    var loginWindow, nY, oY, options, ref;
+	    ev.preventDefault();
+	    nY = Math.min(1000, window.screen.width - 20);
+	    oY = Math.min(800, window.screen.height - 30);
+	    options = [
+	      "toolbar=no", "location=" + ((ref = window.opera) != null ? ref : {
+	        "no": "yes"
+	      }), "directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no", "width=" + nY, "height=" + oY, "top=" + (window.screen.height - oY) / 2, "left=" + (window.screen.width - nY) / 2
+	    ].join();
+	    loginWindow = window.open(User.urlForLogin(), 'oxlogin', options);
+	    return this.setState({
+	      loginWindow: loginWindow
+	    });
+	  },
+	  parseAndDispatchMessage: function(msg) {
+	    var error;
+	    if (!this.isMounted()) {
+	      return;
+	    }
+	    try {
+	      this.state.loginWindow.close();
+	      return api.channel.emit('user.status.receive.fetch', {
+	        data: JSON.parse(msg.data)
+	      });
+	    } catch (_error) {
+	      error = _error;
+	      return console.warn(error);
+	    }
+	  },
+	  componentWillUnmount: function() {
+	    return window.removeEventListener('message', this.parseAndDispatchMessage);
+	  },
+	  componentWillMount: function() {
+	    return window.addEventListener('message', this.parseAndDispatchMessage);
+	  },
+	  renderWaiting: function() {
+	    return React.createElement("p", null, "Please log in using your OpenStax account in the window. ", this.loginLink('Click to reopen window.'));
+	  },
+	  loginLink: function(msg) {
+	    return React.createElement("a", {
+	      "target": '_blank',
+	      "onClick": this.openLogin,
+	      "href": User.urlForLogin()
+	    }, msg);
+	  },
+	  renderLogin: function() {
+	    return React.createElement("p", null, "Please ", this.loginLink('click to begin login.'));
+	  },
+	  render: function() {
+	    return React.createElement("div", {
+	      "className": 'login'
+	    }, React.createElement("h3", null, "You need to login or signup in order to use ConceptCoach™"), (this.state.loginWindow ? this.renderWaiting() : this.renderLogin()));
+	  }
+	});
+
+	module.exports = LoginGateway;
+
+
+/***/ },
+/* 403 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(_) {var LogoutGateway, React, SECOND, User;
+
+	React = __webpack_require__(8);
+
+	User = __webpack_require__(296);
+
+	SECOND = 1000;
+
+	LogoutGateway = React.createClass({displayName: "LogoutGateway",
+	  getInitialState: function() {
+	    return {
+	      seconds: 10
+	    };
+	  },
+	  componentWillMount: function() {
+	    return _.delay(this.tick, SECOND);
+	  },
+	  tick: function() {
+	    if (!this.isMounted()) {
+	      return;
+	    }
+	    if (this.state.seconds < 1) {
+	      return window.location.href = User.endpoints.login;
+	    } else {
+	      this.setState({
+	        seconds: this.state.seconds - 1
+	      });
+	      return _.delay(this.tick, SECOND);
+	    }
+	  },
+	  render: function() {
+	    return React.createElement("div", {
+	      "className": 'logout'
+	    }, React.createElement("h3", null, "You need to login in order to use ConceptCoach™"), React.createElement("p", null, "Please ", React.createElement("a", {
+	      "href": User.endpoints.login
+	    }, "click to continue"), ",\nor you will be redirected in ", this.state.seconds, " seconds."));
+	  }
+	});
+
+	module.exports = LogoutGateway;
+
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+
+/***/ },
+/* 404 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CCModal, React, channel;
