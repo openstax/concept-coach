@@ -27103,17 +27103,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.channel.emit('change');
 	    return this.ensureStatusLoaded(true);
 	  },
-	  urlForLogin: function() {
-	    return this._urlWithReturn('login');
-	  },
-	  urlForLogout: function() {
-	    return this._urlWithReturn('logout');
-	  },
-	  _urlWithReturn: function(type) {
-	    var self;
-	    self = encodeURIComponent(window.location.href);
-	    return this.endpoints[type] + '?parent=' + self;
-	  },
 	  removeCourse: function(course) {
 	    var index;
 	    index = this.courses.indexOf(course);
@@ -28053,13 +28042,17 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var LoginGateway, React, User, api;
+	/* WEBPACK VAR INJECTION */(function(_) {var IS_IE, LoginGateway, React, SECOND, User, api;
 
 	React = __webpack_require__(2);
 
 	User = __webpack_require__(58);
 
 	api = __webpack_require__(36);
+
+	SECOND = 1000;
+
+	IS_IE = window.navigator.userAgent.indexOf("MSIE ");
 
 	LoginGateway = React.createClass({displayName: "LoginGateway",
 	  getInitialState: function() {
