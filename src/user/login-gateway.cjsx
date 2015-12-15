@@ -3,6 +3,8 @@ React = require 'react'
 User  = require './model'
 api   = require '../api'
 
+SECOND = 1000
+IS_IE  = window.navigator.userAgent.indexOf("MSIE ")
 LoginGateway = React.createClass
 
   getInitialState: ->

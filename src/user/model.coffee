@@ -44,14 +44,6 @@ User =
     @channel.emit('change')
     @ensureStatusLoaded(true) # re-fetch course list from server
 
-
-  urlForLogin:  -> @_urlWithReturn('login')
-  urlForLogout: -> @_urlWithReturn('logout')
-
-  _urlWithReturn: (type) ->
-    self = encodeURIComponent(window.location.href)
-    @endpoints[type] + '?parent=' + self
-
   removeCourse: (course) ->
     index = @courses.indexOf(course)
     @courses.splice(index, 1) unless index is -1
