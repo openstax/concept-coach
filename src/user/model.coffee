@@ -19,13 +19,6 @@ User =
   update: (data) ->
     _.extend(this, data.user)
     @courses = _.compact _.map data.courses, (course) -> new Course(course) if course.is_concept_coach
-
-    @channel.emit('change')
-    delete @isLoggingOut
-
-  logout: ->
-    _.extend(this, BLANK_USER)
-    @isLoggingOut = true
     @channel.emit('change')
 
   get: ->
@@ -65,19 +58,30 @@ User =
     @channel.emit('change')
 
   _signalLogoutCompleted: ->
-    @isLoggingOut = false
+    _.extend(this, BLANK_USER)
+    @isLoggingOut = true
     @channel.emit('logout.received')
 
-api.channel.on 'user.status.receive.*', ({data}) ->
-  User.isLoaded = true
-  if data.access_token
-    api.channel.emit('set.access_token', data.access_token)
-  User.endpoints = data.endpoints
-  if data.user
-    User.update(data)
-  else
-    _.extend(this, BLANK_USER)
-    User.channel.emit('change')
+  init: ->
+    api.channel.on 'user.status.receive.*', ({data}) ->
+      User.isLoaded = true
+
+      if data.access_token
+        api.channel.emit('set.access_token', data.access_token)
+      User.endpoints = data.endpoints
+      if data.user
+        User.update(data)
+      else
+        _.extend(this, BLANK_USER)
+        User.channel.emit('change')
+
+  destroy: ->
+    User.channel.removeAllListeners()
+
+    _.each @courses, (course) ->
+      course.channel.removeAllListeners()
+
+    delete @courses
 
 
 # start out as a blank user
