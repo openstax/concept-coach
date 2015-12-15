@@ -107,7 +107,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	navigator = navigation.channel;
 
-	VIEWS = ['loading', 'login', 'logout', 'registration', ['task', 'progress', 'profile', 'dashboard', 'registration']];
+	VIEWS = ['loading', 'login', 'registration', ['task', 'progress', 'profile', 'dashboard', 'registration']];
 
 	ConceptCoach = React.createClass({
 	  displayName: 'ConceptCoach',
@@ -28059,14 +28059,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  },
 	  openLogin: function(ev) {
-	    var loginWindow, nY, oY, options, ref;
+	    var height, loginWindow, options, ref, width;
 	    ev.preventDefault();
-	    nY = Math.min(1000, window.screen.width - 20);
-	    oY = Math.min(800, window.screen.height - 30);
+	    width = Math.min(1000, window.screen.width - 20);
+	    height = Math.min(800, window.screen.height - 30);
 	    options = [
 	      "toolbar=no", "location=" + ((ref = window.opera) != null ? ref : {
 	        "no": "yes"
-	      }), "directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no", "width=" + nY, "height=" + oY, "top=" + (window.screen.height - oY) / 2, "left=" + (window.screen.width - nY) / 2
+	      }), "directories=no,status=no,menubar=no,scrollbars=yes,resizable=yes,copyhistory=no", "width=" + width, "height=" + height, "top=" + (window.screen.height - height) / 2, "left=" + (window.screen.width - width) / 2
 	    ].join();
 	    loginWindow = window.open(this.urlForLogin(), 'oxlogin', options);
 	    this.setState({
@@ -28101,7 +28101,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (!this.isMounted()) {
 	      return;
 	    }
-	    console.log('win close');
 	    if (this.state.loginWindow && this.state.loginWindow.closed) {
 	      return User.ensureStatusLoaded(true);
 	    } else {
