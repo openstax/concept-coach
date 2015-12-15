@@ -28042,7 +28042,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var IS_IE, LoginGateway, React, SECOND, User, api;
+	/* WEBPACK VAR INJECTION */(function(_) {var LoginGateway, React, SECOND, User, api;
 
 	React = __webpack_require__(2);
 
@@ -28051,8 +28051,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	api = __webpack_require__(36);
 
 	SECOND = 1000;
-
-	IS_IE = window.navigator.userAgent.indexOf("MSIE ");
 
 	LoginGateway = React.createClass({displayName: "LoginGateway",
 	  getInitialState: function() {
@@ -28074,9 +28072,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.setState({
 	      loginWindow: loginWindow
 	    });
-	    if (IS_IE) {
-	      return this.ieWindowClosedCheck(loginWindow);
-	    }
+	    return _.delay(this.windowClosedCheck, SECOND);
 	  },
 	  parseAndDispatchMessage: function(msg) {
 	    var error;
@@ -28084,7 +28080,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return;
 	    }
 	    try {
-	      this.state.loginWindow.close();
+	      this.setState({
+	        loginWindow: false
+	      });
 	      return api.channel.emit('user.status.receive.fetch', {
 	        data: JSON.parse(msg.data)
 	      });
@@ -28099,18 +28097,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	  componentWillMount: function() {
 	    return window.addEventListener('message', this.parseAndDispatchMessage);
 	  },
-	  ieWindowClosedCheck: function(loginWindow) {
+	  windowClosedCheck: function() {
 	    if (!this.isMounted()) {
 	      return;
 	    }
-	    if (loginWindow.closed) {
+	    console.log('win close');
+	    if (this.state.loginWindow && this.state.loginWindow.closed) {
 	      return User.ensureStatusLoaded(true);
 	    } else {
-	      return _.delay((function(_this) {
-	        return function() {
-	          return _this.ieWindowClosedCheck(loginWindow);
-	        };
-	      })(this), SECOND);
+	      return _.delay(this.windowClosedCheck, SECOND);
 	    }
 	  },
 	  renderWaiting: function() {
