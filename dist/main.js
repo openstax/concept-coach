@@ -58,7 +58,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ConceptCoach = __webpack_require__(1).ConceptCoach;
 
-	ConceptCoachAPI = __webpack_require__(79);
+	ConceptCoachAPI = __webpack_require__(80);
 
 	module.exports = {
 	  ConceptCoach: ConceptCoach,
@@ -129,6 +129,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return userState;
 	  },
 	  childContextTypes: {
+	    moduleUUID: React.PropTypes.string,
+	    collectionUUID: React.PropTypes.string,
 	    view: React.PropTypes.oneOf(_.flatten(VIEWS)),
 	    cnxUrl: React.PropTypes.string,
 	    bookUrlPattern: React.PropTypes.string,
@@ -136,16 +138,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	    navigator: React.PropTypes.instanceOf(EventEmitter2)
 	  },
 	  getChildContext: function() {
-	    var bookUrlPattern, close, cnxUrl, ref2, view;
+	    var bookUrlPattern, close, cnxUrl, collectionUUID, moduleUUID, ref2, view;
 	    view = this.state.view;
-	    ref2 = this.props, cnxUrl = ref2.cnxUrl, close = ref2.close;
+	    ref2 = this.props, cnxUrl = ref2.cnxUrl, close = ref2.close, moduleUUID = ref2.moduleUUID, collectionUUID = ref2.collectionUUID;
 	    bookUrlPattern = '{cnxUrl}/contents/{ecosystem_book_uuid}';
 	    return {
 	      view: view,
 	      cnxUrl: cnxUrl,
 	      close: close,
 	      bookUrlPattern: bookUrlPattern,
-	      navigator: navigator
+	      navigator: navigator,
+	      moduleUUID: moduleUUID,
+	      collectionUUID: collectionUUID
 	    };
 	  },
 	  componentWillMount: function() {
@@ -1269,21 +1273,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      disabled: false,
 	      isContinueEnabled: true,
 	      footer: React.createElement(ExerciseDefaultFooter, null),
-	      allowKeyNext: true
+	      allowKeyNext: false
 	    };
 	  },
 	  getInitialState: function() {
 	    var stepState;
 	    return stepState = this.getStepState(this.props);
-	  },
-	  componentWillMount: function() {
-	    this.clearKeys();
-	    if (this.props.allowKeyNext) {
-	      return this.startKeys();
-	    }
-	  },
-	  componentWillUnmount: function() {
-	    return this.clearKeys();
 	  },
 	  shouldComponentUpdate: function(nextProps, nextState) {
 	    return !(_.isEqual(this.props, nextProps) && this.props.isContinueEnabled === this.isContinueEnabled(this.props, this.state) && this.isContinueEnabled(this.props, this.state) === this.isContinueEnabled(nextProps, nextState));
@@ -2065,21 +2060,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return typeof (base = this.props).onFreeResponseChange === "function" ? base.onFreeResponseChange(freeResponse) : void 0;
 	  },
 	  render: function() {
-	    var content, disabled, freeResponse, free_response, onFreeResponseChange, question, ref1;
+	    var content, disabled, freeResponse, free_response, htmlAndMathProps, onFreeResponseChange, question, ref1;
 	    ref1 = this.props, content = ref1.content, disabled = ref1.disabled, onFreeResponseChange = ref1.onFreeResponseChange, free_response = ref1.free_response;
 	    freeResponse = this.state.freeResponse;
 	    question = content.questions[0];
+	    htmlAndMathProps = _.pick(this.props, 'processHtmlAndMath');
 	    return React.createElement("div", {
 	      "className": 'openstax-exercise'
-	    }, React.createElement(ArbitraryHtmlAndMath, {
+	    }, React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
 	      "className": 'stimulus',
 	      "block": true,
 	      "html": content.stimulus_html
-	    }), React.createElement(ArbitraryHtmlAndMath, {
+	    })), React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
 	      "className": 'stem',
 	      "block": true,
 	      "html": question.stem_html
-	    }), React.createElement("textarea", {
+	    })), React.createElement("textarea", {
 	      "disabled": disabled,
 	      "ref": 'freeResponse',
 	      "placeholder": 'Enter your response',
@@ -2124,13 +2120,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return typeof (base = this.props).onAnswerChanged === "function" ? base.onAnswerChanged(answer) : void 0;
 	  },
 	  render: function() {
-	    var answerId, answerKeySet, choicesEnabled, content, correct_answer_id, free_response, question, ref1;
+	    var answerId, answerKeySet, choicesEnabled, content, correct_answer_id, free_response, htmlAndMathProps, question, ref1;
 	    ref1 = this.props, content = ref1.content, free_response = ref1.free_response, correct_answer_id = ref1.correct_answer_id, choicesEnabled = ref1.choicesEnabled, answerKeySet = ref1.answerKeySet;
 	    question = content.questions[0];
 	    answerId = this.state.answerId;
+	    htmlAndMathProps = _.pick(this.props, 'processHtmlAndMath');
 	    return React.createElement("div", {
 	      "className": 'openstax-exercise'
-	    }, React.createElement(Question, {
+	    }, React.createElement(Question, React.__spread({}, htmlAndMathProps, {
 	      "answer_id": answerId,
 	      "onChange": this.onAnswerChanged,
 	      "choicesEnabled": choicesEnabled,
@@ -2138,7 +2135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "exercise_uid": content.uid,
 	      "correct_answer_id": correct_answer_id,
 	      "keySet": answerKeySet
-	    }, React.createElement(FreeResponse, {
+	    }), React.createElement(FreeResponse, {
 	      "free_response": free_response
 	    })));
 	  }
@@ -2148,12 +2145,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  displayName: 'ExReview',
 	  propTypes: propTypes.ExReview,
 	  render: function() {
-	    var answer_id, content, correct_answer_id, feedback_html, free_response, onChangeAnswerAttempt, question, ref1, type;
+	    var answer_id, content, correct_answer_id, feedback_html, free_response, htmlAndMathProps, onChangeAnswerAttempt, question, ref1, type;
 	    ref1 = this.props, content = ref1.content, free_response = ref1.free_response, answer_id = ref1.answer_id, correct_answer_id = ref1.correct_answer_id, feedback_html = ref1.feedback_html, type = ref1.type, onChangeAnswerAttempt = ref1.onChangeAnswerAttempt;
 	    question = content.questions[0];
+	    htmlAndMathProps = _.pick(this.props, 'processHtmlAndMath');
 	    return React.createElement("div", {
 	      "className": 'openstax-exercise'
-	    }, React.createElement(Question, {
+	    }, React.createElement(Question, React.__spread({}, htmlAndMathProps, {
 	      "key": 'step-question',
 	      "model": question,
 	      "answer_id": answer_id,
@@ -2162,7 +2160,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "feedback_html": feedback_html,
 	      "type": type,
 	      "onChangeAttempt": onChangeAnswerAttempt
-	    }, React.createElement(FreeResponse, {
+	    }), React.createElement(FreeResponse, {
 	      "free_response": free_response
 	    })));
 	  }
@@ -2202,7 +2200,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  propTypes: {
 	    className: React.PropTypes.string,
 	    html: React.PropTypes.string,
-	    block: React.PropTypes.bool.isRequired
+	    block: React.PropTypes.bool.isRequired,
+	    processHtmlAndMath: React.PropTypes.func
 	  },
 	  getDefaultProps: function() {
 	    return {
@@ -2252,7 +2251,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.updateDOMNode();
 	  },
 	  updateDOMNode: function() {
-	    var links, root;
+	    var base, links, root;
 	    root = this.getDOMNode();
 	    links = root.querySelectorAll('a');
 	    _.each(links, function(link) {
@@ -2261,7 +2260,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return link.setAttribute('target', '_blank');
 	      }
 	    });
-	    return typesetMath(root);
+	    return (typeof (base = this.props).processHtmlAndMath === "function" ? base.processHtmlAndMath(root) : void 0) || typesetMath(root);
 	  }
 	});
 
@@ -2378,7 +2377,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Answer, ArbitraryHtml, Feedback, KEYS, KEYSETS_PROPS, React, _, classnames, idCounter, isAnswerChecked, isAnswerCorrect, keymaster, keysHelper,
+	var Answer, ArbitraryHtmlAndMath, Feedback, KEYS, KEYSETS_PROPS, React, _, classnames, idCounter, isAnswerChecked, isAnswerCorrect, keymaster, keysHelper,
 	  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 	React = __webpack_require__(2);
@@ -2403,7 +2402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	KEYSETS_PROPS.push(null);
 
-	ArbitraryHtml = __webpack_require__(17);
+	ArbitraryHtmlAndMath = __webpack_require__(17);
 
 	idCounter = 0;
 
@@ -2464,8 +2463,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return keysHelper.off(keyControl, 'multiple-choice');
 	    }
 	  },
+	  contextTypes: {
+	    processHtmlAndMath: React.PropTypes.func
+	  },
 	  render: function() {
-	    var answer, answered_count, chosenAnswer, classes, correctAnswerId, disabled, feedback, hasCorrectAnswer, isChecked, isCorrect, iter, onChangeAnswer, percent, qid, radioBox, ref, selectedCount, type;
+	    var answer, answered_count, chosenAnswer, classes, correctAnswerId, disabled, feedback, hasCorrectAnswer, htmlAndMathProps, isChecked, isCorrect, iter, onChangeAnswer, percent, qid, radioBox, ref, selectedCount, type;
 	    ref = this.props, answer = ref.answer, iter = ref.iter, qid = ref.qid, type = ref.type, correctAnswerId = ref.correctAnswerId, answered_count = ref.answered_count, hasCorrectAnswer = ref.hasCorrectAnswer, chosenAnswer = ref.chosenAnswer, onChangeAnswer = ref.onChangeAnswer, disabled = ref.disabled;
 	    if (qid == null) {
 	      qid = "auto-" + (idCounter++);
@@ -2500,6 +2502,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        "key": 'question-mc-feedback'
 	      }, answer.feedback_html);
 	    }
+	    htmlAndMathProps = _.pick(this.context, 'processHtmlAndMath');
 	    return React.createElement("div", null, React.createElement("div", {
 	      "className": classes
 	    }, selectedCount, radioBox, React.createElement("label", {
@@ -2507,10 +2510,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "className": 'answer-label'
 	    }, React.createElement("div", {
 	      "className": 'answer-letter'
-	    }), React.createElement(ArbitraryHtml, {
+	    }), React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
 	      "className": 'answer-content',
 	      "html": answer.content_html
-	    }))), feedback);
+	    })))), feedback);
 	  }
 	});
 
@@ -2525,18 +2528,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	      position: 'bottom'
 	    };
 	  },
+	  contextTypes: {
+	    processHtmlAndMath: React.PropTypes.func
+	  },
 	  render: function() {
-	    var wrapperClasses;
+	    var htmlAndMathProps, wrapperClasses;
 	    wrapperClasses = classnames('question-feedback', this.props.position);
+	    htmlAndMathProps = _.pick(this.context, 'processHtmlAndMath');
 	    return React.createElement("div", {
 	      "className": wrapperClasses
 	    }, React.createElement("div", {
 	      "className": 'arrow'
-	    }), React.createElement(ArbitraryHtml, {
+	    }), React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
 	      "className": 'question-feedback-content has-html',
 	      "html": this.props.children,
 	      "block": true
-	    }));
+	    })));
 	  }
 	});
 
@@ -2567,6 +2574,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      keySet: 'multiple-choice'
 	    };
 	  },
+	  childContextTypes: {
+	    processHtmlAndMath: React.PropTypes.func
+	  },
+	  getChildContext: function() {
+	    return {
+	      processHtmlAndMath: this.props.processHtmlAndMath
+	    };
+	  },
 	  onChangeAnswer: function(answer, changeEvent) {
 	    var base;
 	    if (this.props.onChange != null) {
@@ -2580,7 +2595,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  },
 	  render: function() {
-	    var answered_count, answers, checkedAnswerIndex, choicesEnabled, chosenAnswer, classes, correct_answer_id, feedback, hasCorrectAnswer, html, keySet, qid, questionAnswerProps, ref, type;
+	    var answered_count, answers, checkedAnswerIndex, choicesEnabled, chosenAnswer, classes, correct_answer_id, feedback, hasCorrectAnswer, html, htmlAndMathProps, keySet, qid, questionAnswerProps, ref, type;
 	    ref = this.props, type = ref.type, answered_count = ref.answered_count, choicesEnabled = ref.choicesEnabled, correct_answer_id = ref.correct_answer_id, keySet = ref.keySet;
 	    chosenAnswer = [this.props.answer_id, this.state.answer_id];
 	    checkedAnswerIndex = null;
@@ -2622,16 +2637,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if ((feedback != null) && (checkedAnswerIndex != null)) {
 	      answers.splice(checkedAnswerIndex + 1, 0, feedback);
 	    }
+	    htmlAndMathProps = _.pick(this.props, 'processHtmlAndMath');
 	    classes = classnames('openstax-question', {
 	      'has-correct-answer': hasCorrectAnswer
 	    });
 	    return React.createElement("div", {
 	      "className": classes
-	    }, React.createElement(ArbitraryHtml, {
+	    }, React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
 	      "className": 'question-stem',
 	      "block": true,
 	      "html": html
-	    }), this.props.children, React.createElement("div", {
+	    })), this.props.children, React.createElement("div", {
 	      "className": 'answers-table'
 	    }, answers), React.createElement("div", {
 	      "className": "exercise-uid"
@@ -3026,7 +3042,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var className, classes, crumb, crumbClasses, crumbType, goToStep, iconClasses, isCompleted, isCorrect, isCurrent, isEnd, isIncorrect, propsToPassOn, ref, ref1, status, step, title;
 	    ref = this.props, step = ref.step, crumb = ref.crumb, goToStep = ref.goToStep, className = ref.className;
 	    ref1 = this.state, isCorrect = ref1.isCorrect, isIncorrect = ref1.isIncorrect, isCurrent = ref1.isCurrent, isCompleted = ref1.isCompleted, isEnd = ref1.isEnd, crumbType = ref1.crumbType;
-	    propsToPassOn = _.pick(this.props, 'onMouseEnter', 'onMouseLeave', 'style');
+	    propsToPassOn = _.pick(this.props, 'onMouseEnter', 'onMouseLeave', 'style', 'tabIndex');
 	    if (isCurrent) {
 	      title = "Current Step (" + crumbType + ")";
 	    }
@@ -3645,7 +3661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.setState(nextState);
 	  },
 	  render: function() {
-	    var currentStep, noExercises, panel, ref2, task, taskClasses, taskId;
+	    var currentStep, htmlAndMathProps, noExercises, panel, ref2, task, taskClasses, taskId;
 	    ref2 = this.state, task = ref2.task, currentStep = ref2.currentStep;
 	    taskId = this.props.taskId;
 	    if (task == null) {
@@ -3657,14 +3673,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "currentStep": currentStep
 	    }));
 	    noExercises = (task.steps == null) || _.isEmpty(task.steps);
+	    htmlAndMathProps = _.pick(this.props, 'processHtmlAndMath');
 	    if (noExercises) {
 	      panel = React.createElement(NoExercises, null);
 	    } else if (task.steps[currentStep] != null) {
-	      panel = React.createElement(ExerciseStep, {
+	      panel = React.createElement(ExerciseStep, React.__spread({}, htmlAndMathProps, {
 	        "className": 'concept-coach-task-body',
 	        "id": task.steps[currentStep].id,
 	        "pinned": false
-	      });
+	      }));
 	    } else if (this.isReviewStep(currentStep)) {
 	      panel = React.createElement(TaskReview, React.__spread({}, this.props, {
 	        "goToStep": this.goToFirstIncomplete
@@ -4083,7 +4100,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      try {
 	        completedEvent = interpolate(setting.completedEvent, requestEvent.data);
 	        completedData = getResponseDataByEnv(isLocal, requestEvent, responseData);
-	        return apiEventChannel.emit(completedEvent, completedData);
+	        apiEventChannel.emit(completedEvent, completedData);
+	        return apiEventChannel.emit('success', {
+	          responseData: responseData,
+	          apiSetting: apiSetting,
+	          completedData: completedData
+	        });
 	      } catch (_error) {
 	        error = _error;
 	        return apiEventChannel.emit('error', {
@@ -25758,7 +25780,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    'courseDashboard.*.send.fetch': {
 	      url: 'api/courses/{id}/cc/dashboard',
 	      method: 'GET',
-	      baseUrl: typeof process !== "undefined" && process !== null ? (ref = ({"NODE_ENV":"production"})) != null ? ref.BASE_URL : void 0 : void 0,
+	      baseUrl: typeof process !== "undefined" && process !== null ? (ref = ({"NODE_ENV":undefined})) != null ? ref.BASE_URL : void 0 : void 0,
 	      completedEvent: 'courseDashboard.{id}.receive.fetch'
 	    },
 	    'course.*.send.registration': {
@@ -26604,20 +26626,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  contextTypes: {
 	    close: React.PropTypes.func
 	  },
-	  broadcastNav: function() {
+	  broadcastNav: function(clickEvent) {
 	    var close, cnxUrl, collectionUUID, link, moduleUUID, ref, taskId;
+	    clickEvent.preventDefault();
 	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
 	    close = this.context.close;
 	    link = tasks.getModuleInfo(taskId, cnxUrl).link;
-	    componentModel.update({
-	      scrollY: 0
-	    });
 	    close();
-	    return navigation.channel.emit('close.for.book', {
+	    navigation.channel.emit('close.for.book', {
 	      collectionUUID: collectionUUID,
 	      moduleUUID: moduleUUID,
 	      link: link
 	    });
+	    return true;
 	  },
 	  render: function() {
 	    var close, cnxUrl, linkProps, moduleInfo, noTitle, ref, section, sectionProps, taskId, title, titleClasses;
@@ -26766,15 +26787,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var brand, course, courseItems, view;
 	    course = this.props.course;
 	    view = this.context.view;
-	    brand = React.createElement("span", null, React.createElement("strong", null, "Concept"), " Coach");
+	    brand = [
+	      React.createElement("span", {
+	        "className": 'navbar-logo'
+	      }, React.createElement("strong", null, "Concept"), " Coach"), React.createElement(CourseNameBase, {
+	        "className": 'hidden-sm hidden-xs',
+	        "course": course
+	      })
+	    ];
 	    if (course != null ? course.isRegistered() : void 0) {
 	      courseItems = [
 	        React.createElement(BS.NavItem, {
-	          "active": view === 'task',
-	          "eventKey": 'task',
-	          "key": 'task',
-	          "className": 'concept-coach-exercise-nav'
-	        }, "Exercise"), React.createElement(BS.NavItem, {
 	          "active": view === 'progress',
 	          "eventKey": 'progress',
 	          "key": 'progress',
@@ -26791,13 +26814,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "eventKey": 0.,
 	      "collapsible": true
 	    }, React.createElement(BS.Nav, {
-	      "navbar": true,
-	      "onSelect": this.handleSelect
-	    }, React.createElement(BS.NavItem, {
-	      "disabled": true
-	    }, React.createElement(CourseNameBase, {
-	      "course": course
-	    }))), React.createElement(BS.Nav, {
 	      "right": true,
 	      "navbar": true,
 	      "activeKey": view,
@@ -26823,11 +26839,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var CourseNameBase, React, _;
+	var CourseNameBase, React, _, classnames;
 
 	React = __webpack_require__(2);
 
 	_ = __webpack_require__(3);
+
+	classnames = __webpack_require__(4);
 
 	CourseNameBase = React.createClass({
 	  displayName: 'CourseNameBase',
@@ -26837,10 +26855,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  },
 	  render: function() {
-	    var course;
-	    course = this.props.course;
+	    var className, classes, course, ref;
+	    ref = this.props, course = ref.course, className = ref.className;
+	    classes = classnames('concept-coach-course-name', className);
 	    return React.createElement("span", {
-	      "className": 'concept-coach-course-name'
+	      "className": classes
 	    }, typeof course.description === "function" ? course.description() : void 0);
 	  }
 	});
@@ -26865,14 +26884,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	api = __webpack_require__(36);
 
 	ERROR_MAP = {
-	  invalid_enrollment_code: 'The enrollment code is invalid',
+	  invalid_enrollment_code: 'This is not a valid enrollment code for this book. Please try again. Contact your instructor to verify your enrollment code.',
 	  enrollment_code_does_not_match_book: 'The enrollment code is invalid for this content',
 	  already_enrolled: 'You are already enrolled in this course',
 	  multiple_roles: 'You are listed as both  teacher and a student',
 	  dropped_student: 'Your account is  unable to participate at this time',
 	  already_processed: 'The request has already been processed',
-	  already_approved: 'The request has already been proccessed',
-	  already_rejected: 'The request has already been rejected',
+	  already_approved: 'The request has already been approved',
+	  already_rejected: 'The request has been rejected',
 	  taken: 'The Student ID is already a member'
 	};
 
@@ -27183,7 +27202,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  componentWillMount: function() {
 	    return this.getUser().ensureStatusLoaded();
 	  },
-	  logoutUser: function() {
+	  logoutUser: function(clickEvent) {
+	    clickEvent.preventDefault();
 	    return this.context.navigator.emit('show.logout', {
 	      view: 'logout'
 	    });
@@ -27649,7 +27669,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  render: function() {
 	    var label;
-	    label = this.props.optionalStudentId ? "Update Student ID (leave blank to leave unchanged):" : "My Student ID is:";
+	    label = this.props.optionalStudentId ? React.createElement("span", null, "Update school issued ID", React.createElement("br", null), "(", React.createElement("i", null, "leave blank to leave unchanged"), "):") : "Enter your school issued ID:";
 	    return React.createElement("div", {
 	      "className": "form-group"
 	    }, React.createElement("h3", {
@@ -27662,7 +27682,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "type": "text",
 	      "ref": "input",
 	      "label": label,
-	      "placeholder": "Student ID",
+	      "placeholder": "School issued ID",
 	      "autoFocus": true,
 	      "onKeyPress": this.onKeyPress
 	    }), React.createElement("div", {
@@ -27884,7 +27904,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var AccountsIframe, React, User, api, classnames;
+	var AccountsIframe, React, User, api, classnames;
 
 	React = __webpack_require__(2);
 
@@ -27989,22 +28009,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  componentWillMount: function() {
 	    return window.addEventListener('message', this.parseAndDispatchMessage);
 	  },
-	  safariWarning: function() {
-	    var a, browser, url;
-	    browser = window.navigator.userAgent;
-	    if (!(this.props.type === 'login' && _.contains(browser, 'Safari') && !_.contains(browser, 'Chrome'))) {
-	      return;
-	    }
-	    a = document.createElement('a');
-	    a.href = User.endpoints.accounts_iframe;
-	    url = "https://" + a.hostname + "/";
-	    return React.createElement("div", {
-	      "class": "warning"
-	    }, React.createElement("h3", null, "Warning!  You appear to be using the Safari web-browser."), "Unfortunantly, you cannot login from here. Please visit\n the ", React.createElement("a", {
-	      "target": "_blank",
-	      "href": url
-	    }, "OpenStax Account Login"), " page to login directly and then return to Concept Coach.\nAfter you do so, your login should be activated.");
-	  },
 	  render: function() {
 	    var className, me, ref, url;
 	    me = window.location.protocol + '//' + window.location.host;
@@ -28013,7 +28017,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    className = classnames('accounts-iframe', this.props.type);
 	    return React.createElement("div", {
 	      "className": className
-	    }, this.safariWarning(), React.createElement("div", {
+	    }, React.createElement("div", {
 	      "className": "heading"
 	    }, React.createElement("h3", {
 	      "className": "title"
@@ -28036,7 +28040,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = AccountsIframe;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
 /* 71 */
@@ -28075,7 +28078,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return _.delay(this.windowClosedCheck, SECOND);
 	  },
 	  parseAndDispatchMessage: function(msg) {
-	    var error;
+	    var data, error;
 	    if (!this.isMounted()) {
 	      return;
 	    }
@@ -28083,9 +28086,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.setState({
 	        loginWindow: false
 	      });
-	      return api.channel.emit('user.status.receive.fetch', {
-	        data: JSON.parse(msg.data)
-	      });
+	      data = JSON.parse(msg.data);
+	      if (data.user) {
+	        return api.channel.emit('user.status.receive.fetch', {
+	          data: data
+	        });
+	      }
 	    } catch (_error) {
 	      error = _error;
 	      return console.warn(error);
@@ -28115,13 +28121,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  loginLink: function(msg) {
 	    return React.createElement("a", {
-	      "target": '_blank',
+	      "data-bypass": true,
 	      "onClick": this.openLogin,
 	      "href": this.urlForLogin()
 	    }, msg);
 	  },
 	  renderLogin: function() {
-	    return React.createElement("p", null, "Please ", this.loginLink('click to begin login.'));
+	    return React.createElement("p", null, this.loginLink('click to begin login.'));
 	  },
 	  render: function() {
 	    return React.createElement("div", {
@@ -28197,7 +28203,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ChapterProgress, ChapterSectionMixin, ExerciseButton, Progress, ProgressBase, React, Reactive, _, apiChannelName, channel, classnames, progresses;
+	var ChapterProgress, ChapterSectionMixin, CurrentProgress, ExerciseButton, Progress, ProgressBase, React, Reactive, _, apiChannelName, channel, classnames, progresses, tasks;
 
 	React = __webpack_require__(2);
 
@@ -28213,7 +28219,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterProgress = __webpack_require__(74).ChapterProgress;
 
-	channel = (progresses = __webpack_require__(78)).channel;
+	CurrentProgress = __webpack_require__(78).CurrentProgress;
+
+	channel = (progresses = __webpack_require__(79)).channel;
+
+	tasks = __webpack_require__(34);
 
 	apiChannelName = 'courseDashboard';
 
@@ -28224,28 +28234,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	      item: {}
 	    };
 	  },
+	  contextTypes: {
+	    moduleUUID: React.PropTypes.string,
+	    collectionUUID: React.PropTypes.string
+	  },
 	  mixins: [ChapterSectionMixin],
 	  render: function() {
-	    var className, classes, item, maxExercises, progress, ref, status;
+	    var chapters, className, classes, collectionUUID, currentTask, item, maxExercises, maxLength, moduleUUID, progress, ref, ref1, ref2, status;
 	    ref = this.props, item = ref.item, className = ref.className, status = ref.status;
+	    ref1 = this.context, moduleUUID = ref1.moduleUUID, collectionUUID = ref1.collectionUUID;
 	    classes = classnames('concept-coach-student-dashboard', className);
-	    if (status === 'loaded' && _.isEmpty(item != null ? item.chapters : void 0)) {
-	      progress = React.createElement("div", null, React.createElement("h3", null, "Exercise to see progress"), React.createElement(ExerciseButton, null));
-	    } else {
-	      maxExercises = _.chain(item.chapters).pluck('pages').flatten().pluck('exercises').max(function(exercises) {
-	        return exercises.length;
-	      }).value();
-	      progress = _.map(item.chapters, function(chapter) {
-	        return React.createElement(ChapterProgress, {
-	          "chapter": chapter,
-	          "maxLength": maxExercises.length,
-	          "key": "progress-chapter-" + chapter.id
-	        });
+	    chapters = _.clone(item.chapters) || [];
+	    currentTask = tasks.get(collectionUUID + "/" + moduleUUID);
+	    maxExercises = _.chain(chapters).pluck('pages').flatten().pluck('exercises').max(function(exercises) {
+	      return exercises.length;
+	    }).value();
+	    maxLength = Math.max((maxExercises != null ? maxExercises.length : void 0) || 0, (currentTask != null ? (ref2 = currentTask.steps) != null ? ref2.length : void 0 : void 0) || 0);
+	    progress = _.map(chapters, function(chapter) {
+	      return React.createElement(ChapterProgress, {
+	        "chapter": chapter,
+	        "maxLength": maxLength,
+	        "key": "progress-chapter-" + chapter.id
 	      });
-	    }
+	    });
 	    return React.createElement("div", {
 	      "className": classes
-	    }, progress);
+	    }, React.createElement(CurrentProgress, {
+	      "maxLength": maxLength
+	    }), progress);
 	  }
 	});
 
@@ -28373,7 +28389,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    titleWidth = componentEl.width - exercisesProgressWidth - dateBuffer;
 	    classes = classnames('concept-coach-progress-page', className);
 	    section = this.sectionFormat(page.chapter_section);
-	    pageLastWorked = dateFormat(new Date(page.last_worked_at), dateFormatString);
+	    if (page.last_worked_at != null) {
+	      pageLastWorked = dateFormat(new Date(page.last_worked_at), dateFormatString);
+	    }
 	    sectionProps = {
 	      className: 'chapter-section-prefix'
 	    };
@@ -28687,6 +28705,102 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
+	var ChapterProgress, CurrentProgress, CurrentProgressBase, React, Reactive, _, apiChannelName, channel, classnames, tasks;
+
+	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
+
+	classnames = __webpack_require__(4);
+
+	channel = (tasks = __webpack_require__(34)).channel;
+
+	Reactive = __webpack_require__(44).Reactive;
+
+	apiChannelName = 'task';
+
+	ChapterProgress = __webpack_require__(74).ChapterProgress;
+
+	CurrentProgressBase = React.createClass({
+	  displayName: 'CurrentProgressBase',
+	  getInitialState: function() {
+	    var item;
+	    item = this.props.item;
+	    return {
+	      task: item
+	    };
+	  },
+	  componentWillReceiveProps: function(nextProps) {
+	    var nextState;
+	    nextState = {
+	      task: nextProps.item
+	    };
+	    return this.setState(nextState);
+	  },
+	  render: function() {
+	    var chapter, maxLength, moduleUUID, page, ref, task, taskId;
+	    task = this.state.task;
+	    ref = this.props, taskId = ref.taskId, maxLength = ref.maxLength, moduleUUID = ref.moduleUUID;
+	    if (task == null) {
+	      return null;
+	    }
+	    page = _.pick(task, 'last_worked_at', 'id');
+	    _.extend(page, _.first(_.first(task.steps).related_content));
+	    page.exercises = task.steps;
+	    page.uuid = moduleUUID;
+	    chapter = {
+	      title: 'Current',
+	      pages: [page]
+	    };
+	    return React.createElement(ChapterProgress, {
+	      "className": 'current',
+	      "chapter": chapter,
+	      "maxLength": maxLength,
+	      "key": "progress-chapter-current"
+	    });
+	  }
+	});
+
+	CurrentProgress = React.createClass({
+	  displayName: 'CurrentProgress',
+	  contextTypes: {
+	    moduleUUID: React.PropTypes.string,
+	    collectionUUID: React.PropTypes.string
+	  },
+	  filter: function(props, eventData) {
+	    var receivedData, setProps, toCompare;
+	    toCompare = ['collectionUUID', 'moduleUUID'];
+	    setProps = _.pick(props, toCompare);
+	    receivedData = _.pick(eventData.data, toCompare);
+	    return _.isEqual(setProps, receivedData);
+	  },
+	  render: function() {
+	    var collectionUUID, moduleUUID, ref, taskId;
+	    ref = this.context, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID;
+	    taskId = collectionUUID + "/" + moduleUUID;
+	    return React.createElement(Reactive, {
+	      "topic": taskId,
+	      "store": tasks,
+	      "apiChannelName": apiChannelName,
+	      "collectionUUID": collectionUUID,
+	      "moduleUUID": moduleUUID,
+	      "fetcher": tasks.fetchByModule,
+	      "filter": this.filter
+	    }, React.createElement(CurrentProgressBase, React.__spread({}, this.context, this.props, {
+	      "taskId": taskId
+	    })));
+	  }
+	});
+
+	module.exports = {
+	  CurrentProgress: CurrentProgress
+	};
+
+
+/***/ },
+/* 79 */
+/***/ function(module, exports, __webpack_require__) {
+
 	var EventEmitter2, api, apiChannelName, channel, fetch, get, init, load, local, update;
 
 	EventEmitter2 = __webpack_require__(5);
@@ -28743,10 +28857,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, ConceptCoachAPI, EventEmitter2, ModalCoach, PROPS, User, _, componentModel, deleteProperties, exercise, helpers, initializeModels, listenAndBroadcast, modalCoachWrapped, navigation, progress, restAPI, setupAPIListeners, stopModelChannels, task,
+	var $, ConceptCoachAPI, EventEmitter2, Launcher, ModalCoach, PROPS, User, WRAPPER_CLASSNAME, _, componentModel, deleteProperties, exercise, helpers, initializeModels, launcherWrapped, listenAndBroadcast, modalCoachWrapped, navigation, progress, restAPI, setupAPIListeners, stopModelChannels, task,
 	  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
 	  hasProp = {}.hasOwnProperty;
 
@@ -28756,11 +28870,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	EventEmitter2 = __webpack_require__(5);
 
-	helpers = __webpack_require__(80);
+	helpers = __webpack_require__(81);
 
 	restAPI = __webpack_require__(36);
-
-	ModalCoach = __webpack_require__(81).ModalCoach;
 
 	componentModel = __webpack_require__(53);
 
@@ -28770,11 +28882,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exercise = __webpack_require__(43);
 
-	progress = __webpack_require__(78);
+	progress = __webpack_require__(79);
 
 	task = __webpack_require__(34);
 
-	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl'];
+	ModalCoach = __webpack_require__(82).ModalCoach;
+
+	Launcher = __webpack_require__(84).Launcher;
+
+	modalCoachWrapped = helpers.wrapComponent(ModalCoach);
+
+	launcherWrapped = helpers.wrapComponent(Launcher);
+
+	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl', 'processHtmlAndMath'];
+
+	WRAPPER_CLASSNAME = 'concept-coach-wrapper';
 
 	listenAndBroadcast = function(componentAPI) {
 	  restAPI.channel.on('error', function(response) {
@@ -28795,6 +28917,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	  componentModel.channel.on('close.clicked', function() {
 	    return componentAPI.emit('ui.close');
+	  });
+	  componentModel.channel.on('launcher.clicked', function() {
+	    return componentAPI.emit('ui.launching');
 	  });
 	  navigation.channel.on('show.*', function(eventData) {
 	    return componentAPI.emit('view.update', navigation.getDataByView(eventData.view));
@@ -28847,8 +28972,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return results;
 	};
 
-	modalCoachWrapped = helpers.wrapComponent(ModalCoach);
-
 	ConceptCoachAPI = (function(superClass) {
 	  extend(ConceptCoachAPI, superClass);
 
@@ -28891,6 +29014,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return componentModel.update(options);
 	  };
 
+	  ConceptCoachAPI.prototype.displayLauncher = function(mountNode) {
+	    mountNode.classList.add(WRAPPER_CLASSNAME);
+	    return launcherWrapped.render(mountNode);
+	  };
+
 	  ConceptCoachAPI.prototype.open = function(mountNode, props) {
 	    var modalNode;
 	    props = _.clone(props);
@@ -28902,7 +29030,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      isSame: true
 	    });
 	    modalNode = document.createElement('div');
-	    modalNode.classList.add('concept-coach-wrapper');
+	    modalNode.classList.add(WRAPPER_CLASSNAME);
 	    mountNode.appendChild(modalNode);
 	    props.close = function() {
 	      componentModel.channel.emit('close.clicked');
@@ -28961,23 +29089,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.component.setProps(props);
 	  };
 
-	  ConceptCoachAPI.prototype.handleOpened = function(eventData, scrollTo, body) {
-	    var scrollY, top;
+	  ConceptCoachAPI.prototype.handleOpened = function(eventData, body) {
 	    if (body == null) {
 	      body = document.body;
 	    }
-	    if (scrollTo == null) {
-	      scrollTo = _.partial(window.scrollTo, 0);
-	    }
-	    top = $(eventData.coach.el).offset().top;
-	    scrollY = $(window).scrollTop();
-	    componentModel.update({
-	      scrollY: scrollY,
-	      closeScroll: function() {
-	        return scrollTo(this.scrollY);
-	      }
-	    });
-	    scrollTo(top);
 	    return body.classList.add('cc-opened');
 	  };
 
@@ -28985,17 +29100,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (body == null) {
 	      body = document.body;
 	    }
-	    body.classList.remove('cc-opened');
-	    return typeof componentModel.closeScroll === "function" ? componentModel.closeScroll() : void 0;
-	  };
-
-	  ConceptCoachAPI.prototype.handleResize = function() {
-	    var ref, top;
-	    if (!((componentModel.el != null) && ((ref = this.component) != null ? ref.isMounted() : void 0))) {
-	      return;
-	    }
-	    top = $(componentModel.el).offset().top;
-	    return window.scrollTo(0, top);
+	    return body.classList.remove('cc-opened');
 	  };
 
 	  ConceptCoachAPI.prototype.handleError = function(error) {
@@ -29011,7 +29116,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, helpers;
@@ -29036,7 +29141,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CCModal, ConceptCoach, ModalCoach, React, channel, ref;
@@ -29045,7 +29150,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(1), ConceptCoach = ref.ConceptCoach, channel = ref.channel;
 
-	CCModal = __webpack_require__(82).CCModal;
+	CCModal = __webpack_require__(83).CCModal;
 
 	ModalCoach = React.createClass({
 	  displayName: 'ModalCoach',
@@ -29061,17 +29166,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var CCModal, React, channel;
+	var CCModal, React, _, api, channel, classnames;
 
 	React = __webpack_require__(2);
 
+	classnames = __webpack_require__(4);
+
+	_ = __webpack_require__(3);
+
 	channel = __webpack_require__(53).channel;
+
+	api = __webpack_require__(36);
 
 	CCModal = React.createClass({
 	  displayName: 'CCModal',
+	  getInitialState: function() {
+	    return {
+	      isLoaded: false
+	    };
+	  },
 	  componentDidMount: function() {
 	    var mountData;
 	    mountData = {
@@ -29079,11 +29195,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	        el: this.getDOMNode()
 	      }
 	    };
-	    return channel.emit('modal.mount.success', mountData);
+	    channel.emit('modal.mount.success', mountData);
+	    mountData.modal.el.focus();
+	    return _.delay(this.setLoaded, 1000);
+	  },
+	  componentWillMount: function() {
+	    return api.channel.once('success', this.setLoaded);
+	  },
+	  setLoaded: function() {
+	    var isLoaded;
+	    isLoaded = this.state.isLoaded;
+	    if (!isLoaded) {
+	      return this.setState({
+	        isLoaded: true
+	      });
+	    }
 	  },
 	  render: function() {
+	    var classes, isLoaded;
+	    isLoaded = this.state.isLoaded;
+	    classes = classnames('concept-coach-modal', {
+	      loaded: isLoaded
+	    });
 	    return React.createElement("div", {
-	      "className": 'concept-coach-modal'
+	      "className": classes,
+	      "tabIndex": "-1"
 	    }, this.props.children);
 	  }
 	});
@@ -29091,6 +29227,433 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = {
 	  CCModal: CCModal,
 	  channel: channel
+	};
+
+
+/***/ },
+/* 84 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var BS, BackgroundAndDesk, LaptopAndMug, Launcher, React, _, channel, classnames, ref;
+
+	React = __webpack_require__(2);
+
+	BS = __webpack_require__(16);
+
+	_ = __webpack_require__(3);
+
+	classnames = __webpack_require__(4);
+
+	ref = __webpack_require__(85), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
+
+	channel = __webpack_require__(53).channel;
+
+	Launcher = React.createClass({
+	  displayName: 'Launcher',
+	  getInitialState: function() {
+	    return {
+	      isLaunching: false,
+	      isClosing: false
+	    };
+	  },
+	  launch: function() {
+	    var isClosing;
+	    isClosing = this.state.isClosing;
+	    if (isClosing) {
+	      return;
+	    }
+	    this.setState({
+	      isLaunching: true
+	    });
+	    return channel.emit('launcher.clicked');
+	  },
+	  close: function() {
+	    return this.setState({
+	      isClosing: true,
+	      isLaunching: false
+	    });
+	  },
+	  delayedClose: function() {
+	    return _.delay((function(_this) {
+	      return function() {
+	        return _this.setState({
+	          isClosing: false
+	        });
+	      };
+	    })(this), 1000);
+	  },
+	  shouldComponentUpdate: function(nextProps, nextState) {
+	    return this.state.isClosing !== nextState.isClosing || this.state.isLaunching !== nextState.isLaunching;
+	  },
+	  componentDidUpdate: function() {
+	    var isClosing, isLaunching, ref1;
+	    ref1 = this.state, isLaunching = ref1.isLaunching, isClosing = ref1.isClosing;
+	    if (isClosing && !isLaunching) {
+	      return this.delayedClose();
+	    }
+	  },
+	  componentWillMount: function() {
+	    return channel.on('coach.unmount.success', this.close);
+	  },
+	  componentWillUnmount: function() {
+	    return channel.off('coach.unmount.success', this.close);
+	  },
+	  render: function() {
+	    var classes, height, isClosing, isLaunching, ref1;
+	    ref1 = this.state, isLaunching = ref1.isLaunching, isClosing = ref1.isClosing;
+	    height = '388px';
+	    if (isLaunching && !isClosing) {
+	      height = window.innerHeight + "px";
+	    }
+	    classes = classnames('concept-coach-launcher', {
+	      launching: isLaunching,
+	      closing: isClosing
+	    });
+	    return React.createElement("div", {
+	      "className": 'concept-coach-launcher-wrapper'
+	    }, React.createElement("div", {
+	      "className": classes,
+	      "onClick": this.launch
+	    }, React.createElement(BackgroundAndDesk, {
+	      "height": height
+	    }), React.createElement(LaptopAndMug, null), React.createElement(BS.Button, {
+	      "bsStyle": 'primary',
+	      "bsSize": 'large'
+	    }, "Launch Concept Coach")));
+	  }
+	});
+
+	module.exports = {
+	  Launcher: Launcher
+	};
+
+
+/***/ },
+/* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var BackgroundAndDesk, LaptopAndMug, React;
+
+	React = __webpack_require__(2);
+
+	LaptopAndMug = React.createClass({
+	  displayName: 'LaptopAndMug',
+	  getDefaultProps: function() {
+	    return {
+	      height: '388px'
+	    };
+	  },
+	  render: function() {
+	    var height;
+	    height = this.props.height;
+	    return React.createElement("svg", {
+	      "x": "0px",
+	      "y": "0px",
+	      "width": "100%",
+	      "height": height,
+	      "viewBox": "-100 0 1140 388",
+	      "preserveAspectRatio": "xMidYMin slice",
+	      "version": "1.1",
+	      "xmlns": "http://www.w3.org/2000/svg"
+	    }, React.createElement("g", {
+	      "className": 'launcher-laptop'
+	    }, React.createElement("path", {
+	      "fill-rule": "evenodd",
+	      "fill": "#5F6163",
+	      "d": "M385.927,295.597V122.57c0-20.053,5.683-25.72,25.72-25.72h240.835 c20.034,0,25.72,5.667,25.72,25.72v173.026"
+	    }), React.createElement("path", {
+	      "fill-rule": "evenodd",
+	      "fill": "#D1D2D2",
+	      "d": "M350.854,295.597h362.421c3.873,0,7.015,3.142,7.015,7.014v3.942 c0,3.872-3.142,7.014-7.015,7.014H350.854c-3.872,0-7.014-3.142-7.014-7.014v-3.942 C343.84,298.738,346.982,295.597,350.854,295.597z"
+	    }), React.createElement("path", {
+	      "fill-rule": "evenodd",
+	      "fill": "#9A9A9B",
+	      "d": "M561.292,295.629c0,3.834-3.142,7.015-7.015,7.015h-44.424 c-3.874,0-7.016-3.181-7.016-7.015C502.836,295.556,561.292,295.629,561.292,295.629z"
+	    }), React.createElement("path", {
+	      "fill": "#E5E5E5",
+	      "d": "M660.963,111.404H403.167c-1.766,0-3.21,1.444-3.21,3.209V281.22c0,1.765,1.444,3.21,3.21,3.21h257.796 c1.765,0,3.209-1.445,3.209-3.21V114.613C664.173,112.849,662.728,111.404,660.963,111.404z"
+	    }), React.createElement("path", {
+	      "fill": "#FFFFFF",
+	      "d": "M660.963,111.147H403.167c-1.766,0-3.21,1.444-3.21,3.209v14.72h264.216v-14.72 C664.173,112.592,662.728,111.147,660.963,111.147z"
+	    }), React.createElement("rect", {
+	      "x": "428.717",
+	      "y": "119.311",
+	      "fill": "#E5E5E5",
+	      "width": "61.177",
+	      "height": "4"
+	    }), React.createElement("rect", {
+	      "x": "408.928",
+	      "y": "117.117",
+	      "fill": "#9A9A9B",
+	      "width": "8.987",
+	      "height": "1.198"
+	    }), React.createElement("rect", {
+	      "x": "408.928",
+	      "y": "120.112",
+	      "fill": "#9A9A9B",
+	      "width": "8.987",
+	      "height": "1.198"
+	    }), React.createElement("rect", {
+	      "x": "408.928",
+	      "y": "123.108",
+	      "fill": "#9A9A9B",
+	      "width": "8.987",
+	      "height": "1.199"
+	    }), React.createElement("path", {
+	      "className": 'launcher-laptop-shine',
+	      "fill": "#F1F1F1",
+	      "d": "M401.12,283.669c0.558,0.468,1.267,0.761,2.047,0.761h257.796c1.765,0,3.209-1.445,3.209-3.21V129.077 h-26.951L401.12,283.669z"
+	    })), React.createElement("g", {
+	      "className": 'launcher-coffee'
+	    }, React.createElement("g", {
+	      "className": 'launcher-coffee-steam'
+	    }, React.createElement("path", {
+	      "fill-rule": "evenodd",
+	      "fill": "#FFFFFF",
+	      "d": "M773.967,191.167c3.781,6.054-8.06,11.515-8.06,11.515s6.199-4.644,3.454-11.515 c-2.746-6.872,3.307-9.169,5.757-9.788C775.452,181.296,769.754,184.422,773.967,191.167z"
+	    }), React.createElement("path", {
+	      "fill-rule": "evenodd",
+	      "fill": "#FFFFFF",
+	      "d": "M756.12,203.833 c0,0,7.693-5.226,4.605-13.243c-3.088-8.016,3.001-10.793,5.757-11.513c0.375-0.099-5.316,4.221-0.575,12.09 C770.161,198.23,756.12,203.833,756.12,203.833z"
+	    })), React.createElement("path", {
+	      "className": 'launcher-coffee-mug',
+	      "fill-rule": "evenodd",
+	      "fill": "#77AF42",
+	      "d": "M814.514,245.441c0,10.459-8.742,18.65-19.097,19.097v10.185 c0,4.672-2.966,8.275-7.639,8.275h-42.649c-4.673,0-8.275-3.603-8.275-8.275v-59.2c0-4.671,0.42-6.366,5.094-6.366h49.013 c4.674,0,4.457,1.694,4.457,6.366v10.186C805.772,226.154,814.514,234.981,814.514,245.441z M795.417,232.71v24.825 c6.585-0.443,12.731-5.399,12.731-12.094C808.148,238.746,802.002,233.152,795.417,232.71z"
+	    }), React.createElement("path", {
+	      "className": 'launcher-coffee-shine',
+	      "fill-rule": "evenodd",
+	      "fill": "#8EC15A",
+	      "d": "M743.989,215.922c1.055,0,1.911,0.855,1.911,1.91v59.199 c0,1.055-0.856,1.911-1.911,1.911c-1.054,0-1.909-0.855-1.909-1.911v-59.199C742.08,216.777,742.936,215.922,743.989,215.922z"
+	    })), React.createElement("g", {
+	      "className": 'launcher-concept-coach'
+	    }, React.createElement("rect", {
+	      "className": 'launcher-concept-coach-screen',
+	      "fill": "#F1F1F1",
+	      "x": "426.338",
+	      "y": "138.694",
+	      "width": "211.662",
+	      "height": "137.639"
+	    }), React.createElement("polygon", {
+	      "className": 'launcher-concept-coach-shine-bottom',
+	      "fill": "#F5F5F5",
+	      "points": "638,276.333 638,138.694 622.534,138.694 426.338,267.157 426.338,276.333"
+	    }), React.createElement("g", {
+	      "className": 'launcher-section-label'
+	    }, React.createElement("path", {
+	      "fill": "#222E65",
+	      "d": "M432.273,145.027c0.29-0.296,0.659-0.444,1.106-0.444c0.599,0,1.037,0.199,1.313,0.596 c0.153,0.223,0.235,0.447,0.247,0.671h-0.752c-0.048-0.172-0.109-0.303-0.184-0.391c-0.134-0.156-0.333-0.234-0.596-0.234 c-0.268,0-0.479,0.11-0.634,0.331c-0.155,0.221-0.232,0.533-0.232,0.937s0.082,0.706,0.245,0.907 c0.164,0.201,0.371,0.301,0.622,0.301c0.258,0,0.455-0.086,0.59-0.259c0.075-0.093,0.137-0.232,0.186-0.417h0.747 c-0.064,0.392-0.229,0.711-0.494,0.957c-0.265,0.246-0.604,0.369-1.018,0.369c-0.512,0-0.915-0.166-1.208-0.498 c-0.293-0.333-0.439-0.791-0.439-1.372C431.773,145.852,431.939,145.368,432.273,145.027z"
+	    }), React.createElement("path", {
+	      "fill": "#222E65",
+	      "d": "M435.535,148.25v-3.599h0.747v1.372h1.399v-1.372h0.747v3.599h-0.747v-1.606h-1.399v1.606H435.535z"
+	    }), React.createElement("path", {
+	      "fill": "#222E65",
+	      "d": "M440.18,144.651h0.851l1.273,3.599h-0.815l-0.238-0.74h-1.325l-0.244,0.74h-0.787L440.18,144.651z M440.13,146.89h0.922l-0.455-1.416L440.13,146.89z"
+	    }), React.createElement("path", {
+	      "fill": "#222E65",
+	      "d": "M445.178,146.692c-0.211,0.176-0.512,0.264-0.902,0.264h-0.75v1.294h-0.747v-3.599h1.545 c0.356,0,0.641,0.093,0.852,0.278c0.212,0.186,0.318,0.473,0.318,0.862C445.494,146.216,445.388,146.517,445.178,146.692z M444.604,145.396c-0.095-0.08-0.229-0.12-0.4-0.12h-0.678v1.06h0.678c0.171,0,0.305-0.043,0.4-0.129s0.143-0.223,0.143-0.41 S444.699,145.476,444.604,145.396z"
+	    }), React.createElement("path", {
+	      "fill": "#222E65",
+	      "d": "M448.711,144.651v0.637h-1.077v2.961h-0.757v-2.961h-1.082v-0.637H448.711z"
+	    }), React.createElement("path", {
+	      "fill": "#222E65",
+	      "d": "M451.812,145.289h-1.904v0.764h1.748v0.625h-1.748v0.925h1.992v0.647h-2.727v-3.599h2.639V145.289z"
+	    }), React.createElement("path", {
+	      "fill": "#222E65",
+	      "d": "M454.792,144.744c0.132,0.057,0.245,0.141,0.337,0.251c0.076,0.091,0.136,0.192,0.181,0.303 s0.067,0.237,0.067,0.378c0,0.171-0.043,0.339-0.129,0.504c-0.086,0.166-0.229,0.282-0.427,0.351 c0.166,0.067,0.284,0.162,0.353,0.284c0.069,0.123,0.104,0.311,0.104,0.563v0.242c0,0.165,0.007,0.276,0.02,0.334 c0.02,0.093,0.066,0.161,0.139,0.205v0.09h-0.83c-0.023-0.08-0.039-0.144-0.049-0.193c-0.02-0.101-0.03-0.204-0.032-0.31 l-0.005-0.334c-0.003-0.229-0.042-0.382-0.119-0.459c-0.076-0.077-0.219-0.115-0.428-0.115h-0.734v1.411h-0.735v-3.599h1.721 C454.47,144.656,454.66,144.687,454.792,144.744z M453.238,145.276v0.967h0.809c0.161,0,0.281-0.02,0.362-0.059 c0.142-0.068,0.213-0.204,0.213-0.405c0-0.218-0.069-0.365-0.207-0.439c-0.077-0.042-0.193-0.063-0.348-0.063H453.238z"
+	    }), React.createElement("path", {
+	      "fill": "#222E65",
+	      "d": "M457.372,146.729c0.09-0.161,0.221-0.282,0.394-0.364c-0.171-0.114-0.283-0.237-0.334-0.37 c-0.051-0.132-0.077-0.256-0.077-0.372c0-0.257,0.097-0.477,0.291-0.658c0.194-0.181,0.468-0.272,0.822-0.272 s0.628,0.091,0.822,0.272c0.194,0.182,0.291,0.401,0.291,0.658c0,0.116-0.025,0.24-0.077,0.372 c-0.051,0.133-0.162,0.248-0.333,0.346c0.175,0.098,0.307,0.227,0.395,0.388s0.132,0.341,0.132,0.54 c0,0.298-0.11,0.551-0.331,0.761c-0.221,0.209-0.529,0.313-0.925,0.313c-0.396,0-0.695-0.104-0.899-0.313 c-0.204-0.209-0.306-0.463-0.306-0.761C457.237,147.07,457.282,146.89,457.372,146.729z M458.095,147.627 c0.09,0.096,0.215,0.144,0.375,0.144s0.285-0.048,0.375-0.144c0.091-0.096,0.136-0.231,0.136-0.405 c0-0.181-0.046-0.318-0.138-0.412c-0.092-0.093-0.216-0.14-0.373-0.14s-0.28,0.047-0.373,0.14 c-0.092,0.094-0.138,0.231-0.138,0.412C457.959,147.396,458.004,147.531,458.095,147.627z M458.139,146.016 c0.079,0.082,0.189,0.122,0.329,0.122c0.142,0,0.252-0.041,0.33-0.122s0.116-0.187,0.116-0.315c0-0.14-0.039-0.25-0.116-0.328 c-0.078-0.079-0.188-0.119-0.33-0.119c-0.14,0-0.25,0.04-0.329,0.119c-0.079,0.079-0.119,0.188-0.119,0.328 C458.021,145.83,458.06,145.935,458.139,146.016z"
+	    })), React.createElement("g", {
+	      "className": 'launcher-concept-row launcher-question'
+	    }, React.createElement("circle", {
+	      "fill": "#F47641",
+	      "cx": "450.107",
+	      "cy": "176.179",
+	      "r": "7.236"
+	    }), React.createElement("path", {
+	      "fill": "#FFFFFF",
+	      "d": "M453.193,177.441c-0.126,0.413-0.313,0.755-0.56,1.028l0.826,0.778l-0.784,0.818l-0.864-0.82 c-0.264,0.16-0.492,0.273-0.685,0.338c-0.322,0.108-0.708,0.162-1.158,0.162c-0.938,0-1.714-0.28-2.326-0.84 c-0.743-0.674-1.114-1.664-1.114-2.969c0-1.315,0.381-2.31,1.143-2.983c0.622-0.55,1.395-0.825,2.319-0.825 c0.931,0,1.712,0.292,2.344,0.874c0.729,0.674,1.094,1.616,1.094,2.827C453.428,176.471,453.35,177.008,453.193,177.441z M450.465,178.408c0.088-0.023,0.2-0.063,0.337-0.123l-0.729-0.693l0.772-0.807l0.731,0.689c0.114-0.234,0.194-0.439,0.239-0.615 c0.072-0.264,0.107-0.571,0.107-0.923c0-0.807-0.165-1.431-0.496-1.872s-0.813-0.662-1.448-0.662 c-0.596,0-1.071,0.211-1.426,0.635s-0.532,1.056-0.532,1.899c0,0.986,0.254,1.693,0.762,2.119 c0.329,0.277,0.723,0.415,1.182,0.415C450.139,178.471,450.305,178.45,450.465,178.408z"
+	    }), React.createElement("g", {
+	      "className": 'launcher-text'
+	    }, React.createElement("rect", {
+	      "fill": "#222E65",
+	      "x": "461.509",
+	      "y": "170.954",
+	      "width": "138.3",
+	      "height": "3.845"
+	    }), React.createElement("polygon", {
+	      "fill": "#7A7A99",
+	      "points": "599.809,170.954 573.238,170.954 567.367,174.799 599.809,174.799"
+	    }), React.createElement("rect", {
+	      "x": "461.509",
+	      "y": "177.623",
+	      "fill": "#222E65",
+	      "width": "83.606",
+	      "height": "3.845"
+	    }))), React.createElement("g", {
+	      "className": 'launcher-concept-row launcher-answer launcher-a'
+	    }, React.createElement("g", {
+	      "className": 'launcher-circle'
+	    }, React.createElement("circle", {
+	      "fill": "#FFFFFF",
+	      "cx": "451.581",
+	      "cy": "196.976",
+	      "r": "5.762"
+	    }), React.createElement("path", {
+	      "className": 'launcher-letter',
+	      "fill": "#9A9A9B",
+	      "d": "M451.479,196.31c0.207-0.026,0.355-0.059,0.444-0.098c0.16-0.068,0.24-0.173,0.24-0.316 c0-0.174-0.062-0.295-0.184-0.361s-0.303-0.1-0.541-0.1c-0.267,0-0.456,0.065-0.566,0.195c-0.079,0.096-0.132,0.227-0.158,0.391 h-1.074c0.023-0.373,0.128-0.678,0.314-0.918c0.295-0.375,0.803-0.562,1.522-0.562c0.468,0,0.884,0.092,1.248,0.277 c0.364,0.185,0.545,0.534,0.545,1.047v1.953c0,0.135,0.002,0.299,0.008,0.492c0.008,0.146,0.03,0.245,0.066,0.297 s0.091,0.095,0.164,0.129v0.164h-1.211c-0.034-0.086-0.057-0.167-0.07-0.242s-0.023-0.162-0.031-0.258 c-0.154,0.167-0.333,0.309-0.534,0.426c-0.241,0.138-0.514,0.207-0.817,0.207c-0.388,0-0.708-0.11-0.961-0.33 c-0.252-0.22-0.379-0.532-0.379-0.936c0-0.523,0.203-0.902,0.61-1.137c0.223-0.127,0.551-0.219,0.984-0.273L451.479,196.31z M452.16,196.83c-0.071,0.044-0.144,0.08-0.216,0.107c-0.073,0.027-0.172,0.053-0.299,0.076l-0.253,0.047 c-0.238,0.042-0.408,0.092-0.512,0.152c-0.175,0.102-0.263,0.259-0.263,0.473c0,0.19,0.054,0.328,0.161,0.412 s0.237,0.127,0.391,0.127c0.243,0,0.467-0.07,0.672-0.211s0.312-0.397,0.319-0.77V196.83z"
+	    })), React.createElement("g", {
+	      "className": 'launcher-text'
+	    }, React.createElement("polygon", {
+	      "fill": "#E5E5E5",
+	      "points": "461.827,193.022 461.827,196.224 534.651,196.224 539.54,193.022  "
+	    }), React.createElement("polygon", {
+	      "fill": "#EFEFEF",
+	      "points": "554.25,193.022 539.54,193.022 534.651,196.224 554.25,196.224  "
+	    }), React.createElement("polygon", {
+	      "fill": "#E5E5E5",
+	      "points": "461.827,198.089 461.827,201.291 526.914,201.291 531.802,198.089"
+	    }), React.createElement("polygon", {
+	      "fill": "#EFEFEF",
+	      "points": "554.25,198.089 531.802,198.089 526.914,201.291 554.25,201.291"
+	    }))), React.createElement("g", {
+	      "className": 'launcher-concept-row launcher-answer launcher-b'
+	    }, React.createElement("g", {
+	      "className": 'launcher-circle'
+	    }, React.createElement("circle", {
+	      "fill": "#FFFFFF",
+	      "cx": "451.581",
+	      "cy": "214.626",
+	      "r": "5.762"
+	    }), React.createElement("path", {
+	      "className": 'launcher-letter',
+	      "fill": "#9A9A9B",
+	      "d": "M453.428,213.598c0.318,0.404,0.478,0.924,0.478,1.562c0,0.662-0.157,1.209-0.471,1.645 s-0.752,0.652-1.315,0.652c-0.353,0-0.637-0.07-0.852-0.211c-0.128-0.083-0.267-0.229-0.416-0.438v0.535h-1.098v-5.75h1.113v2.047 c0.142-0.198,0.297-0.349,0.468-0.453c0.202-0.13,0.459-0.195,0.771-0.195C452.668,212.993,453.109,213.194,453.428,213.598z M452.498,216.192c0.16-0.232,0.24-0.537,0.24-0.914c0-0.302-0.04-0.552-0.118-0.75c-0.149-0.375-0.425-0.562-0.827-0.562 c-0.407,0-0.687,0.184-0.839,0.551c-0.079,0.195-0.118,0.448-0.118,0.758c0,0.365,0.082,0.667,0.244,0.906 c0.163,0.24,0.411,0.359,0.745,0.359C452.113,216.54,452.337,216.424,452.498,216.192z"
+	    })), React.createElement("g", {
+	      "className": 'launcher-text'
+	    }, React.createElement("polygon", {
+	      "fill": "#E5E5E5",
+	      "points": "461.827,210.412 461.827,213.613 508.098,213.613 512.986,210.412"
+	    }), React.createElement("polygon", {
+	      "fill": "#EFEFEF",
+	      "points": "554.25,210.412 512.986,210.412 508.098,213.613 554.25,213.613"
+	    }), React.createElement("polygon", {
+	      "fill": "#E5E5E5",
+	      "points": "461.827,215.542 461.827,218.744 500.263,218.744 505.151,215.542"
+	    }), React.createElement("polygon", {
+	      "fill": "#EFEFEF",
+	      "points": "554.25,215.542 505.151,215.542 500.263,218.744 554.25,218.744"
+	    }))), React.createElement("g", {
+	      "className": 'launcher-concept-row launcher-answer launcher-c'
+	    }, React.createElement("g", {
+	      "className": 'launcher-circle'
+	    }, React.createElement("circle", {
+	      "fill": "#FFFFFF",
+	      "cx": "451.581",
+	      "cy": "232.142",
+	      "r": "5.762"
+	    }), React.createElement("path", {
+	      "className": 'launcher-letter',
+	      "fill": "#9A9A9B",
+	      "d": "M452.339,231.77c-0.021-0.159-0.074-0.302-0.161-0.43c-0.125-0.172-0.32-0.258-0.583-0.258 c-0.376,0-0.633,0.186-0.771,0.559c-0.073,0.197-0.109,0.46-0.109,0.787c0,0.312,0.037,0.562,0.109,0.752 c0.133,0.354,0.384,0.531,0.752,0.531c0.261,0,0.446-0.07,0.556-0.211s0.176-0.323,0.2-0.547h1.137 c-0.026,0.338-0.148,0.659-0.368,0.961c-0.349,0.487-0.867,0.73-1.552,0.73s-1.19-0.203-1.513-0.609s-0.485-0.933-0.485-1.58 c0-0.73,0.179-1.299,0.536-1.705s0.85-0.609,1.478-0.609c0.534,0,0.972,0.12,1.312,0.359c0.34,0.24,0.542,0.663,0.604,1.27 H452.339z"
+	    })), React.createElement("g", {
+	      "className": 'launcher-text'
+	    }, React.createElement("polygon", {
+	      "fill": "#E5E5E5",
+	      "points": "461.827,227.885 461.827,231.086 481.415,231.086 486.303,227.885"
+	    }), React.createElement("polygon", {
+	      "fill": "#EFEFEF",
+	      "points": "565.411,227.885 486.303,227.885 481.415,231.086 565.411,231.086"
+	    }), React.createElement("polygon", {
+	      "fill": "#E5E5E5",
+	      "points": "461.827,233.201 461.827,236.402 473.297,236.402 478.186,233.201"
+	    }), React.createElement("polygon", {
+	      "fill": "#EFEFEF",
+	      "points": "524.301,233.201 478.186,233.201 473.297,236.402 524.301,236.402"
+	    }))), React.createElement("g", {
+	      "className": 'launcher-concept-row launcher-answer launcher-d'
+	    }, React.createElement("g", {
+	      "className": 'launcher-circle'
+	    }, React.createElement("circle", {
+	      "fill": "#FFFFFF",
+	      "cx": "451.581",
+	      "cy": "249.804",
+	      "r": "5.762"
+	    }), React.createElement("path", {
+	      "fill": "none",
+	      "d": "M451.412,249.075c-0.326,0-0.564,0.123-0.717,0.369s-0.229,0.551-0.229,0.916c0,0.354,0.072,0.636,0.198,0.863 l1.666-1.09c-0.042-0.372-0.145-0.674-0.356-0.854C451.813,249.143,451.625,249.075,451.412,249.075z"
+	    }), React.createElement("path", {
+	      "className": 'launcher-letter',
+	      "fill": "#9A9A9B",
+	      "d": "M450.467,250.36c0-0.365,0.076-0.67,0.229-0.916s0.391-0.369,0.717-0.369c0.213,0,0.401,0.068,0.562,0.203 c0.211,0.18,0.314,0.482,0.356,0.854l1.136-0.744v-2.677h-1.129v2.031c-0.125-0.201-0.288-0.357-0.488-0.471s-0.43-0.17-0.688-0.17 c-0.56,0-1.007,0.208-1.342,0.625s-0.502,0.988-0.502,1.715c0,0.557,0.141,1.019,0.405,1.397l0.941-0.617 C450.539,250.997,450.467,250.715,450.467,250.36z"
+	    }), React.createElement("path", {
+	      "className": 'launcher-letter-dark',
+	      "fill": "#CFCECE",
+	      "d": "M451.084,252.595c0.302,0,0.555-0.057,0.758-0.172s0.384-0.298,0.543-0.551v0.59h1.082v-3.073l-1.136,0.744 c0.01,0.091,0.039,0.161,0.039,0.263c0,0.373-0.082,0.676-0.246,0.91s-0.404,0.352-0.719,0.352s-0.55-0.118-0.705-0.354 c-0.015-0.023-0.021-0.056-0.034-0.081l-0.941,0.617c0.035,0.05,0.064,0.104,0.104,0.151 C450.168,252.394,450.586,252.595,451.084,252.595z"
+	    }), React.createElement("path", {
+	      "className": 'launcher-letter-hole',
+	      "fill": "#FFFFFF",
+	      "d": "M450.699,251.304c0.155,0.236,0.39,0.354,0.705,0.354s0.555-0.117,0.719-0.352s0.246-0.538,0.246-0.91 c0-0.102-0.028-0.172-0.039-0.263l-1.666,1.09C450.679,251.248,450.684,251.281,450.699,251.304z"
+	    })), React.createElement("g", {
+	      "className": 'launcher-text'
+	    }, React.createElement("rect", {
+	      "x": "461.827",
+	      "y": "245.545",
+	      "fill-rule": "evenodd",
+	      "fill": "#EFEFEF",
+	      "width": "100.223",
+	      "height": "3.201"
+	    }), React.createElement("rect", {
+	      "x": "461.827",
+	      "y": "250.92",
+	      "fill-rule": "evenodd",
+	      "fill": "#EFEFEF",
+	      "width": "48.276",
+	      "height": "3.084"
+	    })))));
+	  }
+	});
+
+	BackgroundAndDesk = React.createClass({
+	  displayName: 'BackgroundAndDesk',
+	  getDefaultProps: function() {
+	    return {
+	      height: '388px'
+	    };
+	  },
+	  render: function() {
+	    var height;
+	    height = this.props.height;
+	    return React.createElement("svg", {
+	      "x": "0px",
+	      "y": "0px",
+	      "width": "100%",
+	      "height": height,
+	      "preserveAspectRatio": "xMidYMin meet",
+	      "version": "1.1",
+	      "xmlns": "http://www.w3.org/2000/svg"
+	    }, React.createElement("g", null, React.createElement("rect", {
+	      "className": 'launcher-background',
+	      "y": "0.541",
+	      "fill": "#E5E5E5",
+	      "width": "100%",
+	      "height": "100%"
+	    }), React.createElement("rect", {
+	      "className": 'launcher-desk',
+	      "y": "70%",
+	      "fill-rule": "evenodd",
+	      "fill": "#FFFFFF",
+	      "width": "100%",
+	      "height": "30%"
+	    })));
+	  }
+	});
+
+	module.exports = {
+	  LaptopAndMug: LaptopAndMug,
+	  BackgroundAndDesk: BackgroundAndDesk
 	};
 
 
