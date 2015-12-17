@@ -40,18 +40,12 @@ Navigation = React.createClass
     {course} = @props
     {view} = @context
 
-    brand = <span>
-      <strong>Concept</strong> Coach
-    </span>
+    brand = [
+      <span className='navbar-logo'><strong>Concept</strong> Coach</span>
+      <CourseNameBase className='hidden-sm hidden-xs' course={course}/>
+    ]
 
     courseItems = [
-      <BS.NavItem
-        active={view is 'task'}
-        eventKey='task'
-        key='task'
-        className='concept-coach-exercise-nav'>
-        Exercise
-      </BS.NavItem>
       <BS.NavItem
         active={view is 'progress'}
         eventKey='progress'
@@ -63,11 +57,6 @@ Navigation = React.createClass
 
     <BS.Navbar brand={brand} toggleNavKey={0} fixedTop fluid>
       <BS.CollapsibleNav eventKey={0} collapsible={true}>
-        <BS.Nav navbar onSelect={@handleSelect}>
-          <BS.NavItem disabled={true}>
-            <CourseNameBase course={course}/>
-          </BS.NavItem>
-        </BS.Nav>
         <BS.Nav right navbar activeKey={view} onSelect={@handleSelect}>
           <UserMenu course={@props.course} />
           {courseItems}

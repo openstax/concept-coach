@@ -12,6 +12,7 @@ LoginGateway = React.createClass
 
   openLogin: (ev) ->
     ev.preventDefault()
+
     width  = Math.min(1000, window.screen.width - 20)
     height = Math.min(800, window.screen.height - 30)
     options = ["toolbar=no", "location=" + (window.opera ? "no" : "yes"),
@@ -28,7 +29,9 @@ LoginGateway = React.createClass
     return unless @isMounted()
     try
       @setState(loginWindow: false) # cancel checking for close
-      api.channel.emit 'user.status.receive.fetch', data: JSON.parse(msg.data)
+      data = JSON.parse(msg.data)
+      if data.user
+        api.channel.emit 'user.status.receive.fetch', data: data
     catch error
       console.warn(error)
   componentWillUnmount: ->
@@ -52,11 +55,13 @@ LoginGateway = React.createClass
     User.endpoints.login + '?parent=' + encodeURIComponent(window.location.href)
 
   loginLink: (msg) ->
-    <a target='_blank' onClick={@openLogin} href={@urlForLogin()}>{msg}</a>
+    <a data-bypass onClick={@openLogin} href={@urlForLogin()}>
+      {msg}
+    </a>
 
   renderLogin: ->
     <p>
-      Please {@loginLink('click to begin login.')}
+      {@loginLink('click to begin login.')}
     </p>
 
   render: ->
