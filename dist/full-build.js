@@ -245,9 +245,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  ConceptCoachAPI.prototype.open = function(props) {
 	    var openProps;
-	    User.channel.once('logout.received', function() {
-	      return props.close();
-	    });
+	    User.channel.once('logout.received', (function(_this) {
+	      return function() {
+	        return _this.close();
+	      };
+	    })(this));
 	    openProps = _.extend({}, props, {
 	      open: true
 	    });
