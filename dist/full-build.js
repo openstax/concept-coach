@@ -65,7 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, ConceptCoachAPI, EventEmitter2, Launcher, ModalCoach, PROPS, User, WRAPPER_CLASSNAME, _, componentModel, deleteProperties, exercise, helpers, initializeModels, launcherWrapped, listenAndBroadcast, modalCoachWrapped, navigation, progress, restAPI, setupAPIListeners, stopModelChannels, task,
+	var $, Coach, ConceptCoachAPI, EventEmitter2, PROPS, User, WRAPPER_CLASSNAME, _, coachWrapped, componentModel, deleteProperties, exercise, helpers, initializeModels, listenAndBroadcast, navigation, progress, restAPI, setupAPIListeners, stopModelChannels, task,
 	  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
 	  hasProp = {}.hasOwnProperty;
 
@@ -91,13 +91,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	task = __webpack_require__(172);
 
-	ModalCoach = __webpack_require__(173).ModalCoach;
+	Coach = __webpack_require__(173).Coach;
 
-	Launcher = __webpack_require__(319).Launcher;
-
-	modalCoachWrapped = helpers.wrapComponent(ModalCoach);
-
-	launcherWrapped = helpers.wrapComponent(Launcher);
+	coachWrapped = helpers.wrapComponent(Coach);
 
 	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl', 'processHtmlAndMath'];
 
@@ -201,8 +197,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  ConceptCoachAPI.prototype.destroy = function() {
+	    var ref;
 	    if (typeof this.close === "function") {
 	      this.close();
+	    }
+	    if ((ref = this.component) != null ? ref.isMounted() : void 0) {
+	      coachWrapped.unmountFrom(componentModel.mounter);
 	    }
 	    stopModelChannels(this.models);
 	    deleteProperties(this.models);
@@ -219,13 +219,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return componentModel.update(options);
 	  };
 
-	  ConceptCoachAPI.prototype.displayLauncher = function(mountNode) {
-	    mountNode.classList.add(WRAPPER_CLASSNAME);
-	    return launcherWrapped.render(mountNode);
-	  };
-
-	  ConceptCoachAPI.prototype.open = function(mountNode, props) {
-	    var modalNode;
+	  ConceptCoachAPI.prototype.initialize = function(mountNode, props) {
+	    if (props == null) {
+	      props = {};
+	    }
 	    props = _.clone(props);
 	    if (props.defaultView == null) {
 	      props.defaultView = componentModel.isSame ? componentModel.view : 'task';
@@ -234,29 +231,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	      mounter: mountNode,
 	      isSame: true
 	    });
-	    modalNode = document.createElement('div');
-	    modalNode.classList.add(WRAPPER_CLASSNAME);
-	    mountNode.appendChild(modalNode);
-	    props.close = function() {
-	      componentModel.channel.emit('close.clicked');
-	      modalCoachWrapped.unmountFrom(modalNode);
-	      if (modalNode.parentNode === mountNode) {
-	        return mountNode.removeChild(modalNode);
-	      }
-	    };
+	    props.close = (function(_this) {
+	      return function() {
+	        _this.component.setProps({
+	          open: false
+	        });
+	        return componentModel.channel.emit('close.clicked');
+	      };
+	    })(this);
+	    this.close = props.close;
+	    return this.component = coachWrapped.render(mountNode, props);
+	  };
+
+	  ConceptCoachAPI.prototype.open = function(props) {
+	    var openProps;
 	    User.channel.once('logout.received', function() {
 	      return props.close();
 	    });
-	    this.component = modalCoachWrapped.render(modalNode, props);
-	    this.close = props.close;
-	    return this.component;
+	    openProps = _.extend({}, props, {
+	      open: true
+	    });
+	    return this.component.setProps(openProps);
 	  };
 
-	  ConceptCoachAPI.prototype.openByRoute = function(mountNode, props, route) {
+	  ConceptCoachAPI.prototype.openByRoute = function(props, route) {
 	    props = _.clone(props);
 	    props.defaultView = navigation.getViewByRoute(route);
 	    if ((props.defaultView != null) && props.defaultView !== 'close') {
-	      return this.open(mountNode, props);
+	      return this.open(props);
 	    }
 	  };
 
@@ -273,7 +275,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else if ((componentModel.mounter != null) && view !== 'close') {
 	      props = _.pick(componentModel, PROPS);
 	      props.defaultView = view;
-	      return this.open(componentModel.mounter, props);
+	      return this.open(props);
 	    }
 	  };
 
@@ -32929,11 +32931,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 159 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var EventEmitter2, IS_INITIALIZED, channel, destroy, initialize, loader, settings;
+	var EventEmitter2, IS_INITIALIZED, channel, destroy, initialize, isPending, loader, ref, settings;
 
 	EventEmitter2 = __webpack_require__(6);
 
-	loader = __webpack_require__(160);
+	ref = __webpack_require__(160), loader = ref.loader, isPending = ref.isPending;
 
 	settings = __webpack_require__(162);
 
@@ -32960,6 +32962,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = {
 	  loader: loader,
+	  isPending: isPending,
 	  settings: settings,
 	  initialize: initialize,
 	  destroy: destroy,
@@ -32971,7 +32974,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 160 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, API_ACCESS_TOKEN, LOADING, METHODS_WITH_DATA, _, defaultFail, getAjaxSettingsByEnv, getResponseDataByEnv, handleAPIEvent, interpolate, loader;
+	var $, API_ACCESS_TOKEN, LOADING, METHODS_WITH_DATA, _, defaultFail, getAjaxSettingsByEnv, getResponseDataByEnv, handleAPIEvent, interpolate, isPending, loader;
 
 	_ = __webpack_require__(2);
 
@@ -33055,18 +33058,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    LOADING[apiSetting.url] = true;
 	  }
 	  return _.delay(function() {
-	    return $.ajax(apiSetting).then(function(responseData) {
+	    return $.ajax(apiSetting).done(function(responseData) {
 	      var completedData, completedEvent, error;
 	      delete LOADING[apiSetting.url];
 	      try {
 	        completedEvent = interpolate(setting.completedEvent, requestEvent.data);
 	        completedData = getResponseDataByEnv(isLocal, requestEvent, responseData);
-	        apiEventChannel.emit(completedEvent, completedData);
-	        return apiEventChannel.emit('success', {
-	          responseData: responseData,
-	          apiSetting: apiSetting,
-	          completedData: completedData
-	        });
+	        return apiEventChannel.emit(completedEvent, completedData);
 	      } catch (_error) {
 	        error = _error;
 	        return apiEventChannel.emit('error', {
@@ -33091,8 +33089,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        apiSetting: apiSetting,
 	        failedData: failedData
 	      });
+	    }).always(function(response) {
+	      return apiEventChannel.emit('completed');
 	    });
 	  }, delay);
+	};
+
+	isPending = function() {
+	  return !_.isEmpty(LOADING);
 	};
 
 	loader = function(apiEventChannel, settings) {
@@ -33104,7 +33108,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 
-	module.exports = loader;
+	module.exports = {
+	  loader: loader,
+	  isPending: isPending
+	};
 
 
 /***/ },
@@ -33776,13 +33783,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 170 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var EventEmitter2, api, channel, fetch, get, getCurrentPanel, init, load, quickLoad, steps, update;
+	var EventEmitter2, api, channel, fetch, get, getCurrentPanel, init, load, quickLoad, steps, update, user;
 
 	EventEmitter2 = __webpack_require__(6);
 
 	api = __webpack_require__(159);
 
 	steps = {};
+
+	user = __webpack_require__(168);
+
+	user.channel.on('change', function() {
+	  return steps = {};
+	});
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -33913,7 +33926,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 172 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ERRORS_TO_SILENCE, EventEmitter2, _, api, channel, checkFailure, exercises, fetch, fetchByModule, get, getCompleteSteps, getFirstIncompleteIndex, getIncompleteSteps, getModuleInfo, getStepIndex, getUnhandledErrors, handledAllErrors, init, interpolate, load, tasks, update;
+	var ERRORS_TO_SILENCE, EventEmitter2, _, api, channel, checkFailure, exercises, fetch, fetchByModule, get, getCompleteSteps, getFirstIncompleteIndex, getIncompleteSteps, getModuleInfo, getStepIndex, getUnhandledErrors, handledAllErrors, init, interpolate, load, tasks, update, user;
 
 	EventEmitter2 = __webpack_require__(6);
 
@@ -33926,6 +33939,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	exercises = __webpack_require__(170);
 
 	tasks = {};
+
+	user = __webpack_require__(168);
+
+	user.channel.on('change', function() {
+	  return tasks = {};
+	});
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -34077,23 +34096,61 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 173 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var CCModal, ConceptCoach, ModalCoach, React, channel, ref;
+	var CCModal, Coach, ConceptCoach, Launcher, React, _, channel, ref;
 
 	React = __webpack_require__(8);
+
+	_ = __webpack_require__(4);
 
 	ref = __webpack_require__(174), ConceptCoach = ref.ConceptCoach, channel = ref.channel;
 
 	CCModal = __webpack_require__(318).CCModal;
 
-	ModalCoach = React.createClass({
-	  displayName: 'ModalCoach',
+	Launcher = __webpack_require__(319).Launcher;
+
+	Coach = React.createClass({
+	  displayName: 'Coach',
+	  getDefaultProps: function() {
+	    return {
+	      open: false,
+	      displayLauncher: true
+	    };
+	  },
+	  getInitialState: function() {
+	    var open;
+	    open = this.props.open;
+	    return {
+	      isOpen: open
+	    };
+	  },
+	  componentWillReceiveProps: function(nextProps) {
+	    var open;
+	    open = nextProps.open;
+	    if (open !== this.state.isOpen) {
+	      return this.setState({
+	        isOpen: open
+	      });
+	    }
+	  },
 	  render: function() {
-	    return React.createElement(CCModal, null, React.createElement(ConceptCoach, React.__spread({}, this.props)));
+	    var coachProps, displayLauncher, isOpen, launcher, modal;
+	    isOpen = this.state.isOpen;
+	    displayLauncher = this.props.displayLauncher;
+	    coachProps = _.omit(this.props, 'open');
+	    if (isOpen) {
+	      modal = React.createElement(CCModal, null, React.createElement(ConceptCoach, React.__spread({}, coachProps)));
+	    }
+	    if (displayLauncher) {
+	      launcher = React.createElement(Launcher, null);
+	    }
+	    return React.createElement("div", {
+	      "className": 'concept-coach-wrapper'
+	    }, launcher, modal);
 	  }
 	});
 
 	module.exports = {
-	  ModalCoach: ModalCoach,
+	  Coach: Coach,
 	  channel: channel
 	};
 
@@ -34139,7 +34196,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	navigator = navigation.channel;
 
-	VIEWS = ['loading', 'login', 'registration', ['task', 'progress', 'profile', 'dashboard', 'registration']];
+	VIEWS = ['loading', 'login', 'registration', ['task', 'progress', 'profile', 'dashboard', 'registration'], 'logout'];
 
 	ConceptCoach = React.createClass({
 	  displayName: 'ConceptCoach',
@@ -46828,7 +46885,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  close: function() {
 	    var base;
-	    channel.emit('close.clicked');
 	    return typeof (base = this.context).close === "function" ? base.close() : void 0;
 	  },
 	  handleSelect: function(selectedKey) {
@@ -48587,10 +48643,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	    channel.emit('modal.mount.success', mountData);
 	    mountData.modal.el.focus();
-	    return _.delay(this.setLoaded, 1000);
-	  },
-	  componentWillMount: function() {
-	    return api.channel.once('success', this.setLoaded);
+	    if (api.isPending()) {
+	      return api.channel.once('completed', this.setLoaded);
+	    } else {
+	      return this.setLoaded();
+	    }
 	  },
 	  setLoaded: function() {
 	    var isLoaded;
@@ -48642,14 +48699,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  displayName: 'Launcher',
 	  getInitialState: function() {
 	    return {
-	      isLaunching: false,
-	      isClosing: false
+	      isLaunching: false
 	    };
 	  },
 	  launch: function() {
-	    var isClosing;
-	    isClosing = this.state.isClosing;
-	    if (isClosing) {
+	    var isLaunching;
+	    isLaunching = this.state.isLaunching;
+	    if (isLaunching) {
 	      return;
 	    }
 	    this.setState({
@@ -48659,28 +48715,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  close: function() {
 	    return this.setState({
-	      isClosing: true,
 	      isLaunching: false
 	    });
 	  },
-	  delayedClose: function() {
-	    return _.delay((function(_this) {
-	      return function() {
-	        return _this.setState({
-	          isClosing: false
-	        });
-	      };
-	    })(this), 1000);
-	  },
 	  shouldComponentUpdate: function(nextProps, nextState) {
-	    return this.state.isClosing !== nextState.isClosing || this.state.isLaunching !== nextState.isLaunching;
-	  },
-	  componentDidUpdate: function() {
-	    var isClosing, isLaunching, ref1;
-	    ref1 = this.state, isLaunching = ref1.isLaunching, isClosing = ref1.isClosing;
-	    if (isClosing && !isLaunching) {
-	      return this.delayedClose();
-	    }
+	    return this.state.isLaunching !== nextState.isLaunching;
 	  },
 	  componentWillMount: function() {
 	    return channel.on('coach.unmount.success', this.close);
@@ -48689,15 +48728,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return channel.off('coach.unmount.success', this.close);
 	  },
 	  render: function() {
-	    var classes, height, isClosing, isLaunching, ref1;
-	    ref1 = this.state, isLaunching = ref1.isLaunching, isClosing = ref1.isClosing;
+	    var classes, height, isLaunching;
+	    isLaunching = this.state.isLaunching;
 	    height = '388px';
-	    if (isLaunching && !isClosing) {
+	    if (isLaunching) {
 	      height = window.innerHeight + "px";
 	    }
 	    classes = classnames('concept-coach-launcher', {
-	      launching: isLaunching,
-	      closing: isClosing
+	      launching: isLaunching
 	    });
 	    return React.createElement("div", {
 	      "className": 'concept-coach-launcher-wrapper'

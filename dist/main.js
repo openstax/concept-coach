@@ -85,7 +85,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Task = __webpack_require__(33).Task;
 
-	navigation = (ref1 = __webpack_require__(55), Navigation = ref1.Navigation, ref1);
+	navigation = (ref1 = __webpack_require__(57), Navigation = ref1.Navigation, ref1);
 
 	CourseRegistration = __webpack_require__(61);
 
@@ -95,19 +95,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	LoginGateway = __webpack_require__(71);
 
-	User = __webpack_require__(58);
+	User = __webpack_require__(44);
 
-	ExerciseStep = __webpack_require__(45).ExerciseStep;
+	ExerciseStep = __webpack_require__(47).ExerciseStep;
 
 	Dashboard = __webpack_require__(72).Dashboard;
 
 	Progress = __webpack_require__(73).Progress;
 
-	channel = __webpack_require__(53).channel;
+	channel = __webpack_require__(55).channel;
 
 	navigator = navigation.channel;
 
-	VIEWS = ['loading', 'login', 'registration', ['task', 'progress', 'profile', 'dashboard', 'registration']];
+	VIEWS = ['loading', 'login', 'registration', ['task', 'progress', 'profile', 'dashboard', 'registration'], 'logout'];
 
 	ConceptCoach = React.createClass({
 	  displayName: 'ConceptCoach',
@@ -3580,19 +3580,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	api = __webpack_require__(36);
 
-	Reactive = __webpack_require__(44).Reactive;
+	Reactive = __webpack_require__(46).Reactive;
 
 	apiChannelName = 'task';
 
-	exercises = (ref = __webpack_require__(45), ExerciseStep = ref.ExerciseStep, ref);
+	exercises = (ref = __webpack_require__(47), ExerciseStep = ref.ExerciseStep, ref);
 
-	breadcrumbs = (ref1 = __webpack_require__(46), Breadcrumbs = ref1.Breadcrumbs, ref1);
+	breadcrumbs = (ref1 = __webpack_require__(48), Breadcrumbs = ref1.Breadcrumbs, ref1);
 
-	TaskReview = __webpack_require__(47).TaskReview;
+	TaskReview = __webpack_require__(49).TaskReview;
 
-	TaskTitle = __webpack_require__(52).TaskTitle;
+	TaskTitle = __webpack_require__(54).TaskTitle;
 
-	NoExercises = __webpack_require__(54).NoExercises;
+	NoExercises = __webpack_require__(56).NoExercises;
 
 	TaskBase = React.createClass({
 	  displayName: 'TaskBase',
@@ -3733,7 +3733,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ERRORS_TO_SILENCE, EventEmitter2, _, api, channel, checkFailure, exercises, fetch, fetchByModule, get, getCompleteSteps, getFirstIncompleteIndex, getIncompleteSteps, getModuleInfo, getStepIndex, getUnhandledErrors, handledAllErrors, init, interpolate, load, tasks, update;
+	var ERRORS_TO_SILENCE, EventEmitter2, _, api, channel, checkFailure, exercises, fetch, fetchByModule, get, getCompleteSteps, getFirstIncompleteIndex, getIncompleteSteps, getModuleInfo, getStepIndex, getUnhandledErrors, handledAllErrors, init, interpolate, load, tasks, update, user;
 
 	EventEmitter2 = __webpack_require__(5);
 
@@ -3746,6 +3746,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	exercises = __webpack_require__(43);
 
 	tasks = {};
+
+	user = __webpack_require__(44);
+
+	user.channel.on('change', function() {
+	  return tasks = {};
+	});
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -3968,11 +3974,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var EventEmitter2, IS_INITIALIZED, channel, destroy, initialize, loader, settings;
+	var EventEmitter2, IS_INITIALIZED, channel, destroy, initialize, isPending, loader, ref, settings;
 
 	EventEmitter2 = __webpack_require__(5);
 
-	loader = __webpack_require__(37);
+	ref = __webpack_require__(37), loader = ref.loader, isPending = ref.isPending;
 
 	settings = __webpack_require__(41);
 
@@ -3999,6 +4005,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = {
 	  loader: loader,
+	  isPending: isPending,
 	  settings: settings,
 	  initialize: initialize,
 	  destroy: destroy,
@@ -4010,7 +4017,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, API_ACCESS_TOKEN, LOADING, METHODS_WITH_DATA, _, defaultFail, getAjaxSettingsByEnv, getResponseDataByEnv, handleAPIEvent, interpolate, loader;
+	var $, API_ACCESS_TOKEN, LOADING, METHODS_WITH_DATA, _, defaultFail, getAjaxSettingsByEnv, getResponseDataByEnv, handleAPIEvent, interpolate, isPending, loader;
 
 	_ = __webpack_require__(38);
 
@@ -4094,18 +4101,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    LOADING[apiSetting.url] = true;
 	  }
 	  return _.delay(function() {
-	    return $.ajax(apiSetting).then(function(responseData) {
+	    return $.ajax(apiSetting).done(function(responseData) {
 	      var completedData, completedEvent, error;
 	      delete LOADING[apiSetting.url];
 	      try {
 	        completedEvent = interpolate(setting.completedEvent, requestEvent.data);
 	        completedData = getResponseDataByEnv(isLocal, requestEvent, responseData);
-	        apiEventChannel.emit(completedEvent, completedData);
-	        return apiEventChannel.emit('success', {
-	          responseData: responseData,
-	          apiSetting: apiSetting,
-	          completedData: completedData
-	        });
+	        return apiEventChannel.emit(completedEvent, completedData);
 	      } catch (_error) {
 	        error = _error;
 	        return apiEventChannel.emit('error', {
@@ -4130,8 +4132,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	        apiSetting: apiSetting,
 	        failedData: failedData
 	      });
+	    }).always(function(response) {
+	      return apiEventChannel.emit('completed');
 	    });
 	  }, delay);
+	};
+
+	isPending = function() {
+	  return !_.isEmpty(LOADING);
 	};
 
 	loader = function(apiEventChannel, settings) {
@@ -4143,7 +4151,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 
-	module.exports = loader;
+	module.exports = {
+	  loader: loader,
+	  isPending: isPending
+	};
 
 
 /***/ },
@@ -25903,13 +25914,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var EventEmitter2, api, channel, fetch, get, getCurrentPanel, init, load, quickLoad, steps, update;
+	var EventEmitter2, api, channel, fetch, get, getCurrentPanel, init, load, quickLoad, steps, update, user;
 
 	EventEmitter2 = __webpack_require__(5);
 
 	api = __webpack_require__(36);
 
 	steps = {};
+
+	user = __webpack_require__(44);
+
+	user.channel.on('change', function() {
+	  return steps = {};
+	});
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -25981,896 +25998,116 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var React, Reactive, api, classnames, interpolate;
+	var BLANK_USER, Course, EventEmitter2, React, User, _, api;
 
-	React = __webpack_require__(10);
+	_ = __webpack_require__(3);
 
-	classnames = __webpack_require__(4);
+	React = __webpack_require__(2);
+
+	EventEmitter2 = __webpack_require__(5);
+
+	Course = __webpack_require__(45);
 
 	api = __webpack_require__(36);
 
-	interpolate = __webpack_require__(35);
-
-	Reactive = React.createClass({
-	  displayName: 'Reactive',
-	  propTypes: {
-	    children: React.PropTypes.node.isRequired,
-	    store: React.PropTypes.object.isRequired,
-	    topic: React.PropTypes.string.isRequired,
-	    apiChannelPattern: React.PropTypes.string,
-	    channelUpdatePattern: React.PropTypes.string,
-	    apiChannelName: React.PropTypes.string,
-	    fetcher: React.PropTypes.func,
-	    filter: React.PropTypes.func,
-	    getStatusMessage: React.PropTypes.func
-	  },
-	  getDefaultProps: function() {
-	    return {
-	      apiChannelPattern: '{apiChannelName}.{topic}.send.*',
-	      channelUpdatePattern: 'load.*'
-	    };
-	  },
-	  getInitialState: function() {
-	    var apiChannelPattern, channelUpdatePattern, ref, state;
-	    ref = this.props, channelUpdatePattern = ref.channelUpdatePattern, apiChannelPattern = ref.apiChannelPattern;
-	    state = this.getState();
-	    state.status = 'loading';
-	    state.storeChannelUpdate = interpolate(channelUpdatePattern, this.props);
-	    state.apiChannelSend = interpolate(apiChannelPattern, this.props);
-	    return state;
-	  },
-	  fetchModel: function(props) {
-	    var fetcher, store, topic;
-	    if (props == null) {
-	      props = this.props;
-	    }
-	    topic = props.topic, store = props.store, fetcher = props.fetcher;
-	    if (_.isFunction(fetcher)) {
-	      return fetcher(props);
-	    } else {
-	      return store.fetch(topic);
-	    }
-	  },
-	  getState: function(eventData, props) {
-	    var errors, ref, status, store, topic;
-	    if (eventData == null) {
-	      eventData = {};
-	    }
-	    if (props == null) {
-	      props = this.props;
-	    }
-	    topic = props.topic, store = props.store;
-	    status = eventData.status;
-	    if (status == null) {
-	      status = 'loaded';
-	    }
-	    errors = eventData != null ? (ref = eventData.data) != null ? ref.errors : void 0 : void 0;
-	    return {
-	      item: typeof store.get === "function" ? store.get(topic) : void 0,
-	      status: status,
-	      errors: errors
-	    };
-	  },
-	  isForThisComponent: function(eventData, props) {
-	    var filter, ref, ref1, topic;
-	    if (props == null) {
-	      props = this.props;
-	    }
-	    topic = props.topic, filter = props.filter;
-	    return (eventData.errors != null) || (typeof filter === "function" ? filter(props, eventData) : void 0) || (eventData != null ? (ref = eventData.data) != null ? ref.id : void 0 : void 0) === topic || (eventData != null ? (ref1 = eventData.data) != null ? ref1.topic : void 0 : void 0) === topic;
-	  },
-	  update: function(eventData, props) {
-	    var nextState;
-	    if (props == null) {
-	      props = this.props;
-	    }
-	    if (!this.isForThisComponent(eventData, props)) {
-	      return;
-	    }
-	    nextState = this.getState(eventData, props);
-	    return this.setState(nextState);
-	  },
-	  setStatus: function(eventData) {
-	    var status;
-	    if (!this.isForThisComponent(eventData)) {
-	      return;
-	    }
-	    status = eventData.status;
-	    return this.setState({
-	      status: status
-	    });
-	  },
-	  componentWillMount: function() {
-	    var apiChannelSend, ref, store, storeChannelUpdate;
-	    store = this.props.store;
-	    ref = this.state, storeChannelUpdate = ref.storeChannelUpdate, apiChannelSend = ref.apiChannelSend;
-	    this.fetchModel();
-	    store.channel.on(storeChannelUpdate, this.update);
-	    return api.channel.on(apiChannelSend, this.setStatus);
-	  },
-	  componentWillUnmount: function() {
-	    var apiChannelSend, ref, ref1, store, storeChannelUpdate, topic;
-	    ref = this.props, topic = ref.topic, store = ref.store;
-	    ref1 = this.state, storeChannelUpdate = ref1.storeChannelUpdate, apiChannelSend = ref1.apiChannelSend;
-	    store.channel.off(storeChannelUpdate, this.update);
-	    return api.channel.off(apiChannelSend, this.setStatus);
-	  },
-	  componentWillReceiveProps: function(nextProps) {
-	    var stubDataForImmediateUpdate;
-	    if (nextProps.topic !== this.props.topic) {
-	      stubDataForImmediateUpdate = {
-	        data: {
-	          id: nextProps.topic
-	        },
-	        status: 'cached'
-	      };
-	      this.update(stubDataForImmediateUpdate, nextProps);
-	      return this.fetchModel(nextProps);
-	    }
-	  },
-	  render: function() {
-	    var className, classes, item, propsForChildren, reactiveItems, ref, status;
-	    ref = this.state, status = ref.status, item = ref.item;
-	    className = this.props.className;
-	    classes = classnames('reactive', "reactive-" + status, className, {
-	      'is-empty': _.isEmpty(item)
-	    });
-	    propsForChildren = _.pick(this.state, 'status', 'item', 'errors');
-	    reactiveItems = React.Children.map(this.props.children, function(child) {
-	      return React.addons.cloneWithProps(child, propsForChildren);
-	    });
-	    return React.createElement("div", {
-	      "className": classes
-	    }, reactiveItems);
-	  }
-	});
-
-	module.exports = {
-	  Reactive: Reactive
+	BLANK_USER = {
+	  is_admin: false,
+	  is_content_analyst: false,
+	  is_customer_service: false,
+	  name: null,
+	  profile_url: null,
+	  courses: []
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+	User = {
+	  isLoaded: false,
+	  channel: new EventEmitter2({
+	    wildcard: true
+	  }),
+	  update: function(data) {
+	    _.extend(this, data.user);
+	    this.courses = _.compact(_.map(data.courses, function(course) {
+	      if (course.is_concept_coach) {
+	        return new Course(course);
+	      }
+	    }));
+	    return this.channel.emit('change');
+	  },
+	  get: function() {
+	    return this;
+	  },
+	  getCourse: function(collectionUUID) {
+	    return _.findWhere(this.courses, {
+	      ecosystem_book_uuid: collectionUUID
+	    });
+	  },
+	  findOrCreateCourse: function(collectionUUID) {
+	    var course;
+	    return this.getCourse(collectionUUID) || (course = new Course({
+	      ecosystem_book_uuid: collectionUUID
+	    }), this.courses.push(course), course);
+	  },
+	  ensureStatusLoaded: function(force) {
+	    if (force == null) {
+	      force = false;
+	    }
+	    if (force || !this.isLoggedIn()) {
+	      return api.channel.emit('user.status.send.fetch');
+	    }
+	  },
+	  isLoggedIn: function() {
+	    return !!this.profile_url;
+	  },
+	  onCourseUpdate: function(course) {
+	    this.channel.emit('change');
+	    return this.ensureStatusLoaded(true);
+	  },
+	  removeCourse: function(course) {
+	    var index;
+	    index = this.courses.indexOf(course);
+	    if (index !== -1) {
+	      this.courses.splice(index, 1);
+	    }
+	    return this.channel.emit('change');
+	  },
+	  _signalLogoutCompleted: function() {
+	    _.extend(this, BLANK_USER);
+	    this.isLoggingOut = true;
+	    return this.channel.emit('logout.received');
+	  },
+	  init: function() {
+	    return api.channel.on('user.status.receive.*', function(arg) {
+	      var data;
+	      data = arg.data;
+	      User.isLoaded = true;
+	      if (data.access_token) {
+	        api.channel.emit('set.access_token', data.access_token);
+	      }
+	      User.endpoints = data.endpoints;
+	      if (data.user) {
+	        return User.update(data);
+	      } else {
+	        _.extend(this, BLANK_USER);
+	        return User.channel.emit('change');
+	      }
+	    });
+	  },
+	  destroy: function() {
+	    User.channel.removeAllListeners();
+	    _.each(this.courses, function(course) {
+	      return course.channel.removeAllListeners();
+	    });
+	    return delete this.courses;
+	  }
+	};
+
+	_.extend(User, BLANK_USER);
+
+	module.exports = User;
+
 
 /***/ },
 /* 45 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Exercise, ExerciseBase, ExerciseStep, React, Reactive, _, api, apiChannelName, channel, exercises, getCurrentPanel, ref, tasks;
-
-	React = __webpack_require__(2);
-
-	_ = __webpack_require__(3);
-
-	Exercise = __webpack_require__(6).Exercise;
-
-	ref = exercises = __webpack_require__(43), channel = ref.channel, getCurrentPanel = ref.getCurrentPanel;
-
-	tasks = __webpack_require__(34);
-
-	api = __webpack_require__(36);
-
-	Reactive = __webpack_require__(44).Reactive;
-
-	apiChannelName = 'exercise';
-
-	ExerciseBase = React.createClass({
-	  displayName: 'ExerciseBase',
-	  getInitialState: function() {
-	    var item;
-	    item = this.props.item;
-	    return {
-	      step: item
-	    };
-	  },
-	  componentWillReceiveProps: function(nextProps) {
-	    var item;
-	    item = nextProps.item;
-	    return this.setState({
-	      step: item
-	    });
-	  },
-	  componentDidUpdate: function(prevProps, prevState) {
-	    var status, step;
-	    status = this.props.status;
-	    step = this.state.step;
-	    return channel.emit("component." + status, {
-	      status: status,
-	      step: step
-	    });
-	  },
-	  render: function() {
-	    var exerciseProps, step, taskId, wrapperProps;
-	    step = this.state.step;
-	    taskId = this.props.taskId;
-	    if (_.isEmpty(step)) {
-	      return null;
-	    }
-	    exerciseProps = {
-	      taskId: step.task_id,
-	      step: step,
-	      getCurrentPanel: getCurrentPanel,
-	      setAnswerId: function(id, answerId) {
-	        var eventData;
-	        step.answer_id = answerId;
-	        eventData = {
-	          change: step,
-	          data: step,
-	          status: 'saving'
-	        };
-	        channel.emit("change." + step.id, eventData);
-	        return api.channel.emit("exercise." + step.id + ".send.save", eventData);
-	      },
-	      setFreeResponseAnswer: function(id, freeResponse) {
-	        var eventData;
-	        step.free_response = freeResponse;
-	        eventData = {
-	          change: step,
-	          data: step,
-	          status: 'saving'
-	        };
-	        channel.emit("change." + step.id, eventData);
-	        return api.channel.emit("exercise." + step.id + ".send.save", eventData);
-	      },
-	      onContinue: function() {
-	        var eventData;
-	        step.is_completed = true;
-	        eventData = {
-	          change: step,
-	          data: step,
-	          status: 'loading'
-	        };
-	        channel.emit("change." + step.id, eventData);
-	        return api.channel.emit("exercise." + step.id + ".send.complete", eventData);
-	      },
-	      onStepCompleted: function() {
-	        return channel.emit("completed." + step.id);
-	      },
-	      onNextStep: function() {
-	        return channel.emit("leave." + step.id);
-	      }
-	    };
-	    if (taskId != null) {
-	      wrapperProps = {
-	        'data-step-number': tasks.getStepIndex(taskId, step.id) + 1
-	      };
-	    }
-	    return React.createElement("div", React.__spread({
-	      "className": 'exercise-wrapper'
-	    }, wrapperProps), React.createElement(Exercise, React.__spread({}, exerciseProps, this.props)));
-	  }
-	});
-
-	ExerciseStep = React.createClass({
-	  displayName: 'ExerciseStep',
-	  render: function() {
-	    var id;
-	    id = this.props.id;
-	    return React.createElement(Reactive, {
-	      "topic": id,
-	      "store": exercises,
-	      "apiChannelName": apiChannelName
-	    }, React.createElement(ExerciseBase, React.__spread({}, this.props)));
-	  }
-	});
-
-	module.exports = {
-	  ExerciseStep: ExerciseStep,
-	  channel: channel
-	};
-
-
-/***/ },
-/* 46 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Breadcrumb, BreadcrumbDynamic, Breadcrumbs, React, _, exercises, tasks;
-
-	React = __webpack_require__(2);
-
-	Breadcrumb = __webpack_require__(6).Breadcrumb;
-
-	_ = __webpack_require__(3);
-
-	tasks = __webpack_require__(34);
-
-	exercises = __webpack_require__(43);
-
-	BreadcrumbDynamic = React.createClass({
-	  displayName: 'BreadcrumbDynamic',
-	  getInitialState: function() {
-	    return {
-	      step: this.props.step
-	    };
-	  },
-	  componentWillMount: function() {
-	    var id;
-	    id = this.props.step.id;
-	    return exercises.channel.on("load." + id, this.update);
-	  },
-	  componentWillUnmount: function() {
-	    var id;
-	    id = this.props.step.id;
-	    return exercises.channel.off("load." + id, this.update);
-	  },
-	  update: function(eventData) {
-	    return this.setState({
-	      step: eventData.data
-	    });
-	  },
-	  goToStep: function(stepIndex) {
-	    return this.props.goToStep(stepIndex);
-	  },
-	  render: function() {
-	    var crumbProps, step;
-	    step = this.state.step;
-	    crumbProps = _.omit(this.props, 'step');
-	    return React.createElement(Breadcrumb, React.__spread({}, crumbProps, {
-	      "step": step,
-	      "canReview": true,
-	      "goToStep": this.goToStep
-	    }));
-	  }
-	});
-
-	Breadcrumbs = React.createClass({
-	  displayName: 'Breadcrumbs',
-	  getInitialState: function() {
-	    var collectionUUID, moduleUUID, ref, taskId;
-	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID;
-	    taskId = collectionUUID + "/" + moduleUUID;
-	    return {
-	      task: tasks.get(taskId),
-	      moduleInfo: tasks.getModuleInfo(taskId)
-	    };
-	  },
-	  render: function() {
-	    var breadcrumbs, canReview, crumbs, currentStep, moduleInfo, ref, ref1, reviewEnd, task;
-	    ref = this.state, task = ref.task, moduleInfo = ref.moduleInfo;
-	    ref1 = this.props, currentStep = ref1.currentStep, canReview = ref1.canReview;
-	    if (_.isEmpty(task.steps)) {
-	      return null;
-	    }
-	    crumbs = _.map(task.steps, function(crumbStep, index) {
-	      var crumb;
-	      return crumb = {
-	        key: index,
-	        data: crumbStep,
-	        crumb: true,
-	        type: 'step'
-	      };
-	    });
-	    reviewEnd = {
-	      type: 'end',
-	      key: crumbs.length,
-	      data: {
-	        id: '',
-	        title: moduleInfo.title
-	      },
-	      disabled: !canReview
-	    };
-	    crumbs.push(reviewEnd);
-	    breadcrumbs = _.map(crumbs, (function(_this) {
-	      return function(crumb) {
-	        return React.createElement(BreadcrumbDynamic, {
-	          "className": (crumb.disabled ? 'disabled' : void 0),
-	          "key": crumb.data.id,
-	          "crumb": crumb,
-	          "step": crumb.data || {},
-	          "currentStep": currentStep,
-	          "goToStep": _this.props.goToStep
-	        });
-	      };
-	    })(this));
-	    return React.createElement("div", {
-	      "className": 'task-homework'
-	    }, React.createElement("div", {
-	      "className": 'task-breadcrumbs'
-	    }, breadcrumbs));
-	  }
-	});
-
-	module.exports = {
-	  Breadcrumbs: Breadcrumbs
-	};
-
-
-/***/ },
-/* 47 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var ExerciseButton, ExerciseStep, React, TaskReview, _, tasks;
-
-	React = __webpack_require__(2);
-
-	_ = __webpack_require__(3);
-
-	tasks = __webpack_require__(34);
-
-	ExerciseStep = __webpack_require__(45).ExerciseStep;
-
-	ExerciseButton = __webpack_require__(48).ExerciseButton;
-
-	TaskReview = React.createClass({
-	  displayName: 'TaskReview',
-	  getInitialState: function() {
-	    return this.getSteps(this.props);
-	  },
-	  componentWillMount: function() {
-	    var collectionUUID, moduleUUID, ref;
-	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID;
-	    return tasks.fetchByModule({
-	      collectionUUID: collectionUUID,
-	      moduleUUID: moduleUUID
-	    });
-	  },
-	  componentWillReceiveProps: function(nextProps) {
-	    return this.setState(this.getSteps(nextProps));
-	  },
-	  getSteps: function(props) {
-	    var taskId;
-	    taskId = props.taskId;
-	    return {
-	      completeSteps: tasks.getCompleteSteps(taskId),
-	      incompleteSteps: tasks.getIncompleteSteps(taskId)
-	    };
-	  },
-	  render: function() {
-	    var completeSteps, completeStepsReview, incompleteSteps, ref, ref1, status, taskId;
-	    ref = this.state, completeSteps = ref.completeSteps, incompleteSteps = ref.incompleteSteps;
-	    ref1 = this.props, status = ref1.status, taskId = ref1.taskId;
-	    if (_.isEmpty(completeSteps)) {
-	      completeStepsReview = React.createElement("div", {
-	        "className": 'card-body'
-	      }, React.createElement("h3", null, "Exercise to see Review"), React.createElement(ExerciseButton, {
-	        "onClick": _.partial(this.props.goToStep, 0)
-	      }));
-	    } else {
-	      completeStepsReview = _.map(completeSteps, function(step) {
-	        return React.createElement(ExerciseStep, {
-	          "id": step.id,
-	          "pinned": false,
-	          "review": 'completed',
-	          "focus": false,
-	          "taskId": taskId,
-	          "allowKeyNext": false
-	        });
-	      });
-	    }
-	    return React.createElement("div", {
-	      "className": 'concept-coach-task-review'
-	    }, completeStepsReview);
-	  }
-	});
-
-	module.exports = {
-	  TaskReview: TaskReview
-	};
-
-
-/***/ },
-/* 48 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var BS, ExerciseButton, React, channel;
-
-	React = __webpack_require__(2);
-
-	BS = __webpack_require__(16);
-
-	channel = __webpack_require__(49).channel;
-
-	ExerciseButton = React.createClass({
-	  displayName: 'ExerciseButton',
-	  propTypes: {
-	    childern: React.PropTypes.node
-	  },
-	  getDefaultProps: function() {
-	    return {
-	      children: 'Exercise'
-	    };
-	  },
-	  showExercise: function() {
-	    var base;
-	    channel.emit('show.task', {
-	      view: 'task'
-	    });
-	    return typeof (base = this.props).onClick === "function" ? base.onClick() : void 0;
-	  },
-	  render: function() {
-	    return React.createElement(BS.Button, {
-	      "onClick": this.showExercise
-	    }, this.props.children);
-	  }
-	});
-
-	module.exports = {
-	  ExerciseButton: ExerciseButton
-	};
-
-
-/***/ },
-/* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var EventEmitter2, _, channel, getDataByView, getViewByRoute, initialize, loader, navigation, settings;
-
-	_ = __webpack_require__(3);
-
-	EventEmitter2 = __webpack_require__(5);
-
-	settings = __webpack_require__(50);
-
-	loader = __webpack_require__(51).loader;
-
-	navigation = {};
-
-	channel = new EventEmitter2({
-	  wildcard: true
-	});
-
-	initialize = function(options) {
-	  _.extend(navigation, options);
-	  return loader(navigation, settings.views);
-	};
-
-	getDataByView = function(view) {
-	  return navigation.views[view];
-	};
-
-	getViewByRoute = function(route) {
-	  var navData, ref, view;
-	  navData = _.findWhere(navigation.views, {
-	    route: route
-	  });
-	  view = navData != null ? (ref = navData.state) != null ? ref.view : void 0 : void 0;
-	  if (view != null) {
-	    if (view === 'default') {
-	      view = 'task';
-	    }
-	  }
-	  return view;
-	};
-
-	module.exports = {
-	  channel: channel,
-	  initialize: initialize,
-	  getDataByView: getDataByView,
-	  getViewByRoute: getViewByRoute
-	};
-
-
-/***/ },
-/* 50 */
-/***/ function(module, exports) {
-
-	var DEFAULT_PATTERN, settings;
-
-	DEFAULT_PATTERN = '{prefix}{base}{view}';
-
-	settings = {
-	  views: {
-	    profile: DEFAULT_PATTERN,
-	    dashboard: DEFAULT_PATTERN,
-	    task: DEFAULT_PATTERN,
-	    registration: DEFAULT_PATTERN,
-	    progress: DEFAULT_PATTERN,
-	    loading: DEFAULT_PATTERN,
-	    login: DEFAULT_PATTERN,
-	    logout: DEFAULT_PATTERN,
-	    "default": '{prefix}{base}',
-	    close: '{prefix}'
-	  }
-	};
-
-	module.exports = settings;
-
-
-/***/ },
-/* 51 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _, interpolate, loader, makeViewSettings;
-
-	_ = __webpack_require__(3);
-
-	interpolate = __webpack_require__(35);
-
-	makeViewSettings = function(viewOptions, routePattern, view) {
-	  var route;
-	  viewOptions = _.extend({}, viewOptions, {
-	    view: view
-	  });
-	  route = interpolate(routePattern, viewOptions);
-	  return {
-	    state: {
-	      view: view
-	    },
-	    route: route
-	  };
-	};
-
-	loader = function(model, viewSettings) {
-	  var viewOptions;
-	  viewOptions = _.pick(model, 'prefix', 'base');
-	  return model.views = _.mapObject(viewSettings, _.partial(makeViewSettings, viewOptions));
-	};
-
-	module.exports = {
-	  loader: loader
-	};
-
-
-/***/ },
-/* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var ChapterSectionMixin, React, TaskTitle, _, classnames, componentModel, navigation, tasks;
-
-	React = __webpack_require__(2);
-
-	_ = __webpack_require__(3);
-
-	classnames = __webpack_require__(4);
-
-	tasks = __webpack_require__(34);
-
-	navigation = __webpack_require__(49);
-
-	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
-
-	componentModel = __webpack_require__(53);
-
-	TaskTitle = React.createClass({
-	  displayName: 'TaskTitle',
-	  mixins: [ChapterSectionMixin],
-	  contextTypes: {
-	    close: React.PropTypes.func
-	  },
-	  broadcastNav: function(clickEvent) {
-	    var close, cnxUrl, collectionUUID, link, moduleUUID, ref, taskId;
-	    clickEvent.preventDefault();
-	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
-	    close = this.context.close;
-	    link = tasks.getModuleInfo(taskId, cnxUrl).link;
-	    close();
-	    navigation.channel.emit('close.for.book', {
-	      collectionUUID: collectionUUID,
-	      moduleUUID: moduleUUID,
-	      link: link
-	    });
-	    return true;
-	  },
-	  render: function() {
-	    var close, cnxUrl, linkProps, moduleInfo, noTitle, ref, section, sectionProps, taskId, title, titleClasses;
-	    ref = this.props, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
-	    close = this.context.close;
-	    moduleInfo = tasks.getModuleInfo(taskId, cnxUrl);
-	    section = this.sectionFormat(moduleInfo.chapter_section);
-	    sectionProps = {
-	      className: 'chapter-section-prefix'
-	    };
-	    if (section != null) {
-	      sectionProps['data-section'] = section;
-	    }
-	    linkProps = {
-	      role: 'button'
-	    };
-	    if (moduleInfo.title) {
-	      linkProps.target = '_blank';
-	      linkProps.onClick = this.broadcastNav;
-	      title = React.createElement("span", null, " Go to", React.createElement("span", React.__spread({}, sectionProps), moduleInfo.title));
-	    } else {
-	      noTitle = React.createElement("span", null, "Back to Book");
-	      linkProps = {
-	        onClick: close
-	      };
-	    }
-	    titleClasses = classnames('concept-coach-title', {
-	      'has-title': moduleInfo.title != null,
-	      'back-to-book': noTitle != null
-	    });
-	    return React.createElement("p", {
-	      "className": titleClasses
-	    }, React.createElement("a", React.__spread({}, linkProps), React.createElement("i", {
-	      "className": 'fa fa-book'
-	    }), title, noTitle));
-	  }
-	});
-
-	module.exports = {
-	  TaskTitle: TaskTitle
-	};
-
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var EventEmitter2, _, coach;
-
-	_ = __webpack_require__(3);
-
-	EventEmitter2 = __webpack_require__(5);
-
-	coach = {
-	  update: function(options) {
-	    return _.extend(this, options);
-	  },
-	  channel: new EventEmitter2({
-	    wildcard: true
-	  })
-	};
-
-	module.exports = coach;
-
-
-/***/ },
-/* 54 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var NoExercises, React;
-
-	React = __webpack_require__(2);
-
-	NoExercises = React.createClass({
-	  displayName: 'NoExercises',
-	  render: function() {
-	    return React.createElement("div", {
-	      "className": 'no-exercises'
-	    }, "Sorry, there are no exercises for this module.");
-	  }
-	});
-
-	module.exports = {
-	  NoExercises: NoExercises
-	};
-
-
-/***/ },
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var BS, CloseButton, Course, CourseNameBase, Navigation, React, UserMenu, api, channel, user;
-
-	React = __webpack_require__(2);
-
-	BS = __webpack_require__(16);
-
-	CloseButton = __webpack_require__(6).CloseButton;
-
-	CourseNameBase = __webpack_require__(56).CourseNameBase;
-
-	Course = __webpack_require__(57);
-
-	user = __webpack_require__(58);
-
-	channel = __webpack_require__(49).channel;
-
-	api = __webpack_require__(36);
-
-	UserMenu = __webpack_require__(59);
-
-	Navigation = React.createClass({
-	  displayName: 'Navigation',
-	  contextTypes: {
-	    close: React.PropTypes.func,
-	    view: React.PropTypes.string
-	  },
-	  propTypes: {
-	    course: React.PropTypes.instanceOf(Course)
-	  },
-	  componentWillMount: function() {
-	    user.ensureStatusLoaded();
-	    return user.channel.on('change', this.update);
-	  },
-	  componentWillUnmount: function() {
-	    return user.channel.off('change', this.update);
-	  },
-	  update: function() {
-	    if (this.isMounted()) {
-	      return this.forceUpdate();
-	    }
-	  },
-	  close: function() {
-	    var base;
-	    channel.emit('close.clicked');
-	    return typeof (base = this.context).close === "function" ? base.close() : void 0;
-	  },
-	  handleSelect: function(selectedKey) {
-	    if (selectedKey != null) {
-	      return channel.emit("show." + selectedKey, {
-	        view: selectedKey
-	      });
-	    }
-	  },
-	  render: function() {
-	    var brand, course, courseItems, view;
-	    course = this.props.course;
-	    view = this.context.view;
-	    brand = [
-	      React.createElement("span", {
-	        "className": 'navbar-logo'
-	      }, React.createElement("strong", null, "Concept"), " Coach"), React.createElement(CourseNameBase, {
-	        "className": 'hidden-sm hidden-xs',
-	        "course": course
-	      })
-	    ];
-	    if (course != null ? course.isRegistered() : void 0) {
-	      courseItems = [
-	        React.createElement(BS.NavItem, {
-	          "active": view === 'progress',
-	          "eventKey": 'progress',
-	          "key": 'progress',
-	          "className": 'concept-coach-dashboard-nav'
-	        }, "My Progress")
-	      ];
-	    }
-	    return React.createElement(BS.Navbar, {
-	      "brand": brand,
-	      "toggleNavKey": 0.,
-	      "fixedTop": true,
-	      "fluid": true
-	    }, React.createElement(BS.CollapsibleNav, {
-	      "eventKey": 0.,
-	      "collapsible": true
-	    }, React.createElement(BS.Nav, {
-	      "right": true,
-	      "navbar": true,
-	      "activeKey": view,
-	      "onSelect": this.handleSelect
-	    }, React.createElement(UserMenu, {
-	      "course": this.props.course
-	    }), courseItems, React.createElement(BS.NavItem, {
-	      "onClick": this.close,
-	      "className": 'concept-coach-dashboard-nav'
-	    }, React.createElement(BS.Button, {
-	      "className": 'btn-plain'
-	    }, "Close")))));
-	  }
-	});
-
-	module.exports = {
-	  Navigation: Navigation,
-	  channel: channel
-	};
-
-
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var CourseNameBase, React, _, classnames;
-
-	React = __webpack_require__(2);
-
-	_ = __webpack_require__(3);
-
-	classnames = __webpack_require__(4);
-
-	CourseNameBase = React.createClass({
-	  displayName: 'CourseNameBase',
-	  getDefaultProps: function() {
-	    return {
-	      course: {}
-	    };
-	  },
-	  render: function() {
-	    var className, classes, course, ref;
-	    ref = this.props, course = ref.course, className = ref.className;
-	    classes = classnames('concept-coach-course-name', className);
-	    return React.createElement("span", {
-	      "className": classes
-	    }, typeof course.description === "function" ? course.description() : void 0);
-	  }
-	});
-
-	module.exports = {
-	  CourseNameBase: CourseNameBase
-	};
-
-
-/***/ },
-/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, ERROR_MAP, EventEmitter2, React, _, api;
@@ -27055,115 +26292,894 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var BLANK_USER, Course, EventEmitter2, React, User, _, api;
+	/* WEBPACK VAR INJECTION */(function(_) {var React, Reactive, api, classnames, interpolate;
 
-	_ = __webpack_require__(3);
+	React = __webpack_require__(10);
 
-	React = __webpack_require__(2);
-
-	EventEmitter2 = __webpack_require__(5);
-
-	Course = __webpack_require__(57);
+	classnames = __webpack_require__(4);
 
 	api = __webpack_require__(36);
 
-	BLANK_USER = {
-	  is_admin: false,
-	  is_content_analyst: false,
-	  is_customer_service: false,
-	  name: null,
-	  profile_url: null,
-	  courses: []
+	interpolate = __webpack_require__(35);
+
+	Reactive = React.createClass({
+	  displayName: 'Reactive',
+	  propTypes: {
+	    children: React.PropTypes.node.isRequired,
+	    store: React.PropTypes.object.isRequired,
+	    topic: React.PropTypes.string.isRequired,
+	    apiChannelPattern: React.PropTypes.string,
+	    channelUpdatePattern: React.PropTypes.string,
+	    apiChannelName: React.PropTypes.string,
+	    fetcher: React.PropTypes.func,
+	    filter: React.PropTypes.func,
+	    getStatusMessage: React.PropTypes.func
+	  },
+	  getDefaultProps: function() {
+	    return {
+	      apiChannelPattern: '{apiChannelName}.{topic}.send.*',
+	      channelUpdatePattern: 'load.*'
+	    };
+	  },
+	  getInitialState: function() {
+	    var apiChannelPattern, channelUpdatePattern, ref, state;
+	    ref = this.props, channelUpdatePattern = ref.channelUpdatePattern, apiChannelPattern = ref.apiChannelPattern;
+	    state = this.getState();
+	    state.status = 'loading';
+	    state.storeChannelUpdate = interpolate(channelUpdatePattern, this.props);
+	    state.apiChannelSend = interpolate(apiChannelPattern, this.props);
+	    return state;
+	  },
+	  fetchModel: function(props) {
+	    var fetcher, store, topic;
+	    if (props == null) {
+	      props = this.props;
+	    }
+	    topic = props.topic, store = props.store, fetcher = props.fetcher;
+	    if (_.isFunction(fetcher)) {
+	      return fetcher(props);
+	    } else {
+	      return store.fetch(topic);
+	    }
+	  },
+	  getState: function(eventData, props) {
+	    var errors, ref, status, store, topic;
+	    if (eventData == null) {
+	      eventData = {};
+	    }
+	    if (props == null) {
+	      props = this.props;
+	    }
+	    topic = props.topic, store = props.store;
+	    status = eventData.status;
+	    if (status == null) {
+	      status = 'loaded';
+	    }
+	    errors = eventData != null ? (ref = eventData.data) != null ? ref.errors : void 0 : void 0;
+	    return {
+	      item: typeof store.get === "function" ? store.get(topic) : void 0,
+	      status: status,
+	      errors: errors
+	    };
+	  },
+	  isForThisComponent: function(eventData, props) {
+	    var filter, ref, ref1, topic;
+	    if (props == null) {
+	      props = this.props;
+	    }
+	    topic = props.topic, filter = props.filter;
+	    return (eventData.errors != null) || (typeof filter === "function" ? filter(props, eventData) : void 0) || (eventData != null ? (ref = eventData.data) != null ? ref.id : void 0 : void 0) === topic || (eventData != null ? (ref1 = eventData.data) != null ? ref1.topic : void 0 : void 0) === topic;
+	  },
+	  update: function(eventData, props) {
+	    var nextState;
+	    if (props == null) {
+	      props = this.props;
+	    }
+	    if (!this.isForThisComponent(eventData, props)) {
+	      return;
+	    }
+	    nextState = this.getState(eventData, props);
+	    return this.setState(nextState);
+	  },
+	  setStatus: function(eventData) {
+	    var status;
+	    if (!this.isForThisComponent(eventData)) {
+	      return;
+	    }
+	    status = eventData.status;
+	    return this.setState({
+	      status: status
+	    });
+	  },
+	  componentWillMount: function() {
+	    var apiChannelSend, ref, store, storeChannelUpdate;
+	    store = this.props.store;
+	    ref = this.state, storeChannelUpdate = ref.storeChannelUpdate, apiChannelSend = ref.apiChannelSend;
+	    this.fetchModel();
+	    store.channel.on(storeChannelUpdate, this.update);
+	    return api.channel.on(apiChannelSend, this.setStatus);
+	  },
+	  componentWillUnmount: function() {
+	    var apiChannelSend, ref, ref1, store, storeChannelUpdate, topic;
+	    ref = this.props, topic = ref.topic, store = ref.store;
+	    ref1 = this.state, storeChannelUpdate = ref1.storeChannelUpdate, apiChannelSend = ref1.apiChannelSend;
+	    store.channel.off(storeChannelUpdate, this.update);
+	    return api.channel.off(apiChannelSend, this.setStatus);
+	  },
+	  componentWillReceiveProps: function(nextProps) {
+	    var stubDataForImmediateUpdate;
+	    if (nextProps.topic !== this.props.topic) {
+	      stubDataForImmediateUpdate = {
+	        data: {
+	          id: nextProps.topic
+	        },
+	        status: 'cached'
+	      };
+	      this.update(stubDataForImmediateUpdate, nextProps);
+	      return this.fetchModel(nextProps);
+	    }
+	  },
+	  render: function() {
+	    var className, classes, item, propsForChildren, reactiveItems, ref, status;
+	    ref = this.state, status = ref.status, item = ref.item;
+	    className = this.props.className;
+	    classes = classnames('reactive', "reactive-" + status, className, {
+	      'is-empty': _.isEmpty(item)
+	    });
+	    propsForChildren = _.pick(this.state, 'status', 'item', 'errors');
+	    reactiveItems = React.Children.map(this.props.children, function(child) {
+	      return React.addons.cloneWithProps(child, propsForChildren);
+	    });
+	    return React.createElement("div", {
+	      "className": classes
+	    }, reactiveItems);
+	  }
+	});
+
+	module.exports = {
+	  Reactive: Reactive
 	};
 
-	User = {
-	  isLoaded: false,
-	  channel: new EventEmitter2({
-	    wildcard: true
-	  }),
-	  update: function(data) {
-	    _.extend(this, data.user);
-	    this.courses = _.compact(_.map(data.courses, function(course) {
-	      if (course.is_concept_coach) {
-	        return new Course(course);
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ },
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Exercise, ExerciseBase, ExerciseStep, React, Reactive, _, api, apiChannelName, channel, exercises, getCurrentPanel, ref, tasks;
+
+	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
+
+	Exercise = __webpack_require__(6).Exercise;
+
+	ref = exercises = __webpack_require__(43), channel = ref.channel, getCurrentPanel = ref.getCurrentPanel;
+
+	tasks = __webpack_require__(34);
+
+	api = __webpack_require__(36);
+
+	Reactive = __webpack_require__(46).Reactive;
+
+	apiChannelName = 'exercise';
+
+	ExerciseBase = React.createClass({
+	  displayName: 'ExerciseBase',
+	  getInitialState: function() {
+	    var item;
+	    item = this.props.item;
+	    return {
+	      step: item
+	    };
+	  },
+	  componentWillReceiveProps: function(nextProps) {
+	    var item;
+	    item = nextProps.item;
+	    return this.setState({
+	      step: item
+	    });
+	  },
+	  componentDidUpdate: function(prevProps, prevState) {
+	    var status, step;
+	    status = this.props.status;
+	    step = this.state.step;
+	    return channel.emit("component." + status, {
+	      status: status,
+	      step: step
+	    });
+	  },
+	  render: function() {
+	    var exerciseProps, step, taskId, wrapperProps;
+	    step = this.state.step;
+	    taskId = this.props.taskId;
+	    if (_.isEmpty(step)) {
+	      return null;
+	    }
+	    exerciseProps = {
+	      taskId: step.task_id,
+	      step: step,
+	      getCurrentPanel: getCurrentPanel,
+	      setAnswerId: function(id, answerId) {
+	        var eventData;
+	        step.answer_id = answerId;
+	        eventData = {
+	          change: step,
+	          data: step,
+	          status: 'saving'
+	        };
+	        channel.emit("change." + step.id, eventData);
+	        return api.channel.emit("exercise." + step.id + ".send.save", eventData);
+	      },
+	      setFreeResponseAnswer: function(id, freeResponse) {
+	        var eventData;
+	        step.free_response = freeResponse;
+	        eventData = {
+	          change: step,
+	          data: step,
+	          status: 'saving'
+	        };
+	        channel.emit("change." + step.id, eventData);
+	        return api.channel.emit("exercise." + step.id + ".send.save", eventData);
+	      },
+	      onContinue: function() {
+	        var eventData;
+	        step.is_completed = true;
+	        eventData = {
+	          change: step,
+	          data: step,
+	          status: 'loading'
+	        };
+	        channel.emit("change." + step.id, eventData);
+	        return api.channel.emit("exercise." + step.id + ".send.complete", eventData);
+	      },
+	      onStepCompleted: function() {
+	        return channel.emit("completed." + step.id);
+	      },
+	      onNextStep: function() {
+	        return channel.emit("leave." + step.id);
 	      }
+	    };
+	    if (taskId != null) {
+	      wrapperProps = {
+	        'data-step-number': tasks.getStepIndex(taskId, step.id) + 1
+	      };
+	    }
+	    return React.createElement("div", React.__spread({
+	      "className": 'exercise-wrapper'
+	    }, wrapperProps), React.createElement(Exercise, React.__spread({}, exerciseProps, this.props)));
+	  }
+	});
+
+	ExerciseStep = React.createClass({
+	  displayName: 'ExerciseStep',
+	  render: function() {
+	    var id;
+	    id = this.props.id;
+	    return React.createElement(Reactive, {
+	      "topic": id,
+	      "store": exercises,
+	      "apiChannelName": apiChannelName
+	    }, React.createElement(ExerciseBase, React.__spread({}, this.props)));
+	  }
+	});
+
+	module.exports = {
+	  ExerciseStep: ExerciseStep,
+	  channel: channel
+	};
+
+
+/***/ },
+/* 48 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var Breadcrumb, BreadcrumbDynamic, Breadcrumbs, React, _, exercises, tasks;
+
+	React = __webpack_require__(2);
+
+	Breadcrumb = __webpack_require__(6).Breadcrumb;
+
+	_ = __webpack_require__(3);
+
+	tasks = __webpack_require__(34);
+
+	exercises = __webpack_require__(43);
+
+	BreadcrumbDynamic = React.createClass({
+	  displayName: 'BreadcrumbDynamic',
+	  getInitialState: function() {
+	    return {
+	      step: this.props.step
+	    };
+	  },
+	  componentWillMount: function() {
+	    var id;
+	    id = this.props.step.id;
+	    return exercises.channel.on("load." + id, this.update);
+	  },
+	  componentWillUnmount: function() {
+	    var id;
+	    id = this.props.step.id;
+	    return exercises.channel.off("load." + id, this.update);
+	  },
+	  update: function(eventData) {
+	    return this.setState({
+	      step: eventData.data
+	    });
+	  },
+	  goToStep: function(stepIndex) {
+	    return this.props.goToStep(stepIndex);
+	  },
+	  render: function() {
+	    var crumbProps, step;
+	    step = this.state.step;
+	    crumbProps = _.omit(this.props, 'step');
+	    return React.createElement(Breadcrumb, React.__spread({}, crumbProps, {
+	      "step": step,
+	      "canReview": true,
+	      "goToStep": this.goToStep
 	    }));
-	    return this.channel.emit('change');
+	  }
+	});
+
+	Breadcrumbs = React.createClass({
+	  displayName: 'Breadcrumbs',
+	  getInitialState: function() {
+	    var collectionUUID, moduleUUID, ref, taskId;
+	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID;
+	    taskId = collectionUUID + "/" + moduleUUID;
+	    return {
+	      task: tasks.get(taskId),
+	      moduleInfo: tasks.getModuleInfo(taskId)
+	    };
 	  },
-	  get: function() {
-	    return this;
+	  render: function() {
+	    var breadcrumbs, canReview, crumbs, currentStep, moduleInfo, ref, ref1, reviewEnd, task;
+	    ref = this.state, task = ref.task, moduleInfo = ref.moduleInfo;
+	    ref1 = this.props, currentStep = ref1.currentStep, canReview = ref1.canReview;
+	    if (_.isEmpty(task.steps)) {
+	      return null;
+	    }
+	    crumbs = _.map(task.steps, function(crumbStep, index) {
+	      var crumb;
+	      return crumb = {
+	        key: index,
+	        data: crumbStep,
+	        crumb: true,
+	        type: 'step'
+	      };
+	    });
+	    reviewEnd = {
+	      type: 'end',
+	      key: crumbs.length,
+	      data: {
+	        id: '',
+	        title: moduleInfo.title
+	      },
+	      disabled: !canReview
+	    };
+	    crumbs.push(reviewEnd);
+	    breadcrumbs = _.map(crumbs, (function(_this) {
+	      return function(crumb) {
+	        return React.createElement(BreadcrumbDynamic, {
+	          "className": (crumb.disabled ? 'disabled' : void 0),
+	          "key": crumb.data.id,
+	          "crumb": crumb,
+	          "step": crumb.data || {},
+	          "currentStep": currentStep,
+	          "goToStep": _this.props.goToStep
+	        });
+	      };
+	    })(this));
+	    return React.createElement("div", {
+	      "className": 'task-homework'
+	    }, React.createElement("div", {
+	      "className": 'task-breadcrumbs'
+	    }, breadcrumbs));
+	  }
+	});
+
+	module.exports = {
+	  Breadcrumbs: Breadcrumbs
+	};
+
+
+/***/ },
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var ExerciseButton, ExerciseStep, React, TaskReview, _, tasks;
+
+	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
+
+	tasks = __webpack_require__(34);
+
+	ExerciseStep = __webpack_require__(47).ExerciseStep;
+
+	ExerciseButton = __webpack_require__(50).ExerciseButton;
+
+	TaskReview = React.createClass({
+	  displayName: 'TaskReview',
+	  getInitialState: function() {
+	    return this.getSteps(this.props);
 	  },
-	  getCourse: function(collectionUUID) {
-	    return _.findWhere(this.courses, {
-	      ecosystem_book_uuid: collectionUUID
+	  componentWillMount: function() {
+	    var collectionUUID, moduleUUID, ref;
+	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID;
+	    return tasks.fetchByModule({
+	      collectionUUID: collectionUUID,
+	      moduleUUID: moduleUUID
 	    });
 	  },
-	  findOrCreateCourse: function(collectionUUID) {
-	    var course;
-	    return this.getCourse(collectionUUID) || (course = new Course({
-	      ecosystem_book_uuid: collectionUUID
-	    }), this.courses.push(course), course);
+	  componentWillReceiveProps: function(nextProps) {
+	    return this.setState(this.getSteps(nextProps));
 	  },
-	  ensureStatusLoaded: function(force) {
-	    if (force == null) {
-	      force = false;
+	  getSteps: function(props) {
+	    var taskId;
+	    taskId = props.taskId;
+	    return {
+	      completeSteps: tasks.getCompleteSteps(taskId),
+	      incompleteSteps: tasks.getIncompleteSteps(taskId)
+	    };
+	  },
+	  render: function() {
+	    var completeSteps, completeStepsReview, incompleteSteps, ref, ref1, status, taskId;
+	    ref = this.state, completeSteps = ref.completeSteps, incompleteSteps = ref.incompleteSteps;
+	    ref1 = this.props, status = ref1.status, taskId = ref1.taskId;
+	    if (_.isEmpty(completeSteps)) {
+	      completeStepsReview = React.createElement("div", {
+	        "className": 'card-body'
+	      }, React.createElement("h3", null, "Exercise to see Review"), React.createElement(ExerciseButton, {
+	        "onClick": _.partial(this.props.goToStep, 0)
+	      }));
+	    } else {
+	      completeStepsReview = _.map(completeSteps, function(step) {
+	        return React.createElement(ExerciseStep, {
+	          "id": step.id,
+	          "pinned": false,
+	          "review": 'completed',
+	          "focus": false,
+	          "taskId": taskId,
+	          "allowKeyNext": false
+	        });
+	      });
 	    }
-	    if (force || !this.isLoggedIn()) {
-	      return api.channel.emit('user.status.send.fetch');
-	    }
+	    return React.createElement("div", {
+	      "className": 'concept-coach-task-review'
+	    }, completeStepsReview);
+	  }
+	});
+
+	module.exports = {
+	  TaskReview: TaskReview
+	};
+
+
+/***/ },
+/* 50 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var BS, ExerciseButton, React, channel;
+
+	React = __webpack_require__(2);
+
+	BS = __webpack_require__(16);
+
+	channel = __webpack_require__(51).channel;
+
+	ExerciseButton = React.createClass({
+	  displayName: 'ExerciseButton',
+	  propTypes: {
+	    childern: React.PropTypes.node
 	  },
-	  isLoggedIn: function() {
-	    return !!this.profile_url;
+	  getDefaultProps: function() {
+	    return {
+	      children: 'Exercise'
+	    };
 	  },
-	  onCourseUpdate: function(course) {
-	    this.channel.emit('change');
-	    return this.ensureStatusLoaded(true);
-	  },
-	  removeCourse: function(course) {
-	    var index;
-	    index = this.courses.indexOf(course);
-	    if (index !== -1) {
-	      this.courses.splice(index, 1);
-	    }
-	    return this.channel.emit('change');
-	  },
-	  _signalLogoutCompleted: function() {
-	    _.extend(this, BLANK_USER);
-	    this.isLoggingOut = true;
-	    return this.channel.emit('logout.received');
-	  },
-	  init: function() {
-	    return api.channel.on('user.status.receive.*', function(arg) {
-	      var data;
-	      data = arg.data;
-	      User.isLoaded = true;
-	      if (data.access_token) {
-	        api.channel.emit('set.access_token', data.access_token);
-	      }
-	      User.endpoints = data.endpoints;
-	      if (data.user) {
-	        return User.update(data);
-	      } else {
-	        _.extend(this, BLANK_USER);
-	        return User.channel.emit('change');
-	      }
+	  showExercise: function() {
+	    var base;
+	    channel.emit('show.task', {
+	      view: 'task'
 	    });
+	    return typeof (base = this.props).onClick === "function" ? base.onClick() : void 0;
 	  },
-	  destroy: function() {
-	    User.channel.removeAllListeners();
-	    _.each(this.courses, function(course) {
-	      return course.channel.removeAllListeners();
-	    });
-	    return delete this.courses;
+	  render: function() {
+	    return React.createElement(BS.Button, {
+	      "onClick": this.showExercise
+	    }, this.props.children);
+	  }
+	});
+
+	module.exports = {
+	  ExerciseButton: ExerciseButton
+	};
+
+
+/***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var EventEmitter2, _, channel, getDataByView, getViewByRoute, initialize, loader, navigation, settings;
+
+	_ = __webpack_require__(3);
+
+	EventEmitter2 = __webpack_require__(5);
+
+	settings = __webpack_require__(52);
+
+	loader = __webpack_require__(53).loader;
+
+	navigation = {};
+
+	channel = new EventEmitter2({
+	  wildcard: true
+	});
+
+	initialize = function(options) {
+	  _.extend(navigation, options);
+	  return loader(navigation, settings.views);
+	};
+
+	getDataByView = function(view) {
+	  return navigation.views[view];
+	};
+
+	getViewByRoute = function(route) {
+	  var navData, ref, view;
+	  navData = _.findWhere(navigation.views, {
+	    route: route
+	  });
+	  view = navData != null ? (ref = navData.state) != null ? ref.view : void 0 : void 0;
+	  if (view != null) {
+	    if (view === 'default') {
+	      view = 'task';
+	    }
+	  }
+	  return view;
+	};
+
+	module.exports = {
+	  channel: channel,
+	  initialize: initialize,
+	  getDataByView: getDataByView,
+	  getViewByRoute: getViewByRoute
+	};
+
+
+/***/ },
+/* 52 */
+/***/ function(module, exports) {
+
+	var DEFAULT_PATTERN, settings;
+
+	DEFAULT_PATTERN = '{prefix}{base}{view}';
+
+	settings = {
+	  views: {
+	    profile: DEFAULT_PATTERN,
+	    dashboard: DEFAULT_PATTERN,
+	    task: DEFAULT_PATTERN,
+	    registration: DEFAULT_PATTERN,
+	    progress: DEFAULT_PATTERN,
+	    loading: DEFAULT_PATTERN,
+	    login: DEFAULT_PATTERN,
+	    logout: DEFAULT_PATTERN,
+	    "default": '{prefix}{base}',
+	    close: '{prefix}'
 	  }
 	};
 
-	_.extend(User, BLANK_USER);
+	module.exports = settings;
 
-	module.exports = User;
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _, interpolate, loader, makeViewSettings;
+
+	_ = __webpack_require__(3);
+
+	interpolate = __webpack_require__(35);
+
+	makeViewSettings = function(viewOptions, routePattern, view) {
+	  var route;
+	  viewOptions = _.extend({}, viewOptions, {
+	    view: view
+	  });
+	  route = interpolate(routePattern, viewOptions);
+	  return {
+	    state: {
+	      view: view
+	    },
+	    route: route
+	  };
+	};
+
+	loader = function(model, viewSettings) {
+	  var viewOptions;
+	  viewOptions = _.pick(model, 'prefix', 'base');
+	  return model.views = _.mapObject(viewSettings, _.partial(makeViewSettings, viewOptions));
+	};
+
+	module.exports = {
+	  loader: loader
+	};
+
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var ChapterSectionMixin, React, TaskTitle, _, classnames, componentModel, navigation, tasks;
+
+	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
+
+	classnames = __webpack_require__(4);
+
+	tasks = __webpack_require__(34);
+
+	navigation = __webpack_require__(51);
+
+	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
+
+	componentModel = __webpack_require__(55);
+
+	TaskTitle = React.createClass({
+	  displayName: 'TaskTitle',
+	  mixins: [ChapterSectionMixin],
+	  contextTypes: {
+	    close: React.PropTypes.func
+	  },
+	  broadcastNav: function(clickEvent) {
+	    var close, cnxUrl, collectionUUID, link, moduleUUID, ref, taskId;
+	    clickEvent.preventDefault();
+	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
+	    close = this.context.close;
+	    link = tasks.getModuleInfo(taskId, cnxUrl).link;
+	    close();
+	    navigation.channel.emit('close.for.book', {
+	      collectionUUID: collectionUUID,
+	      moduleUUID: moduleUUID,
+	      link: link
+	    });
+	    return true;
+	  },
+	  render: function() {
+	    var close, cnxUrl, linkProps, moduleInfo, noTitle, ref, section, sectionProps, taskId, title, titleClasses;
+	    ref = this.props, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
+	    close = this.context.close;
+	    moduleInfo = tasks.getModuleInfo(taskId, cnxUrl);
+	    section = this.sectionFormat(moduleInfo.chapter_section);
+	    sectionProps = {
+	      className: 'chapter-section-prefix'
+	    };
+	    if (section != null) {
+	      sectionProps['data-section'] = section;
+	    }
+	    linkProps = {
+	      role: 'button'
+	    };
+	    if (moduleInfo.title) {
+	      linkProps.target = '_blank';
+	      linkProps.onClick = this.broadcastNav;
+	      title = React.createElement("span", null, " Go to", React.createElement("span", React.__spread({}, sectionProps), moduleInfo.title));
+	    } else {
+	      noTitle = React.createElement("span", null, "Back to Book");
+	      linkProps = {
+	        onClick: close
+	      };
+	    }
+	    titleClasses = classnames('concept-coach-title', {
+	      'has-title': moduleInfo.title != null,
+	      'back-to-book': noTitle != null
+	    });
+	    return React.createElement("p", {
+	      "className": titleClasses
+	    }, React.createElement("a", React.__spread({}, linkProps), React.createElement("i", {
+	      "className": 'fa fa-book'
+	    }), title, noTitle));
+	  }
+	});
+
+	module.exports = {
+	  TaskTitle: TaskTitle
+	};
+
+
+/***/ },
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var EventEmitter2, _, coach;
+
+	_ = __webpack_require__(3);
+
+	EventEmitter2 = __webpack_require__(5);
+
+	coach = {
+	  update: function(options) {
+	    return _.extend(this, options);
+	  },
+	  channel: new EventEmitter2({
+	    wildcard: true
+	  })
+	};
+
+	module.exports = coach;
+
+
+/***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var NoExercises, React;
+
+	React = __webpack_require__(2);
+
+	NoExercises = React.createClass({
+	  displayName: 'NoExercises',
+	  render: function() {
+	    return React.createElement("div", {
+	      "className": 'no-exercises'
+	    }, "Sorry, there are no exercises for this module.");
+	  }
+	});
+
+	module.exports = {
+	  NoExercises: NoExercises
+	};
+
+
+/***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var BS, CloseButton, Course, CourseNameBase, Navigation, React, UserMenu, api, channel, user;
+
+	React = __webpack_require__(2);
+
+	BS = __webpack_require__(16);
+
+	CloseButton = __webpack_require__(6).CloseButton;
+
+	CourseNameBase = __webpack_require__(58).CourseNameBase;
+
+	Course = __webpack_require__(45);
+
+	user = __webpack_require__(44);
+
+	channel = __webpack_require__(51).channel;
+
+	api = __webpack_require__(36);
+
+	UserMenu = __webpack_require__(59);
+
+	Navigation = React.createClass({
+	  displayName: 'Navigation',
+	  contextTypes: {
+	    close: React.PropTypes.func,
+	    view: React.PropTypes.string
+	  },
+	  propTypes: {
+	    course: React.PropTypes.instanceOf(Course)
+	  },
+	  componentWillMount: function() {
+	    user.ensureStatusLoaded();
+	    return user.channel.on('change', this.update);
+	  },
+	  componentWillUnmount: function() {
+	    return user.channel.off('change', this.update);
+	  },
+	  update: function() {
+	    if (this.isMounted()) {
+	      return this.forceUpdate();
+	    }
+	  },
+	  close: function() {
+	    var base;
+	    return typeof (base = this.context).close === "function" ? base.close() : void 0;
+	  },
+	  handleSelect: function(selectedKey) {
+	    if (selectedKey != null) {
+	      return channel.emit("show." + selectedKey, {
+	        view: selectedKey
+	      });
+	    }
+	  },
+	  render: function() {
+	    var brand, course, courseItems, view;
+	    course = this.props.course;
+	    view = this.context.view;
+	    brand = [
+	      React.createElement("span", {
+	        "className": 'navbar-logo'
+	      }, React.createElement("strong", null, "Concept"), " Coach"), React.createElement(CourseNameBase, {
+	        "className": 'hidden-sm hidden-xs',
+	        "course": course
+	      })
+	    ];
+	    if (course != null ? course.isRegistered() : void 0) {
+	      courseItems = [
+	        React.createElement(BS.NavItem, {
+	          "active": view === 'progress',
+	          "eventKey": 'progress',
+	          "key": 'progress',
+	          "className": 'concept-coach-dashboard-nav'
+	        }, "My Progress")
+	      ];
+	    }
+	    return React.createElement(BS.Navbar, {
+	      "brand": brand,
+	      "toggleNavKey": 0.,
+	      "fixedTop": true,
+	      "fluid": true
+	    }, React.createElement(BS.CollapsibleNav, {
+	      "eventKey": 0.,
+	      "collapsible": true
+	    }, React.createElement(BS.Nav, {
+	      "right": true,
+	      "navbar": true,
+	      "activeKey": view,
+	      "onSelect": this.handleSelect
+	    }, React.createElement(UserMenu, {
+	      "course": this.props.course
+	    }), courseItems, React.createElement(BS.NavItem, {
+	      "onClick": this.close,
+	      "className": 'concept-coach-dashboard-nav'
+	    }, React.createElement(BS.Button, {
+	      "className": 'btn-plain'
+	    }, "Close")))));
+	  }
+	});
+
+	module.exports = {
+	  Navigation: Navigation,
+	  channel: channel
+	};
+
+
+/***/ },
+/* 58 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var CourseNameBase, React, _, classnames;
+
+	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
+
+	classnames = __webpack_require__(4);
+
+	CourseNameBase = React.createClass({
+	  displayName: 'CourseNameBase',
+	  getDefaultProps: function() {
+	    return {
+	      course: {}
+	    };
+	  },
+	  render: function() {
+	    var className, classes, course, ref;
+	    ref = this.props, course = ref.course, className = ref.className;
+	    classes = classnames('concept-coach-course-name', className);
+	    return React.createElement("span", {
+	      "className": classes
+	    }, typeof course.description === "function" ? course.description() : void 0);
+	  }
+	});
+
+	module.exports = {
+	  CourseNameBase: CourseNameBase
+	};
 
 
 /***/ },
@@ -27182,7 +27198,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Status = __webpack_require__(60);
 
-	Course = __webpack_require__(57);
+	Course = __webpack_require__(45);
 
 	api = __webpack_require__(36);
 
@@ -27262,7 +27278,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var User, UserStatusMixin;
 
-	User = __webpack_require__(58);
+	User = __webpack_require__(44);
 
 	UserStatusMixin = {
 	  componentDidMount: function() {
@@ -27298,7 +27314,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	UserStatus = __webpack_require__(60);
 
-	Course = __webpack_require__(57);
+	Course = __webpack_require__(45);
 
 	CourseRegistration = React.createClass({displayName: "CourseRegistration",
 	  propTypes: {
@@ -27328,9 +27344,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	React = __webpack_require__(2);
 
-	Course = __webpack_require__(57);
+	Course = __webpack_require__(45);
 
-	User = __webpack_require__(58);
+	User = __webpack_require__(44);
 
 	ENTER = 'Enter';
 
@@ -27338,7 +27354,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ConfirmJoin = __webpack_require__(67);
 
-	Navigation = __webpack_require__(49);
+	Navigation = __webpack_require__(51);
 
 	NewCourseRegistration = React.createClass({displayName: "NewCourseRegistration",
 	  propTypes: {
@@ -27419,7 +27435,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ErrorList = __webpack_require__(66);
 
-	Course = __webpack_require__(57);
+	Course = __webpack_require__(45);
 
 	AsyncButton = __webpack_require__(6).AsyncButton;
 
@@ -27534,9 +27550,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	navigation = __webpack_require__(49);
+	navigation = __webpack_require__(51);
 
-	componentModel = __webpack_require__(53);
+	componentModel = __webpack_require__(55);
 
 	CourseItem = React.createClass({
 	  displayName: 'CourseItem',
@@ -27594,7 +27610,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	React = __webpack_require__(2);
 
-	Course = __webpack_require__(57);
+	Course = __webpack_require__(45);
 
 	ErrorList = React.createClass({displayName: "ErrorList",
 	  propTypes: {
@@ -27639,7 +27655,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ENTER = 'Enter';
 
-	Course = __webpack_require__(57);
+	Course = __webpack_require__(45);
 
 	ErrorList = __webpack_require__(66);
 
@@ -27717,11 +27733,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ConfirmJoin = __webpack_require__(67);
 
-	User = __webpack_require__(58);
+	User = __webpack_require__(44);
 
-	Course = __webpack_require__(57);
+	Course = __webpack_require__(45);
 
-	Navigation = __webpack_require__(49);
+	Navigation = __webpack_require__(51);
 
 	ModifyCourseRegistration = React.createClass({displayName: "ModifyCourseRegistration",
 	  propTypes: {
@@ -27912,7 +27928,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	api = __webpack_require__(36);
 
-	User = __webpack_require__(58);
+	User = __webpack_require__(44);
 
 	AccountsIframe = React.createClass({displayName: "AccountsIframe",
 	  getInitialState: function() {
@@ -28049,7 +28065,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	React = __webpack_require__(2);
 
-	User = __webpack_require__(58);
+	User = __webpack_require__(44);
 
 	api = __webpack_require__(36);
 
@@ -28152,11 +28168,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	Reactive = __webpack_require__(44).Reactive;
+	Reactive = __webpack_require__(46).Reactive;
 
 	CourseListing = __webpack_require__(64).CourseListing;
 
-	User = __webpack_require__(58);
+	User = __webpack_require__(44);
 
 	apiChannelName = 'user';
 
@@ -28213,9 +28229,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	Reactive = __webpack_require__(44).Reactive;
+	Reactive = __webpack_require__(46).Reactive;
 
-	ExerciseButton = __webpack_require__(48).ExerciseButton;
+	ExerciseButton = __webpack_require__(50).ExerciseButton;
 
 	ChapterProgress = __webpack_require__(74).ChapterProgress;
 
@@ -28715,7 +28731,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	channel = (tasks = __webpack_require__(34)).channel;
 
-	Reactive = __webpack_require__(44).Reactive;
+	Reactive = __webpack_require__(46).Reactive;
 
 	apiChannelName = 'task';
 
@@ -28860,7 +28876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var $, ConceptCoachAPI, EventEmitter2, Launcher, ModalCoach, PROPS, User, WRAPPER_CLASSNAME, _, componentModel, deleteProperties, exercise, helpers, initializeModels, launcherWrapped, listenAndBroadcast, modalCoachWrapped, navigation, progress, restAPI, setupAPIListeners, stopModelChannels, task,
+	var $, Coach, ConceptCoachAPI, EventEmitter2, PROPS, User, WRAPPER_CLASSNAME, _, coachWrapped, componentModel, deleteProperties, exercise, helpers, initializeModels, listenAndBroadcast, navigation, progress, restAPI, setupAPIListeners, stopModelChannels, task,
 	  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
 	  hasProp = {}.hasOwnProperty;
 
@@ -28874,11 +28890,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	restAPI = __webpack_require__(36);
 
-	componentModel = __webpack_require__(53);
+	componentModel = __webpack_require__(55);
 
-	navigation = __webpack_require__(49);
+	navigation = __webpack_require__(51);
 
-	User = __webpack_require__(58);
+	User = __webpack_require__(44);
 
 	exercise = __webpack_require__(43);
 
@@ -28886,13 +28902,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	task = __webpack_require__(34);
 
-	ModalCoach = __webpack_require__(82).ModalCoach;
+	Coach = __webpack_require__(82).Coach;
 
-	Launcher = __webpack_require__(84).Launcher;
-
-	modalCoachWrapped = helpers.wrapComponent(ModalCoach);
-
-	launcherWrapped = helpers.wrapComponent(Launcher);
+	coachWrapped = helpers.wrapComponent(Coach);
 
 	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl', 'processHtmlAndMath'];
 
@@ -28996,8 +29008,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  ConceptCoachAPI.prototype.destroy = function() {
+	    var ref;
 	    if (typeof this.close === "function") {
 	      this.close();
+	    }
+	    if ((ref = this.component) != null ? ref.isMounted() : void 0) {
+	      coachWrapped.unmountFrom(componentModel.mounter);
 	    }
 	    stopModelChannels(this.models);
 	    deleteProperties(this.models);
@@ -29014,13 +29030,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return componentModel.update(options);
 	  };
 
-	  ConceptCoachAPI.prototype.displayLauncher = function(mountNode) {
-	    mountNode.classList.add(WRAPPER_CLASSNAME);
-	    return launcherWrapped.render(mountNode);
-	  };
-
-	  ConceptCoachAPI.prototype.open = function(mountNode, props) {
-	    var modalNode;
+	  ConceptCoachAPI.prototype.initialize = function(mountNode, props) {
+	    if (props == null) {
+	      props = {};
+	    }
 	    props = _.clone(props);
 	    if (props.defaultView == null) {
 	      props.defaultView = componentModel.isSame ? componentModel.view : 'task';
@@ -29029,29 +29042,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	      mounter: mountNode,
 	      isSame: true
 	    });
-	    modalNode = document.createElement('div');
-	    modalNode.classList.add(WRAPPER_CLASSNAME);
-	    mountNode.appendChild(modalNode);
-	    props.close = function() {
-	      componentModel.channel.emit('close.clicked');
-	      modalCoachWrapped.unmountFrom(modalNode);
-	      if (modalNode.parentNode === mountNode) {
-	        return mountNode.removeChild(modalNode);
-	      }
-	    };
+	    props.close = (function(_this) {
+	      return function() {
+	        _this.component.setProps({
+	          open: false
+	        });
+	        return componentModel.channel.emit('close.clicked');
+	      };
+	    })(this);
+	    this.close = props.close;
+	    return this.component = coachWrapped.render(mountNode, props);
+	  };
+
+	  ConceptCoachAPI.prototype.open = function(props) {
+	    var openProps;
 	    User.channel.once('logout.received', function() {
 	      return props.close();
 	    });
-	    this.component = modalCoachWrapped.render(modalNode, props);
-	    this.close = props.close;
-	    return this.component;
+	    openProps = _.extend({}, props, {
+	      open: true
+	    });
+	    return this.component.setProps(openProps);
 	  };
 
-	  ConceptCoachAPI.prototype.openByRoute = function(mountNode, props, route) {
+	  ConceptCoachAPI.prototype.openByRoute = function(props, route) {
 	    props = _.clone(props);
 	    props.defaultView = navigation.getViewByRoute(route);
 	    if ((props.defaultView != null) && props.defaultView !== 'close') {
-	      return this.open(mountNode, props);
+	      return this.open(props);
 	    }
 	  };
 
@@ -29068,7 +29086,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    } else if ((componentModel.mounter != null) && view !== 'close') {
 	      props = _.pick(componentModel, PROPS);
 	      props.defaultView = view;
-	      return this.open(componentModel.mounter, props);
+	      return this.open(props);
 	    }
 	  };
 
@@ -29144,23 +29162,61 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var CCModal, ConceptCoach, ModalCoach, React, channel, ref;
+	var CCModal, Coach, ConceptCoach, Launcher, React, _, channel, ref;
 
 	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
 
 	ref = __webpack_require__(1), ConceptCoach = ref.ConceptCoach, channel = ref.channel;
 
 	CCModal = __webpack_require__(83).CCModal;
 
-	ModalCoach = React.createClass({
-	  displayName: 'ModalCoach',
+	Launcher = __webpack_require__(84).Launcher;
+
+	Coach = React.createClass({
+	  displayName: 'Coach',
+	  getDefaultProps: function() {
+	    return {
+	      open: false,
+	      displayLauncher: true
+	    };
+	  },
+	  getInitialState: function() {
+	    var open;
+	    open = this.props.open;
+	    return {
+	      isOpen: open
+	    };
+	  },
+	  componentWillReceiveProps: function(nextProps) {
+	    var open;
+	    open = nextProps.open;
+	    if (open !== this.state.isOpen) {
+	      return this.setState({
+	        isOpen: open
+	      });
+	    }
+	  },
 	  render: function() {
-	    return React.createElement(CCModal, null, React.createElement(ConceptCoach, React.__spread({}, this.props)));
+	    var coachProps, displayLauncher, isOpen, launcher, modal;
+	    isOpen = this.state.isOpen;
+	    displayLauncher = this.props.displayLauncher;
+	    coachProps = _.omit(this.props, 'open');
+	    if (isOpen) {
+	      modal = React.createElement(CCModal, null, React.createElement(ConceptCoach, React.__spread({}, coachProps)));
+	    }
+	    if (displayLauncher) {
+	      launcher = React.createElement(Launcher, null);
+	    }
+	    return React.createElement("div", {
+	      "className": 'concept-coach-wrapper'
+	    }, launcher, modal);
 	  }
 	});
 
 	module.exports = {
-	  ModalCoach: ModalCoach,
+	  Coach: Coach,
 	  channel: channel
 	};
 
@@ -29177,7 +29233,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	channel = __webpack_require__(53).channel;
+	channel = __webpack_require__(55).channel;
 
 	api = __webpack_require__(36);
 
@@ -29197,10 +29253,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	    channel.emit('modal.mount.success', mountData);
 	    mountData.modal.el.focus();
-	    return _.delay(this.setLoaded, 1000);
-	  },
-	  componentWillMount: function() {
-	    return api.channel.once('success', this.setLoaded);
+	    if (api.isPending()) {
+	      return api.channel.once('completed', this.setLoaded);
+	    } else {
+	      return this.setLoaded();
+	    }
 	  },
 	  setLoaded: function() {
 	    var isLoaded;
@@ -29246,20 +29303,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(85), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
 
-	channel = __webpack_require__(53).channel;
+	channel = __webpack_require__(55).channel;
 
 	Launcher = React.createClass({
 	  displayName: 'Launcher',
 	  getInitialState: function() {
 	    return {
-	      isLaunching: false,
-	      isClosing: false
+	      isLaunching: false
 	    };
 	  },
 	  launch: function() {
-	    var isClosing;
-	    isClosing = this.state.isClosing;
-	    if (isClosing) {
+	    var isLaunching;
+	    isLaunching = this.state.isLaunching;
+	    if (isLaunching) {
 	      return;
 	    }
 	    this.setState({
@@ -29269,28 +29325,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  close: function() {
 	    return this.setState({
-	      isClosing: true,
 	      isLaunching: false
 	    });
 	  },
-	  delayedClose: function() {
-	    return _.delay((function(_this) {
-	      return function() {
-	        return _this.setState({
-	          isClosing: false
-	        });
-	      };
-	    })(this), 1000);
-	  },
 	  shouldComponentUpdate: function(nextProps, nextState) {
-	    return this.state.isClosing !== nextState.isClosing || this.state.isLaunching !== nextState.isLaunching;
-	  },
-	  componentDidUpdate: function() {
-	    var isClosing, isLaunching, ref1;
-	    ref1 = this.state, isLaunching = ref1.isLaunching, isClosing = ref1.isClosing;
-	    if (isClosing && !isLaunching) {
-	      return this.delayedClose();
-	    }
+	    return this.state.isLaunching !== nextState.isLaunching;
 	  },
 	  componentWillMount: function() {
 	    return channel.on('coach.unmount.success', this.close);
@@ -29299,15 +29338,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return channel.off('coach.unmount.success', this.close);
 	  },
 	  render: function() {
-	    var classes, height, isClosing, isLaunching, ref1;
-	    ref1 = this.state, isLaunching = ref1.isLaunching, isClosing = ref1.isClosing;
+	    var classes, height, isLaunching;
+	    isLaunching = this.state.isLaunching;
 	    height = '388px';
-	    if (isLaunching && !isClosing) {
+	    if (isLaunching) {
 	      height = window.innerHeight + "px";
 	    }
 	    classes = classnames('concept-coach-launcher', {
-	      launching: isLaunching,
-	      closing: isClosing
+	      launching: isLaunching
 	    });
 	    return React.createElement("div", {
 	      "className": 'concept-coach-launcher-wrapper'
