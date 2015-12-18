@@ -33229,7 +33229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    'courseDashboard.*.send.fetch': {
 	      url: 'api/courses/{id}/cc/dashboard',
 	      method: 'GET',
-	      baseUrl: typeof process !== "undefined" && process !== null ? (ref = ({"NODE_ENV":undefined})) != null ? ref.BASE_URL : void 0 : void 0,
+	      baseUrl: typeof process !== "undefined" && process !== null ? (ref = ({"NODE_ENV":"development"})) != null ? ref.BASE_URL : void 0 : void 0,
 	      completedEvent: 'courseDashboard.{id}.receive.fetch'
 	    },
 	    'course.*.send.registration': {
