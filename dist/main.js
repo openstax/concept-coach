@@ -58,7 +58,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ConceptCoach = __webpack_require__(1).ConceptCoach;
 
-	ConceptCoachAPI = __webpack_require__(80);
+	ConceptCoachAPI = __webpack_require__(79);
 
 	module.exports = {
 	  ConceptCoach: ConceptCoach,
@@ -85,25 +85,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Task = __webpack_require__(33).Task;
 
-	navigation = (ref1 = __webpack_require__(57), Navigation = ref1.Navigation, ref1);
+	navigation = (ref1 = __webpack_require__(56), Navigation = ref1.Navigation, ref1);
 
-	CourseRegistration = __webpack_require__(61);
+	CourseRegistration = __webpack_require__(60);
 
-	ErrorNotification = __webpack_require__(69);
+	ErrorNotification = __webpack_require__(68);
 
-	AccountsIframe = __webpack_require__(70);
+	AccountsIframe = __webpack_require__(69);
 
-	LoginGateway = __webpack_require__(71);
+	LoginGateway = __webpack_require__(70);
 
-	User = __webpack_require__(44);
+	User = __webpack_require__(43);
 
-	ExerciseStep = __webpack_require__(47).ExerciseStep;
+	ExerciseStep = __webpack_require__(46).ExerciseStep;
 
-	Dashboard = __webpack_require__(72).Dashboard;
+	Dashboard = __webpack_require__(71).Dashboard;
 
-	Progress = __webpack_require__(73).Progress;
+	Progress = __webpack_require__(72).Progress;
 
-	channel = __webpack_require__(55).channel;
+	channel = __webpack_require__(54).channel;
 
 	navigator = navigation.channel;
 
@@ -3580,19 +3580,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	api = __webpack_require__(36);
 
-	Reactive = __webpack_require__(46).Reactive;
+	Reactive = __webpack_require__(45).Reactive;
 
 	apiChannelName = 'task';
 
-	exercises = (ref = __webpack_require__(47), ExerciseStep = ref.ExerciseStep, ref);
+	exercises = (ref = __webpack_require__(46), ExerciseStep = ref.ExerciseStep, ref);
 
-	breadcrumbs = (ref1 = __webpack_require__(48), Breadcrumbs = ref1.Breadcrumbs, ref1);
+	breadcrumbs = (ref1 = __webpack_require__(47), Breadcrumbs = ref1.Breadcrumbs, ref1);
 
-	TaskReview = __webpack_require__(49).TaskReview;
+	TaskReview = __webpack_require__(48).TaskReview;
 
-	TaskTitle = __webpack_require__(54).TaskTitle;
+	TaskTitle = __webpack_require__(53).TaskTitle;
 
-	NoExercises = __webpack_require__(56).NoExercises;
+	NoExercises = __webpack_require__(55).NoExercises;
 
 	TaskBase = React.createClass({
 	  displayName: 'TaskBase',
@@ -3743,11 +3743,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	api = __webpack_require__(36);
 
-	exercises = __webpack_require__(43);
+	exercises = __webpack_require__(42);
 
 	tasks = {};
 
-	user = __webpack_require__(44);
+	user = __webpack_require__(43);
 
 	user.channel.on('change', function() {
 	  return tasks = {};
@@ -25749,9 +25749,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 41 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {var ref, settings;
+	var settings;
 
 	settings = {
 	  endpoints: {
@@ -25791,7 +25791,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    'courseDashboard.*.send.fetch': {
 	      url: 'api/courses/{id}/cc/dashboard',
 	      method: 'GET',
-	      baseUrl: typeof process !== "undefined" && process !== null ? (ref = ({"NODE_ENV":"development"})) != null ? ref.BASE_URL : void 0 : void 0,
 	      completedEvent: 'courseDashboard.{id}.receive.fetch'
 	    },
 	    'course.*.send.registration': {
@@ -25811,107 +25810,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = settings;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(42)))
 
 /***/ },
 /* 42 */
-/***/ function(module, exports) {
-
-	// shim for using process in browser
-
-	var process = module.exports = {};
-	var queue = [];
-	var draining = false;
-	var currentQueue;
-	var queueIndex = -1;
-
-	function cleanUpNextTick() {
-	    draining = false;
-	    if (currentQueue.length) {
-	        queue = currentQueue.concat(queue);
-	    } else {
-	        queueIndex = -1;
-	    }
-	    if (queue.length) {
-	        drainQueue();
-	    }
-	}
-
-	function drainQueue() {
-	    if (draining) {
-	        return;
-	    }
-	    var timeout = setTimeout(cleanUpNextTick);
-	    draining = true;
-
-	    var len = queue.length;
-	    while(len) {
-	        currentQueue = queue;
-	        queue = [];
-	        while (++queueIndex < len) {
-	            if (currentQueue) {
-	                currentQueue[queueIndex].run();
-	            }
-	        }
-	        queueIndex = -1;
-	        len = queue.length;
-	    }
-	    currentQueue = null;
-	    draining = false;
-	    clearTimeout(timeout);
-	}
-
-	process.nextTick = function (fun) {
-	    var args = new Array(arguments.length - 1);
-	    if (arguments.length > 1) {
-	        for (var i = 1; i < arguments.length; i++) {
-	            args[i - 1] = arguments[i];
-	        }
-	    }
-	    queue.push(new Item(fun, args));
-	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
-	    }
-	};
-
-	// v8 likes predictible objects
-	function Item(fun, array) {
-	    this.fun = fun;
-	    this.array = array;
-	}
-	Item.prototype.run = function () {
-	    this.fun.apply(null, this.array);
-	};
-	process.title = 'browser';
-	process.browser = true;
-	process.env = {};
-	process.argv = [];
-	process.version = ''; // empty string to avoid regexp issues
-	process.versions = {};
-
-	function noop() {}
-
-	process.on = noop;
-	process.addListener = noop;
-	process.once = noop;
-	process.off = noop;
-	process.removeListener = noop;
-	process.removeAllListeners = noop;
-	process.emit = noop;
-
-	process.binding = function (name) {
-	    throw new Error('process.binding is not supported');
-	};
-
-	process.cwd = function () { return '/' };
-	process.chdir = function (dir) {
-	    throw new Error('process.chdir is not supported');
-	};
-	process.umask = function() { return 0; };
-
-
-/***/ },
-/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, api, channel, fetch, get, getCurrentPanel, init, load, quickLoad, steps, update, user;
@@ -25922,7 +25823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	steps = {};
 
-	user = __webpack_require__(44);
+	user = __webpack_require__(43);
 
 	user.channel.on('change', function() {
 	  return steps = {};
@@ -25995,7 +25896,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BLANK_USER, Course, EventEmitter2, React, User, _, api;
@@ -26006,7 +25907,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	EventEmitter2 = __webpack_require__(5);
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
 	api = __webpack_require__(36);
 
@@ -26107,7 +26008,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, ERROR_MAP, EventEmitter2, React, _, api;
@@ -26292,7 +26193,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {var React, Reactive, api, classnames, interpolate;
@@ -26446,7 +26347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Exercise, ExerciseBase, ExerciseStep, React, Reactive, _, api, apiChannelName, channel, exercises, getCurrentPanel, ref, tasks;
@@ -26457,13 +26358,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Exercise = __webpack_require__(6).Exercise;
 
-	ref = exercises = __webpack_require__(43), channel = ref.channel, getCurrentPanel = ref.getCurrentPanel;
+	ref = exercises = __webpack_require__(42), channel = ref.channel, getCurrentPanel = ref.getCurrentPanel;
 
 	tasks = __webpack_require__(34);
 
 	api = __webpack_require__(36);
 
-	Reactive = __webpack_require__(46).Reactive;
+	Reactive = __webpack_require__(45).Reactive;
 
 	apiChannelName = 'exercise';
 
@@ -26574,7 +26475,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Breadcrumb, BreadcrumbDynamic, Breadcrumbs, React, _, exercises, tasks;
@@ -26587,7 +26488,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	tasks = __webpack_require__(34);
 
-	exercises = __webpack_require__(43);
+	exercises = __webpack_require__(42);
 
 	BreadcrumbDynamic = React.createClass({
 	  displayName: 'BreadcrumbDynamic',
@@ -26689,7 +26590,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ExerciseButton, ExerciseStep, React, TaskReview, _, tasks;
@@ -26700,9 +26601,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	tasks = __webpack_require__(34);
 
-	ExerciseStep = __webpack_require__(47).ExerciseStep;
+	ExerciseStep = __webpack_require__(46).ExerciseStep;
 
-	ExerciseButton = __webpack_require__(50).ExerciseButton;
+	ExerciseButton = __webpack_require__(49).ExerciseButton;
 
 	TaskReview = React.createClass({
 	  displayName: 'TaskReview',
@@ -26762,7 +26663,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, ExerciseButton, React, channel;
@@ -26771,7 +26672,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	BS = __webpack_require__(16);
 
-	channel = __webpack_require__(51).channel;
+	channel = __webpack_require__(50).channel;
 
 	ExerciseButton = React.createClass({
 	  displayName: 'ExerciseButton',
@@ -26803,7 +26704,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, _, channel, getDataByView, getViewByRoute, initialize, loader, navigation, settings;
@@ -26812,9 +26713,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	EventEmitter2 = __webpack_require__(5);
 
-	settings = __webpack_require__(52);
+	settings = __webpack_require__(51);
 
-	loader = __webpack_require__(53).loader;
+	loader = __webpack_require__(52).loader;
 
 	navigation = {};
 
@@ -26854,7 +26755,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 51 */
 /***/ function(module, exports) {
 
 	var DEFAULT_PATTERN, settings;
@@ -26880,7 +26781,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _, interpolate, loader, makeViewSettings;
@@ -26915,7 +26816,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterSectionMixin, React, TaskTitle, _, classnames, componentModel, navigation, tasks;
@@ -26928,11 +26829,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	tasks = __webpack_require__(34);
 
-	navigation = __webpack_require__(51);
+	navigation = __webpack_require__(50);
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	componentModel = __webpack_require__(55);
+	componentModel = __webpack_require__(54);
 
 	TaskTitle = React.createClass({
 	  displayName: 'TaskTitle',
@@ -26997,7 +26898,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, _, coach;
@@ -27019,7 +26920,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var NoExercises, React;
@@ -27041,7 +26942,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CloseButton, Course, CourseNameBase, Navigation, React, UserMenu, api, channel, user;
@@ -27052,17 +26953,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	CloseButton = __webpack_require__(6).CloseButton;
 
-	CourseNameBase = __webpack_require__(58).CourseNameBase;
+	CourseNameBase = __webpack_require__(57).CourseNameBase;
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
-	user = __webpack_require__(44);
+	user = __webpack_require__(43);
 
-	channel = __webpack_require__(51).channel;
+	channel = __webpack_require__(50).channel;
 
 	api = __webpack_require__(36);
 
-	UserMenu = __webpack_require__(59);
+	UserMenu = __webpack_require__(58);
 
 	Navigation = React.createClass({
 	  displayName: 'Navigation',
@@ -27149,7 +27050,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CourseNameBase, React, _, classnames;
@@ -27183,7 +27084,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CloseButton, Course, EventEmitter2, React, Status, UserMenu, api, getWaitingText;
@@ -27196,9 +27097,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	CloseButton = __webpack_require__(6).CloseButton;
 
-	Status = __webpack_require__(60);
+	Status = __webpack_require__(59);
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
 	api = __webpack_require__(36);
 
@@ -27273,12 +27174,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var User, UserStatusMixin;
 
-	User = __webpack_require__(44);
+	User = __webpack_require__(43);
 
 	UserStatusMixin = {
 	  componentDidMount: function() {
@@ -27301,20 +27202,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, CourseRegistration, ModifyCourseRegistration, NewCourseRegistration, React, UserStatus;
 
 	React = __webpack_require__(2);
 
-	NewCourseRegistration = __webpack_require__(62);
+	NewCourseRegistration = __webpack_require__(61);
 
-	ModifyCourseRegistration = __webpack_require__(68);
+	ModifyCourseRegistration = __webpack_require__(67);
 
-	UserStatus = __webpack_require__(60);
+	UserStatus = __webpack_require__(59);
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
 	CourseRegistration = React.createClass({displayName: "CourseRegistration",
 	  propTypes: {
@@ -27337,24 +27238,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {var ConfirmJoin, Course, ENTER, InviteCodeInput, Navigation, NewCourseRegistration, React, User;
 
 	React = __webpack_require__(2);
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
-	User = __webpack_require__(44);
+	User = __webpack_require__(43);
 
 	ENTER = 'Enter';
 
-	InviteCodeInput = __webpack_require__(63);
+	InviteCodeInput = __webpack_require__(62);
 
-	ConfirmJoin = __webpack_require__(67);
+	ConfirmJoin = __webpack_require__(66);
 
-	Navigation = __webpack_require__(51);
+	Navigation = __webpack_require__(50);
 
 	NewCourseRegistration = React.createClass({displayName: "NewCourseRegistration",
 	  propTypes: {
@@ -27420,7 +27321,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, Course, CourseListing, ENTER, ErrorList, InviteCodeInput, React;
@@ -27431,11 +27332,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ENTER = 'Enter';
 
-	CourseListing = __webpack_require__(64).CourseListing;
+	CourseListing = __webpack_require__(63).CourseListing;
 
-	ErrorList = __webpack_require__(66);
+	ErrorList = __webpack_require__(65);
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
 	AsyncButton = __webpack_require__(6).AsyncButton;
 
@@ -27494,7 +27395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CourseItem, CourseListing, React, _;
@@ -27505,7 +27406,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	CourseItem = __webpack_require__(65).CourseItem;
+	CourseItem = __webpack_require__(64).CourseItem;
 
 	CourseListing = React.createClass({
 	  displayName: 'CourseListing',
@@ -27535,7 +27436,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CourseItem, EventEmitter2, React, _, componentModel, interpolate, navigation;
@@ -27550,9 +27451,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	navigation = __webpack_require__(51);
+	navigation = __webpack_require__(50);
 
-	componentModel = __webpack_require__(55);
+	componentModel = __webpack_require__(54);
 
 	CourseItem = React.createClass({
 	  displayName: 'CourseItem',
@@ -27603,14 +27504,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, ErrorList, React;
 
 	React = __webpack_require__(2);
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
 	ErrorList = React.createClass({displayName: "ErrorList",
 	  propTypes: {
@@ -27644,7 +27545,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, ConfirmJoin, Course, ENTER, ErrorList, React;
@@ -27655,9 +27556,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ENTER = 'Enter';
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
-	ErrorList = __webpack_require__(66);
+	ErrorList = __webpack_require__(65);
 
 	AsyncButton = __webpack_require__(6).AsyncButton;
 
@@ -27722,22 +27623,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {var ConfirmJoin, Course, InviteCodeInput, ModifyCourseRegistration, Navigation, React, User;
 
 	React = __webpack_require__(2);
 
-	InviteCodeInput = __webpack_require__(63);
+	InviteCodeInput = __webpack_require__(62);
 
-	ConfirmJoin = __webpack_require__(67);
+	ConfirmJoin = __webpack_require__(66);
 
-	User = __webpack_require__(44);
+	User = __webpack_require__(43);
 
-	Course = __webpack_require__(45);
+	Course = __webpack_require__(44);
 
-	Navigation = __webpack_require__(51);
+	Navigation = __webpack_require__(50);
 
 	ModifyCourseRegistration = React.createClass({displayName: "ModifyCourseRegistration",
 	  propTypes: {
@@ -27808,7 +27709,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {var BS, ErrorNotification, React, api;
@@ -27917,7 +27818,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 70 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AccountsIframe, React, User, api, classnames;
@@ -27928,7 +27829,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	api = __webpack_require__(36);
 
-	User = __webpack_require__(44);
+	User = __webpack_require__(43);
 
 	AccountsIframe = React.createClass({displayName: "AccountsIframe",
 	  getInitialState: function() {
@@ -28058,14 +27959,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 71 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(_) {var LoginGateway, React, SECOND, User, api;
 
 	React = __webpack_require__(2);
 
-	User = __webpack_require__(44);
+	User = __webpack_require__(43);
 
 	api = __webpack_require__(36);
 
@@ -28157,7 +28058,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 72 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CourseListing, Dashboard, DashboardBase, React, Reactive, User, _, apiChannelName, classnames;
@@ -28168,11 +28069,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	Reactive = __webpack_require__(46).Reactive;
+	Reactive = __webpack_require__(45).Reactive;
 
-	CourseListing = __webpack_require__(64).CourseListing;
+	CourseListing = __webpack_require__(63).CourseListing;
 
-	User = __webpack_require__(44);
+	User = __webpack_require__(43);
 
 	apiChannelName = 'user';
 
@@ -28216,7 +28117,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 73 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, ChapterSectionMixin, CurrentProgress, ExerciseButton, Progress, ProgressBase, React, Reactive, _, apiChannelName, channel, classnames, progresses, tasks;
@@ -28229,15 +28130,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	Reactive = __webpack_require__(46).Reactive;
+	Reactive = __webpack_require__(45).Reactive;
 
-	ExerciseButton = __webpack_require__(50).ExerciseButton;
+	ExerciseButton = __webpack_require__(49).ExerciseButton;
 
-	ChapterProgress = __webpack_require__(74).ChapterProgress;
+	ChapterProgress = __webpack_require__(73).ChapterProgress;
 
-	CurrentProgress = __webpack_require__(78).CurrentProgress;
+	CurrentProgress = __webpack_require__(77).CurrentProgress;
 
-	channel = (progresses = __webpack_require__(79)).channel;
+	channel = (progresses = __webpack_require__(78)).channel;
 
 	tasks = __webpack_require__(34);
 
@@ -28302,7 +28203,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 74 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, ChapterSectionMixin, PageProgress, React, _, classnames;
@@ -28315,7 +28216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	PageProgress = __webpack_require__(75).PageProgress;
+	PageProgress = __webpack_require__(74).PageProgress;
 
 	ChapterProgress = React.createClass({
 	  displayName: 'ChapterProgress',
@@ -28357,7 +28258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 75 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterSectionMixin, EventEmitter2, ExerciseProgress, PageProgress, React, ResizeListenerMixin, _, classnames, dateFormat, ref;
@@ -28366,7 +28267,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	dateFormat = __webpack_require__(76);
+	dateFormat = __webpack_require__(75);
 
 	classnames = __webpack_require__(4);
 
@@ -28374,7 +28275,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(6), ChapterSectionMixin = ref.ChapterSectionMixin, ResizeListenerMixin = ref.ResizeListenerMixin;
 
-	ExerciseProgress = __webpack_require__(77).ExerciseProgress;
+	ExerciseProgress = __webpack_require__(76).ExerciseProgress;
 
 	PageProgress = React.createClass({
 	  displayName: 'PageProgress',
@@ -28447,7 +28348,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 76 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -28679,7 +28580,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 77 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterSectionMixin, ExerciseProgress, React, _, classnames;
@@ -28718,7 +28619,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, CurrentProgress, CurrentProgressBase, React, Reactive, _, apiChannelName, channel, classnames, tasks;
@@ -28731,11 +28632,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	channel = (tasks = __webpack_require__(34)).channel;
 
-	Reactive = __webpack_require__(46).Reactive;
+	Reactive = __webpack_require__(45).Reactive;
 
 	apiChannelName = 'task';
 
-	ChapterProgress = __webpack_require__(74).ChapterProgress;
+	ChapterProgress = __webpack_require__(73).ChapterProgress;
 
 	CurrentProgressBase = React.createClass({
 	  displayName: 'CurrentProgressBase',
@@ -28814,7 +28715,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, api, apiChannelName, channel, fetch, get, init, load, local, update;
@@ -28873,7 +28774,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 80 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $, Coach, ConceptCoachAPI, EventEmitter2, PROPS, User, WRAPPER_CLASSNAME, _, coachWrapped, componentModel, deleteProperties, exercise, helpers, initializeModels, listenAndBroadcast, navigation, progress, restAPI, setupAPIListeners, stopModelChannels, task,
@@ -28886,23 +28787,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	EventEmitter2 = __webpack_require__(5);
 
-	helpers = __webpack_require__(81);
+	helpers = __webpack_require__(80);
 
 	restAPI = __webpack_require__(36);
 
-	componentModel = __webpack_require__(55);
+	componentModel = __webpack_require__(54);
 
-	navigation = __webpack_require__(51);
+	navigation = __webpack_require__(50);
 
-	User = __webpack_require__(44);
+	User = __webpack_require__(43);
 
-	exercise = __webpack_require__(43);
+	exercise = __webpack_require__(42);
 
-	progress = __webpack_require__(79);
+	progress = __webpack_require__(78);
 
 	task = __webpack_require__(34);
 
-	Coach = __webpack_require__(82).Coach;
+	Coach = __webpack_require__(81).Coach;
 
 	coachWrapped = helpers.wrapComponent(Coach);
 
@@ -29134,7 +29035,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 81 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, helpers;
@@ -29159,7 +29060,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 82 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CCModal, Coach, ConceptCoach, Launcher, React, _, channel, ref;
@@ -29170,9 +29071,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(1), ConceptCoach = ref.ConceptCoach, channel = ref.channel;
 
-	CCModal = __webpack_require__(83).CCModal;
+	CCModal = __webpack_require__(82).CCModal;
 
-	Launcher = __webpack_require__(84).Launcher;
+	Launcher = __webpack_require__(83).Launcher;
 
 	Coach = React.createClass({
 	  displayName: 'Coach',
@@ -29222,7 +29123,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 83 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CCModal, React, _, api, channel, classnames;
@@ -29233,7 +29134,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	channel = __webpack_require__(55).channel;
+	channel = __webpack_require__(54).channel;
 
 	api = __webpack_require__(36);
 
@@ -29288,7 +29189,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 84 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, BackgroundAndDesk, LaptopAndMug, Launcher, React, _, channel, classnames, ref;
@@ -29301,9 +29202,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	ref = __webpack_require__(85), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
+	ref = __webpack_require__(84), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
 
-	channel = __webpack_require__(55).channel;
+	channel = __webpack_require__(54).channel;
 
 	Launcher = React.createClass({
 	  displayName: 'Launcher',
@@ -29367,7 +29268,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 85 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BackgroundAndDesk, LaptopAndMug, React;
