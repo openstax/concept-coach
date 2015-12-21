@@ -33961,12 +33961,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }),
 	  update: function(data) {
 	    _.extend(this, data.user);
+	    this._course_data = data.courses;
 	    this.courses = _.compact(_.map(data.courses, function(course) {
-	      if (course.is_concept_coach) {
+	      if (course.is_concept_coach && _.detect(course.roles, function(role) {
+	        return role.type === 'student';
+	      })) {
 	        return new Course(course);
 	      }
 	    }));
 	    return this.channel.emit('change');
+	  },
+	  isTeacherForCourse: function(collectionUUID) {
+	    var course;
+	    course = _.findWhere(this._course_data, {
+	      ecosystem_book_uuid: collectionUUID
+	    });
+	    return course && _.detect(course.roles, function(role) {
+	      return role.type === 'teacher';
+	    });
 	  },
 	  get: function() {
 	    return this;
@@ -48115,6 +48127,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Navigation = __webpack_require__(168);
 
+	User = __webpack_require__(171);
+
 	NewCourseRegistration = React.createClass({displayName: "NewCourseRegistration",
 	  propTypes: {
 	    collectionUUID: React.PropTypes.string.isRequired
@@ -48149,14 +48163,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "className": "text-center"
 	    }, "You have successfully joined ", course.description());
 	  },
+	  isTeacher: function() {
+	    return User.isTeacherForCourse(this.props.collectionUUID);
+	  },
 	  renderCurrentStep: function() {
-	    var course;
+	    var course, title;
 	    course = this.state.course;
 	    if (course.isIncomplete()) {
+	      title = this.isTeacher() ? '' : 'Register for this Concept Coach course';
 	      return React.createElement(InviteCodeInput, {
 	        "course": course,
 	        "currentCourses": User.courses,
-	        "title": "Register for this Concept Coach course"
+	        "title": title
 	      });
 	    } else if (course.isPending()) {
 	      return React.createElement(ConfirmJoin, {
@@ -48167,10 +48185,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.renderComplete(course);
 	    }
 	  },
+	  teacherMessage: function() {
+	    return React.createElement("div", {
+	      "className": "teacher-message"
+	    }, React.createElement("p", {
+	      "className": "lead"
+	    }, "Welcome!  To see the student view,\nenter an enrollment code from one of your sections."), React.createElement("p", null, "You may want to create a test section to keep your\nresponses separate from your real students."));
+	  },
 	  render: function() {
 	    return React.createElement("div", {
 	      "className": "-new-registration"
-	    }, this.renderCurrentStep());
+	    }, (this.isTeacher() ? this.teacherMessage() : void 0), this.renderCurrentStep());
 	  }
 	});
 
@@ -48228,7 +48253,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "isWaiting": this.props.course.isBusy,
 	      "waitingText": 'Registering…',
 	      "onClick": this.startRegistration
-	    }, "Register");
+	    }, "Enroll");
 	    return React.createElement("div", {
 	      "className": "form-group"
 	    }, (((ref = this.props.currentCourses) != null ? ref.length : void 0) ? this.renderCurrentCourses() : void 0), React.createElement("h3", {
