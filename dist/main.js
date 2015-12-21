@@ -27332,7 +27332,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "className": "teacher-message"
 	    }, React.createElement("p", {
 	      "className": "lead"
-	    }, "Welcome!  To see the student view,\nenter an enrollment code from one of your sections."), React.createElement("p", null, "You may want to create a test section to keep your\nresponses separate from your real students."));
+	    }, "Welcome!"), React.createElement("p", {
+	      "className": "lead"
+	    }, "To see the student view of your course in Concept Coach,\nenter an enrollment code from one of your sections."), React.createElement("p", null, "We suggest creating a test section for yourself so you can\nseparate your Concept Coach responses from those of your students."));
 	  },
 	  render: function() {
 	    return React.createElement("div", {
