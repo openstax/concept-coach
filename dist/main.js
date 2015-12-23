@@ -2269,7 +2269,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var COMBINED_MATH_SELECTOR, MATH_DATA_SELECTOR, MATH_MARKER_BLOCK, MATH_MARKER_INLINE, MATH_ML_SELECTOR, _, cleanMathArtifacts, startMathJax, typesetDocument, typesetMath;
+	var COMBINED_MATH_SELECTOR, MATH_DATA_SELECTOR, MATH_MARKER_BLOCK, MATH_MARKER_INLINE, MATH_ML_SELECTOR, _, startMathJax, typesetDocument, typesetMath;
 
 	_ = __webpack_require__(3);
 
@@ -2282,28 +2282,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	MATH_ML_SELECTOR = 'math:not(.math-rendered)';
 
 	COMBINED_MATH_SELECTOR = MATH_DATA_SELECTOR + ", " + MATH_ML_SELECTOR;
-
-	cleanMathArtifacts = function() {
-	  return window.MathJax.Hub.Queue([
-	    function() {
-	      var el, i, len, nodeId, ref, results;
-	      ref = ['MathJax_Message', 'MathJax_Font_Test'];
-	      results = [];
-	      for (i = 0, len = ref.length; i < len; i++) {
-	        nodeId = ref[i];
-	        el = document.getElementById(nodeId);
-	        if (!el) {
-	          break;
-	        }
-	        if (el.parentElement !== document.body) {
-	          el = el.parentElement;
-	        }
-	        results.push(el.parentElement.removeChild(el));
-	      }
-	      return results;
-	    }
-	  ]);
-	};
 
 	typesetDocument = function() {
 	  var allNodes, formula, i, len, node, ref;
@@ -2320,8 +2298,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    allNodes.push(node);
 	  }
 	  allNodes = allNodes.concat(_.pluck(document.querySelectorAll(MATH_ML_SELECTOR), 'parentNode'));
-	  window.MathJax.Hub.Typeset(allNodes);
-	  return cleanMathArtifacts();
+	  return window.MathJax.Hub.Typeset(allNodes);
 	};
 
 	typesetDocument = _.debounce(typesetDocument, 10);
@@ -3832,13 +3809,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	getCompleteSteps = function(taskId) {
-	  return _.filter(tasks[taskId].steps, function(step) {
+	  var ref;
+	  return _.filter((ref = tasks[taskId]) != null ? ref.steps : void 0, function(step) {
 	    return (step != null) && step.is_completed;
 	  });
 	};
 
 	getIncompleteSteps = function(taskId) {
-	  return _.filter(tasks[taskId].steps, function(step) {
+	  var ref;
+	  return _.filter((ref = tasks[taskId]) != null ? ref.steps : void 0, function(step) {
 	    return (step != null) && !step.is_completed;
 	  });
 	};
@@ -3853,7 +3832,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	getStepIndex = function(taskId, stepId) {
-	  return _.findIndex(tasks[taskId].steps, {
+	  var ref;
+	  return _.findIndex((ref = tasks[taskId]) != null ? ref.steps : void 0, {
 	    id: stepId
 	  });
 	};
