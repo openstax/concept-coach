@@ -37,10 +37,8 @@ ConceptCoach = React.createClass
     defaultView: _.chain(VIEWS).last().first().value()
 
   getInitialState: ->
-    userState = @getUserState()
-
+    userState = User.status(@props.collectionUUID)
     view = @getAllowedView(userState)
-
     userState.view = view
     userState
 
@@ -52,13 +50,15 @@ ConceptCoach = React.createClass
     bookUrlPattern: React.PropTypes.string
     close: React.PropTypes.func
     navigator: React.PropTypes.instanceOf(EventEmitter2)
+    processHtmlAndMath: React.PropTypes.func
 
   getChildContext: ->
     {view} = @state
     {cnxUrl, close, moduleUUID, collectionUUID} = @props
     bookUrlPattern = '{cnxUrl}/contents/{ecosystem_book_uuid}'
+    processHtmlAndMath = @props.processHtmlAndMath
 
-    {view, cnxUrl, close, bookUrlPattern, navigator,  moduleUUID, collectionUUID}
+    {view, cnxUrl, close, processHtmlAndMath, bookUrlPattern, navigator,  moduleUUID, collectionUUID}
 
   componentWillMount: ->
     User.ensureStatusLoaded()
@@ -79,13 +79,14 @@ ConceptCoach = React.createClass
 
   getAllowedView: (userInfo) ->
     {defaultView} = @props
-
     if not userInfo.isLoaded
       authLevel = 0
+    else if userInfo.preValidate
+      authLevel = 2 # prevalidate the course
     else if not userInfo.isLoggedIn
-      authLevel = 1
+      authLevel = 1 # login / signup
     else if not userInfo.isRegistered
-      authLevel = 2
+      authLevel = 2 # complete joining the course
     else
       authLevel = 3
 
@@ -117,17 +118,8 @@ ConceptCoach = React.createClass
   showTasks: ->
     @updateView(view: 'task')
 
-  getUserState: ->
-    {collectionUUID} = @props
-    course = User.getCourse(collectionUUID)
-
-    userInfo =
-      isLoggedIn: User.isLoggedIn()
-      isLoaded: User.isLoaded
-      isRegistered: course?.isRegistered()
-
   updateUser: ->
-    userState = @getUserState()
+    userState = User.status(@props.collectionUUID)
     view = @getAllowedView(userState)
 
     # tell nav to update view if the next view isn't the current view
