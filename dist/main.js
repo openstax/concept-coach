@@ -2369,7 +2369,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  },
 	  render: function() {
-	    var answerId, answerKeySet, changeProps, choicesEnabled, content, mode, onChangeAnswerAttempt, question, questionProps, ref1;
+	    var answerId, answerKeySet, changeProps, choicesEnabled, content, htmlAndMathProps, mode, onChangeAnswerAttempt, question, questionProps, ref1, stimulus_html;
 	    ref1 = this.props, mode = ref1.mode, content = ref1.content, onChangeAnswerAttempt = ref1.onChangeAnswerAttempt, answerKeySet = ref1.answerKeySet, choicesEnabled = ref1.choicesEnabled;
 	    answerId = this.state.answerId;
 	    if (!choicesEnabled) {
@@ -2389,9 +2389,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        onChangeAttempt: onChangeAnswerAttempt
 	      };
 	    }
+	    htmlAndMathProps = _.pick(this.props, 'processHtmlAndMath');
+	    stimulus_html = content.stimulus_html;
 	    return React.createElement("div", {
 	      "className": 'openstax-exercise'
-	    }, React.createElement(Question, React.__spread({}, questionProps, changeProps, {
+	    }, React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
+	      "className": 'exercise-stimulus',
+	      "block": true,
+	      "html": stimulus_html
+	    })), React.createElement(Question, React.__spread({}, questionProps, changeProps, {
 	      "key": 'step-question',
 	      "model": question,
 	      "answer_id": answerId,
@@ -2598,7 +2604,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Answer, ArbitraryHtmlAndMath, Feedback, KEYS, KEYSETS_PROPS, React, _, classnames, idCounter, isAnswerChecked, isAnswerCorrect, keymaster, keysHelper,
+	var Answer, AnswersTable, ArbitraryHtmlAndMath, Feedback, KEYS, KEYSETS_PROPS, QuestionHtml, React, _, classnames, idCounter, isAnswerChecked, isAnswerCorrect, keymaster, keysHelper,
 	  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 	React = __webpack_require__(2);
@@ -2789,25 +2795,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 
-	module.exports = React.createClass({
-	  displayName: 'Question',
+	AnswersTable = React.createClass({
+	  displayName: 'AnswersTable',
 	  propTypes: {
 	    model: React.PropTypes.object.isRequired,
 	    type: React.PropTypes.string.isRequired,
 	    answer_id: React.PropTypes.string,
 	    correct_answer_id: React.PropTypes.string,
-	    content_uid: React.PropTypes.string,
 	    feedback_html: React.PropTypes.string,
 	    answered_count: React.PropTypes.number,
 	    show_all_feedback: React.PropTypes.bool,
 	    onChange: React.PropTypes.func,
 	    onChangeAttempt: React.PropTypes.func,
 	    keySet: React.PropTypes.oneOf(KEYSETS_PROPS)
-	  },
-	  getInitialState: function() {
-	    return {
-	      answer: null
-	    };
 	  },
 	  getDefaultProps: function() {
 	    return {
@@ -2816,12 +2816,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      keySet: 'multiple-choice'
 	    };
 	  },
-	  childContextTypes: {
-	    processHtmlAndMath: React.PropTypes.func
-	  },
-	  getChildContext: function() {
+	  getInitialState: function() {
 	    return {
-	      processHtmlAndMath: this.props.processHtmlAndMath
+	      answer_id: null
 	    };
 	  },
 	  onChangeAnswer: function(answer, changeEvent) {
@@ -2837,20 +2834,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  },
 	  render: function() {
-	    var answered_count, answers, checkedAnswerIndex, choicesEnabled, chosenAnswer, classes, correct_answer_id, feedback, hasCorrectAnswer, html, htmlAndMathProps, keySet, qid, questionAnswerProps, ref, type;
-	    ref = this.props, type = ref.type, answered_count = ref.answered_count, choicesEnabled = ref.choicesEnabled, correct_answer_id = ref.correct_answer_id, keySet = ref.keySet;
-	    chosenAnswer = [this.props.answer_id, this.state.answer_id];
-	    checkedAnswerIndex = null;
-	    html = this.props.model.stem_html;
-	    qid = this.props.model.id || ("auto-" + (idCounter++));
-	    hasCorrectAnswer = !!correct_answer_id;
-	    if (this.props.feedback_html) {
-	      feedback = React.createElement(Feedback, {
-	        "key": 'question-mc-feedback'
-	      }, this.props.feedback_html);
+	    var answer_id, answered_count, answers, answersHtml, checkedAnswerIndex, choicesEnabled, chosenAnswer, correct_answer_id, feedback, feedback_html, hasCorrectAnswer, id, keySet, model, questionAnswerProps, ref, show_all_feedback, type;
+	    ref = this.props, model = ref.model, type = ref.type, answered_count = ref.answered_count, choicesEnabled = ref.choicesEnabled, correct_answer_id = ref.correct_answer_id, answer_id = ref.answer_id, feedback_html = ref.feedback_html, show_all_feedback = ref.show_all_feedback, keySet = ref.keySet;
+	    answers = model.answers, id = model.id;
+	    if (!((answers != null ? answers.length : void 0) > 0)) {
+	      return null;
 	    }
+	    chosenAnswer = [answer_id, this.state.answer_id];
+	    checkedAnswerIndex = null;
+	    hasCorrectAnswer = !!correct_answer_id;
 	    questionAnswerProps = {
-	      qid: this.props.model.id,
+	      qid: id || ("auto-" + (idCounter++)),
 	      correctAnswerId: correct_answer_id,
 	      hasCorrectAnswer: hasCorrectAnswer,
 	      chosenAnswer: chosenAnswer,
@@ -2858,9 +2852,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      type: type,
 	      answered_count: answered_count,
 	      disabled: !choicesEnabled,
-	      show_all_feedback: this.props.show_all_feedback
+	      show_all_feedback: show_all_feedback
 	    };
-	    answers = _.chain(this.props.model.answers).sortBy(function(answer) {
+	    answersHtml = _.chain(answers).sortBy(function(answer) {
 	      return parseInt(answer.id);
 	    }).map(function(answer, i) {
 	      var additionalProps, answerProps, ref1;
@@ -2876,24 +2870,84 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	      return React.createElement(Answer, React.__spread({}, answerProps));
 	    }).value();
-	    if ((feedback != null) && (checkedAnswerIndex != null)) {
-	      answers.splice(checkedAnswerIndex + 1, 0, feedback);
+	    if (feedback_html) {
+	      feedback = React.createElement(Feedback, {
+	        "key": 'question-mc-feedback'
+	      }, feedback_html);
 	    }
-	    htmlAndMathProps = _.pick(this.props, 'processHtmlAndMath');
+	    if ((feedback != null) && (checkedAnswerIndex != null)) {
+	      answersHtml.splice(checkedAnswerIndex + 1, 0, feedback);
+	    }
+	    return React.createElement("div", {
+	      "className": 'answers-table'
+	    }, answersHtml);
+	  }
+	});
+
+	QuestionHtml = React.createClass({
+	  displayName: 'QuestionHtml',
+	  propTypes: {
+	    html: React.PropTypes.string,
+	    type: React.PropTypes.string
+	  },
+	  getDefaultProps: function() {
+	    return {
+	      html: '',
+	      type: ''
+	    };
+	  },
+	  contextTypes: {
+	    processHtmlAndMath: React.PropTypes.func
+	  },
+	  render: function() {
+	    var html, htmlAndMathProps, ref, type;
+	    ref = this.props, html = ref.html, type = ref.type;
+	    if (!(html.length > 0)) {
+	      return null;
+	    }
+	    htmlAndMathProps = _.pick(this.context, 'processHtmlAndMath');
+	    return React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
+	      "className": "question-" + type,
+	      "block": true,
+	      "html": html
+	    }));
+	  }
+	});
+
+	module.exports = React.createClass({
+	  displayName: 'Question',
+	  propTypes: {
+	    model: React.PropTypes.object.isRequired,
+	    correct_answer_id: React.PropTypes.string,
+	    exercise_uid: React.PropTypes.string
+	  },
+	  childContextTypes: {
+	    processHtmlAndMath: React.PropTypes.func
+	  },
+	  getChildContext: function() {
+	    return {
+	      processHtmlAndMath: this.props.processHtmlAndMath
+	    };
+	  },
+	  render: function() {
+	    var classes, correct_answer_id, exercise_uid, hasCorrectAnswer, model, ref, stem_html, stimulus_html;
+	    ref = this.props, model = ref.model, correct_answer_id = ref.correct_answer_id, exercise_uid = ref.exercise_uid;
+	    stem_html = model.stem_html, stimulus_html = model.stimulus_html;
+	    hasCorrectAnswer = !!correct_answer_id;
 	    classes = classnames('openstax-question', {
 	      'has-correct-answer': hasCorrectAnswer
 	    });
 	    return React.createElement("div", {
 	      "className": classes
-	    }, React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
-	      "className": 'question-stem',
-	      "block": true,
-	      "html": html
-	    })), this.props.children, React.createElement("div", {
-	      "className": 'answers-table'
-	    }, answers), React.createElement("div", {
+	    }, React.createElement(QuestionHtml, {
+	      "type": 'stem',
+	      "html": stem_html
+	    }), React.createElement(QuestionHtml, {
+	      "type": 'stimulus',
+	      "html": stimulus_html
+	    }), this.props.children, React.createElement(AnswersTable, React.__spread({}, this.props)), React.createElement("div", {
 	      "className": "exercise-uid"
-	    }, this.props.exercise_uid));
+	    }, exercise_uid));
 	  }
 	});
 
@@ -18121,9 +18175,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var React, helpers;
+	var React, _, helpers;
 
 	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
 
 	helpers = {
 	  wrapComponent: function(component) {
@@ -18233,6 +18289,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.setLoaded();
 	    }
 	  },
+	  componentWillMount: function() {
+	    document.addEventListener('click', this.checkAllowed, true);
+	    return document.addEventListener('focus', this.checkAllowed, true);
+	  },
+	  componentWillUnmount: function() {
+	    document.removeEventListener('click', this.checkAllowed, true);
+	    return document.removeEventListener('focus', this.checkAllowed, true);
+	  },
+	  checkAllowed: function(focusEvent) {
+	    var modal;
+	    modal = this.getDOMNode();
+	    if (!modal.contains(focusEvent.target)) {
+	      focusEvent.preventDefault();
+	      focusEvent.stopImmediatePropagation();
+	      return modal.focus();
+	    }
+	  },
 	  setLoaded: function() {
 	    var isLoaded;
 	    isLoaded = this.state.isLoaded;
@@ -18250,8 +18323,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    });
 	    return React.createElement("div", {
 	      "className": classes,
-	      "tabIndex": "-1"
-	    }, this.props.children);
+	      "role": 'dialog',
+	      "tabIndex": '-1'
+	    }, React.createElement("div", {
+	      "role": 'document'
+	    }, this.props.children));
 	  }
 	});
 
