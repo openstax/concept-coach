@@ -94,8 +94,10 @@ class ApiLink extends EventEmitter2
     @_errors = errors
     @_items = {}
 
+    protect = _.union ['apiNameSpace', 'errors', 'apiChannel'], _.keys(EventEmitter2.prototype)
+
     _.chain(options)
-      .omit('apiNameSpace', 'errors', 'apiChannel')
+      .omit(protect)
       .each(@extend)
 
   extend: (hook, key) =>
@@ -108,15 +110,18 @@ class ApiLink extends EventEmitter2
       @[key] = hook.bind(@)
 
   init: ->
-    @_init?() or 
-      (@apiChannel.on("#{@apiNameSpace}.*.receive.*", @update.bind(@)) and
-      @apiChannel.on("#{@apiNameSpace}.*.receive.failure", _.partial(checkFailure, _, @_errors)))
+    @apiChannel.on("#{@apiNameSpace}.*.receive.*", (data) ->
+      console.info(data)
+    )
+    @_init?() or
+      ((@apiChannel.on("#{@apiNameSpace}.*.receive.*", @update.bind(@)) or true) and
+      (@apiChannel.on("#{@apiNameSpace}.*.receive.failure", _.partial(checkFailure, _, @_errors)) or true))
 
   load: (topic, data) ->
     data = @_load?(topic, data) or data
     @_items[topic] = data
     status = if data.errors? then 'failed' else 'loaded'
-
+    console.info('emitting the load')
     @emit("load.#{topic}", {data, status})
 
   get: (topic) ->
@@ -133,6 +138,7 @@ class ApiLink extends EventEmitter2
       (@apiChannel.emit("#{@apiNameSpace}.#{topic}.send.fetch", eventData) or true))
 
   update: (eventData) ->
+    console.info('should be updating')
     return unless eventData?
     {data, query} = eventData
     @_update?(query, data) or @load(query, data)

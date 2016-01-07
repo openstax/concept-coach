@@ -21,5 +21,6 @@ exercise =
 
   init: ->
     user.channel.on 'change', @reset.bind(@)
+    false
 
 module.exports = new ApiLink(exercise)
