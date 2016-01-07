@@ -49,7 +49,7 @@ listenAndBroadcast = (componentAPI) ->
   navigation.channel.on 'close.for.book', (eventData) ->
     componentAPI.emit('book.update', eventData)
 
-  exercise.channel.on 'component.*', (eventData) ->
+  exercise.on 'component.*', (eventData) ->
     componentAPI.emit("exercise.component.#{eventData.status}", eventData)
 
 setupAPIListeners = (componentAPI) ->

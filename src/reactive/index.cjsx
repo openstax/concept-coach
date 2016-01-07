@@ -76,14 +76,14 @@ Reactive = React.createClass
     {storeChannelUpdate, apiChannelSend} = @state
 
     @fetchModel()
-    store.channel.on(storeChannelUpdate, @update)
+    store.on?(storeChannelUpdate, @update) or store.channel.on(storeChannelUpdate, @update)
     api.channel.on(apiChannelSend, @setStatus)
 
   componentWillUnmount: ->
     {topic, store} = @props
     {storeChannelUpdate, apiChannelSend} = @state
 
-    store.channel.off(storeChannelUpdate, @update)
+    store.off?(storeChannelUpdate, @update) or store.channel.off(storeChannelUpdate, @update)
     api.channel.off(apiChannelSend, @setStatus)
 
   componentWillReceiveProps: (nextProps) ->

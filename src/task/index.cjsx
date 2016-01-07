@@ -8,9 +8,9 @@ api = require '../api'
 {Reactive} = require '../reactive'
 apiChannelName = 'task'
 
-exercises = {ExerciseStep} = require '../exercise'
+{ExerciseStep, exercises} = require '../exercise'
 breadcrumbs = {Breadcrumbs} = require '../breadcrumbs'
-
+console.info(exercises)
 {TaskReview} = require './review'
 {TaskTitle} = require './title'
 {NoExercises} = require './no-exercises'
@@ -53,11 +53,11 @@ TaskBase = React.createClass
 
   componentWillMount: ->
     api.channel.on('exercise.*.receive.complete', @fetchTask)
-    exercises.channel.on('leave.*', @nextStep)
+    exercises.on('leave.*', @nextStep)
 
   componentWillUnmount: ->
     api.channel.off('exercise.*.receive.complete', @fetchTask)
-    exercises.channel.off('leave.*', @nextStep)
+    exercises.off('leave.*', @nextStep)
 
   componentWillReceiveProps: (nextProps) ->
     nextState =

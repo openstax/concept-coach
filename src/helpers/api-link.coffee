@@ -1,7 +1,7 @@
 EventEmitter2 = require 'eventemitter2'
 interpolate = require 'interpolate'
 _ = require 'underscore'
-defaultsDeep = require 'lodash/object/defaultsDeep'
+assign = require 'lodash/object/assign'
 cloneDeep = require 'lodash/lang/cloneDeep'
 
 ACTIONS = [
@@ -14,12 +14,15 @@ ACTIONS = [
   'handledAllErrors'
   'getUnhandledErrors'
 ]
-# ACTIONS_HOOK_REGEX = new RegExp("^\_+(#{ACTIONS.join('|')})")
+
+OPTION_TYPES =
+  apiChannel: (option) ->
+    option instanceof EventEmitter2
+  apiNameSpace: _.isString
 
 # private utils
 isHook = (option, key) ->
   key in ACTIONS
-  # ACTIONS_HOOK_REGEX.test(key)
 
 isErrorSilent = (error, silencers = []) ->
   _.indexOf(silencers, error.code) > -1
@@ -45,8 +48,29 @@ checkFailure = (response, errorOptions) ->
     response.data.errors = getUnhandledErrors(response.data.errors, errorOptions)
     response.stopErrorDisplay = _.isEmpty(response.data.errors)
 
+isOptionOfType = (option, key) ->
+  option instanceof OPTION_TYPES[key]
 
-local = []
+checkOptions = (options) ->
+  _.chain(OPTION_TYPES)
+    .map((optionChecker, key) ->
+      return null if optionChecker(options[key])
+      console.info(typeof options[key])
+      console.info(options[key])
+      new Error("#{key} is of wrong type.")
+    )
+    .compact()
+    .value()
+
+areOptionsGood = (options) ->
+  optionViolations = checkOptions(options)
+  return true if _.isEmpty(optionViolations)
+
+  _.each(optionViolations, (error) ->
+    throw error
+  )
+  false
+
 
 # linker
 class ApiLink extends EventEmitter2
@@ -57,20 +81,27 @@ class ApiLink extends EventEmitter2
         map: {}
       apiNameSpace: ''
 
-    defaultsDeep(options, linkOptions)
+    return unless areOptionsGood(linkOptions)
+
+    options = assign({}, options, linkOptions)
 
     super(wildcard: true)
 
     {apiNameSpace, errors, apiChannel} = options
+
     @apiNameSpace = apiNameSpace
+    @apiChannel = apiChannel
     @_errors = errors
-    @_apiChannel = apiChannel
+    @_items = {}
 
     _.chain(options)
       .omit('apiNameSpace', 'errors', 'apiChannel')
       .each(@extend)
 
-  extend: (hook, key) ->
+  extend: (hook, key) =>
+    # or maybe assign if isnt value
+    return unless _.isFunction(hook)
+
     if isHook(hook, key)
       @["_#{key}"] = hook.bind(@)
     else
@@ -78,19 +109,19 @@ class ApiLink extends EventEmitter2
 
   init: ->
     @_init?() or 
-      (@apiChannel.on("#{@apiNameSpace}.*.receive.*", @update) and
+      (@apiChannel.on("#{@apiNameSpace}.*.receive.*", @update.bind(@)) and
       @apiChannel.on("#{@apiNameSpace}.*.receive.failure", _.partial(checkFailure, _, @_errors)))
 
   load: (topic, data) ->
     data = @_load?(topic, data) or data
-    local[topic] = data
+    @_items[topic] = data
     status = if data.errors? then 'failed' else 'loaded'
 
     @emit("load.#{topic}", {data, status})
 
   get: (topic) ->
     # only allow access to immutable copy
-    data = cloneDeep(local[topic])
+    data = cloneDeep(@_items[topic])
     data = @_get?(topic, data) or data
 
   fetch: (topic) ->
@@ -98,12 +129,19 @@ class ApiLink extends EventEmitter2
     eventData.query = topic
 
     @_fetch?(topic, eventData) or
-      (@emit("fetch.#{topic}", eventData) and
-      @apiChannel.emit("#{@apiNameSpace}.#{topic}.send.fetch", eventData))
+      ((@emit("fetch.#{topic}", eventData) or true) and
+      (@apiChannel.emit("#{@apiNameSpace}.#{topic}.send.fetch", eventData) or true))
 
   update: (eventData) ->
     return unless eventData?
     {data, query} = eventData
     @_update?(query, data) or @load(query, data)
+
+  reset: ->
+    @_items = {}
+
+  destroy: ->
+    @removeAllListeners()
+    @reset()
 
 module.exports = {ApiLink}
