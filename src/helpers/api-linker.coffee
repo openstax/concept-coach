@@ -4,8 +4,6 @@ _ = require 'underscore'
 defaultsDeep = require 'lodash/object/defaultsDeep'
 cloneDeep = require 'lodash/lang/cloneDeep'
 
-api = require '../api'
-
 ACTIONS = [
   'init'
   'load'
@@ -63,12 +61,13 @@ class ApiLink extends EventEmitter2
 
     super(wildcard: true)
 
-    {apiNameSpace, errors} = options
+    {apiNameSpace, errors, apiChannel} = options
     @apiNameSpace = apiNameSpace
     @_errors = errors
+    @_apiChannel = apiChannel
 
     _.chain(options)
-      .omit('apiNameSpace', 'errors')
+      .omit('apiNameSpace', 'errors', 'apiChannel')
       .each(@extend)
 
   extend: (hook, key) ->
@@ -78,15 +77,15 @@ class ApiLink extends EventEmitter2
       @[key] = hook.bind(@)
 
   init: ->
-    api.channel.on("#{@apiNameSpace}.*.receive.*", @update)
-    api.channel.on("#{@apiNameSpace}.*.receive.failure", _.partial(checkFailure, _, @_errors))
+    @_init?() or 
+      (@apiChannel.on("#{@apiNameSpace}.*.receive.*", @update) and
+      @apiChannel.on("#{@apiNameSpace}.*.receive.failure", _.partial(checkFailure, _, @_errors)))
 
   load: (topic, data) ->
     data = @_load?(topic, data) or data
     local[topic] = data
     status = if data.errors? then 'failed' else 'loaded'
-    # _.each data.steps, (step) ->
-    #   exercises.quickLoad(step.id, step)
+
     @emit("load.#{topic}", {data, status})
 
   get: (topic) ->
@@ -98,12 +97,13 @@ class ApiLink extends EventEmitter2
     eventData = {data: {id: topic}, status: 'loading'}
     eventData.query = topic
 
-    channel.emit("fetch.#{topic}", eventData)
-    api.channel.emit("#{@apiNameSpace}.#{topic}.send.fetch", eventData)
+    @_fetch?(topic, eventData) or
+      (@emit("fetch.#{topic}", eventData) and
+      @apiChannel.emit("#{@apiNameSpace}.#{topic}.send.fetch", eventData))
 
   update: (eventData) ->
     return unless eventData?
     {data, query} = eventData
-    @load(query, data)
+    @_update?(query, data) or @load(query, data)
 
 module.exports = {ApiLink}
