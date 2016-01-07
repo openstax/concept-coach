@@ -2028,6 +2028,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = React.createClass({
 	  displayName: 'AsyncButton',
+	  propTypes: {
+	    isWaiting: React.PropTypes.bool.isRequired,
+	    isDone: React.PropTypes.bool,
+	    isFailed: React.PropTypes.bool,
+	    waitingText: React.PropTypes.node,
+	    failedState: React.PropTypes.func,
+	    failedProps: React.PropTypes.object,
+	    doneText: React.PropTypes.node,
+	    isJob: React.PropTypes.bool,
+	    timeoutLength: React.PropTypes.number
+	  },
 	  getInitialState: function() {
 	    return {
 	      isTimedout: false
@@ -2037,33 +2048,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var isJob, isTimedout, isWaiting, ref, timeout;
 	    ref = this.props, isWaiting = ref.isWaiting, isJob = ref.isJob;
 	    isTimedout = this.state.isTimedout;
-	    timeout = isJob ? 600000 : 30000;
+	    timeout = this.props.timeoutLength || (isJob ? 600000 : 30000);
 	    if (isWaiting && !isTimedout) {
-	      return _.delay((function(_this) {
-	        return function() {
-	          return _this.checkForTimeout();
-	        };
-	      })(this), timeout);
+	      return _.delay(this.checkForTimeout, timeout);
 	    }
 	  },
 	  checkForTimeout: function() {
 	    var isWaiting;
 	    isWaiting = this.props.isWaiting;
-	    if (isWaiting) {
+	    if (isWaiting && this.isMounted()) {
 	      return this.setState({
 	        isTimedout: true
 	      });
 	    }
-	  },
-	  propTypes: {
-	    isWaiting: React.PropTypes.bool.isRequired,
-	    isDone: React.PropTypes.bool,
-	    isFailed: React.PropTypes.bool,
-	    waitingText: React.PropTypes.node,
-	    failedState: React.PropTypes.func,
-	    failedProps: React.PropTypes.object,
-	    doneText: React.PropTypes.node,
-	    isJob: React.PropTypes.bool
 	  },
 	  getDefaultProps: function() {
 	    return {
@@ -2079,15 +2076,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  },
 	  render: function() {
-	    var buttonTypeClass, children, className, disabled, doneText, failedProps, failedState, isDone, isFailed, isTimedout, isWaiting, ref, ref1, ref2, spinner, stateClass, text, waitingText;
+	    var FailedState, buttonTypeClass, children, className, disabled, doneText, failedProps, isDone, isFailed, isTimedout, isWaiting, ref, ref1, ref2, spinner, stateClass, text, waitingText;
 	    ref = this.props, className = ref.className, disabled = ref.disabled;
 	    ref1 = this.props, isWaiting = ref1.isWaiting, isDone = ref1.isDone, isFailed = ref1.isFailed;
-	    ref2 = this.props, children = ref2.children, waitingText = ref2.waitingText, failedState = ref2.failedState, failedProps = ref2.failedProps, doneText = ref2.doneText;
+	    ref2 = this.props, children = ref2.children, waitingText = ref2.waitingText, failedProps = ref2.failedProps, doneText = ref2.doneText;
 	    isTimedout = this.state.isTimedout;
+	    FailedState = this.props.failedState;
 	    buttonTypeClass = 'async-button';
 	    if (isFailed || isTimedout) {
 	      stateClass = 'is-failed';
-	      return React.createElement("failedState", React.__spread({}, failedProps));
+	      return React.createElement(FailedState, React.__spread({}, failedProps));
 	    } else if (isWaiting) {
 	      stateClass = 'is-waiting';
 	      text = waitingText;
@@ -3226,6 +3224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = React.createClass({
 	  displayName: 'PinnedHeaderFooterCard',
 	  propTypes: {
+	    cardType: React.PropTypes.string.isRequired,
 	    buffer: React.PropTypes.number,
 	    scrollSpeedBuffer: React.PropTypes.number,
 	    forceShy: React.PropTypes.bool,
@@ -15060,7 +15059,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _.each(this.courses, function(course) {
 	      return course.channel.removeAllListeners();
 	    });
-	    return delete this.courses;
+	    return this.courses = [];
 	  }
 	};
 
@@ -16345,9 +16344,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var ConfirmJoin, Course, ENTER, InviteCodeInput, Navigation, NewCourseRegistration, React, User;
+	var ConfirmJoin, Course, ENTER, InviteCodeInput, Navigation, NewCourseRegistration, React, User, _;
 
 	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
 
 	Course = __webpack_require__(76);
 
@@ -16446,7 +16447,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = NewCourseRegistration;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
 /* 94 */
@@ -16756,9 +16756,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var ConfirmJoin, Course, InviteCodeInput, ModifyCourseRegistration, Navigation, React, User;
+	var ConfirmJoin, Course, InviteCodeInput, ModifyCourseRegistration, Navigation, React, User, _;
 
 	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
 
 	InviteCodeInput = __webpack_require__(94);
 
@@ -16836,7 +16838,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = ModifyCourseRegistration;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
 /* 100 */
@@ -17092,9 +17093,11 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var LoginGateway, React, SECOND, User, api;
+	var LoginGateway, React, SECOND, User, _, api;
 
 	React = __webpack_require__(2);
+
+	_ = __webpack_require__(3);
 
 	User = __webpack_require__(75);
 
@@ -17185,7 +17188,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	module.exports = LoginGateway;
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
 /* 103 */
