@@ -72,9 +72,33 @@ areOptionsGood = (options) ->
   false
 
 
+# default actions
+defaultInit = ->
+  @apiChannel.on("#{@apiNameSpace}.*.receive.*", @update.bind(@))
+  @apiChannel.on("#{@apiNameSpace}.*.receive.failure", _.partial(checkFailure, _, @_errors))
+
+defaultAction = (topic, eventData, action) ->
+  @emit("#{action}.#{topic}", eventData)
+  @apiChannel.emit("#{@apiNameSpace}.#{topic}.send.#{action}", eventData)
+
+defaultLoad = (topic, data) ->
+  data
+
+defaultGet = defaultLoad
+
+defaultUpdate = (query, data) ->
+  @load(query, data)
+
+# sender
+sender = (topic, eventData, action) ->
+  eventData.status ?= "#{action}ing"
+  eventData.query ?= topic
+
+  @["_#{action}"]?(topic, eventData) or defaultAction.call(@, topic, eventData, action)
+
 # linker
 class ApiLink extends EventEmitter2
-  constructor: (linkOptions = {}) ->
+  constructor: (linkOptions = {}, defaultActions = []) ->
     options =
       errors:
         silencers: []
@@ -96,9 +120,16 @@ class ApiLink extends EventEmitter2
 
     protect = _.union ['apiNameSpace', 'errors', 'apiChannel'], _.keys(EventEmitter2.prototype)
 
+    _.each(defaultActions, (actionName) ->
+      options["_#{actionName}"] = options[actionName] if _.isFunction(options[actionName])
+      options[actionName] = _.partial(sender, _, _, actionName)
+    )
+
     _.chain(options)
       .omit(protect)
       .each(@extend)
+
+    @
 
   extend: (hook, key) =>
     # or maybe assign if isnt value
@@ -110,38 +141,28 @@ class ApiLink extends EventEmitter2
       @[key] = hook.bind(@)
 
   init: ->
-    @apiChannel.on("#{@apiNameSpace}.*.receive.*", (data) ->
-      console.info(data)
-    )
-    @_init?() or
-      ((@apiChannel.on("#{@apiNameSpace}.*.receive.*", @update.bind(@)) or true) and
-      (@apiChannel.on("#{@apiNameSpace}.*.receive.failure", _.partial(checkFailure, _, @_errors)) or true))
+    @_init?() or defaultInit.call(@)
 
   load: (topic, data) ->
-    data = @_load?(topic, data) or data
+    data = @_load?(topic, data) or defaultLoad.call(@, topic, data)
     @_items[topic] = data
+
     status = if data.errors? then 'failed' else 'loaded'
-    console.info('emitting the load')
     @emit("load.#{topic}", {data, status})
 
   get: (topic) ->
     # only allow access to immutable copy
     data = cloneDeep(@_items[topic])
-    data = @_get?(topic, data) or data
+    data = @_get?(topic, data) or defaultGet.call(@, topic, data)
 
   fetch: (topic) ->
     eventData = {data: {id: topic}, status: 'loading'}
-    eventData.query = topic
-
-    @_fetch?(topic, eventData) or
-      ((@emit("fetch.#{topic}", eventData) or true) and
-      (@apiChannel.emit("#{@apiNameSpace}.#{topic}.send.fetch", eventData) or true))
+    sender.call(@, topic, eventData, 'fetch')
 
   update: (eventData) ->
-    console.info('should be updating')
     return unless eventData?
     {data, query} = eventData
-    @_update?(query, data) or @load(query, data)
+    @_update?(query, data) or defaultUpdate.call(@, query, data)
 
   reset: ->
     @_items = {}

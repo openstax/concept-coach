@@ -23,4 +23,4 @@ exercise =
     user.channel.on 'change', @reset.bind(@)
     false
 
-module.exports = new ApiLink(exercise)
+module.exports = new ApiLink(exercise, ['save', 'complete'])

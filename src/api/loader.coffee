@@ -35,12 +35,15 @@ getAjaxSettingsByEnv = (isLocal, baseUrl, setting, eventData) ->
   apiSetting
 
 getResponseDataByEnv = (isLocal, requestEvent, data) ->
+  {query} = requestEvent
+  query ?= data.id
+
   if isLocal
-    datasToMerge = [{}, {data, query: requestEvent.query}]
+    datasToMerge = [{}, {data, query}]
     if requestEvent.change?
       datasToMerge.push(data: requestEvent.change)
   else
-    datasToMerge = [{}, requestEvent, {data}]
+    datasToMerge = [{}, requestEvent, {data, query}]
   deepMerge.apply {}, datasToMerge
 
 

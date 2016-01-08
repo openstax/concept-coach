@@ -21,7 +21,7 @@ Reactive = React.createClass
 
   getDefaultProps: ->
     apiChannelPattern: '{apiChannelName}.{topic}.send.*'
-    channelUpdatePattern: 'load.*'
+    channelUpdatePattern: 'load.{topic}'
 
   getInitialState: ->
     {channelUpdatePattern, apiChannelPattern} = @props
@@ -42,7 +42,7 @@ Reactive = React.createClass
 
   getState: (eventData = {}, props) ->
     props ?= @props
-    {topic, store} = props
+    {topic, store, channelUpdatePattern, apiChannelPattern} = props
     {status} = eventData
     status ?= 'loaded'
 
@@ -51,6 +51,8 @@ Reactive = React.createClass
     item: store.get?(topic)
     status: status
     errors: errors
+    storeChannelUpdate: interpolate(channelUpdatePattern, props)
+    apiChannelSend: interpolate(apiChannelPattern, props)
 
   isForThisComponent: (eventData, props) ->
     props ?= @props
@@ -71,20 +73,32 @@ Reactive = React.createClass
     {status} = eventData
     @setState({status})
 
-  componentWillMount: ->
-    {store} = @props
-    {storeChannelUpdate, apiChannelSend} = @state
+  startListening: (props, state) ->
+    props ?= @props
+    state ?= @state
 
-    @fetchModel()
+    {store} = props
+    {storeChannelUpdate, apiChannelSend} = state
+
     store.on?(storeChannelUpdate, @update) or store.channel.on(storeChannelUpdate, @update)
     api.channel.on(apiChannelSend, @setStatus)
 
-  componentWillUnmount: ->
-    {topic, store} = @props
-    {storeChannelUpdate, apiChannelSend} = @state
+  stopListening: (props, state) ->
+    props ?= @props
+    state ?= @state
+
+    {store} = props
+    {storeChannelUpdate, apiChannelSend} = state
 
     store.off?(storeChannelUpdate, @update) or store.channel.off(storeChannelUpdate, @update)
     api.channel.off(apiChannelSend, @setStatus)
+
+  componentWillMount: ->
+    @startListening()
+    @fetchModel()
+
+  componentWillUnmount: ->
+    @stopListening()
 
   componentWillReceiveProps: (nextProps) ->
     if nextProps.topic isnt @props.topic
@@ -95,6 +109,10 @@ Reactive = React.createClass
 
       @update(stubDataForImmediateUpdate, nextProps)
       @fetchModel(nextProps)
+
+  componentDidUpdate: (prevProps, prevState) ->
+    @stopListening(prevProps, prevState)
+    @startListening()
 
   render: ->
     {status, item} = @state

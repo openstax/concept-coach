@@ -10,7 +10,7 @@ apiChannelName = 'task'
 
 {ExerciseStep, exercises} = require '../exercise'
 breadcrumbs = {Breadcrumbs} = require '../breadcrumbs'
-console.info(exercises)
+
 {TaskReview} = require './review'
 {TaskTitle} = require './title'
 {NoExercises} = require './no-exercises'

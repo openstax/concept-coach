@@ -42,22 +42,19 @@ ExerciseBase = React.createClass
         step.answer_id = answerId
         eventData = change: step, data: step, status: 'saving'
 
-        exercises.emit("change.#{step.id}", eventData)
-        api.channel.emit("exercise.#{step.id}.send.save", eventData)
+        exercises.save(step.id, eventData)
 
       setFreeResponseAnswer: (id, freeResponse) ->
         step.free_response = freeResponse
         eventData = change: step, data: step, status: 'saving'
 
-        exercises.emit("change.#{step.id}", eventData)
-        api.channel.emit("exercise.#{step.id}.send.save", eventData)
+        exercises.save(step.id, eventData)
 
       onContinue: ->
         step.is_completed = true
         eventData = change: step, data: step, status: 'loading'
 
-        exercises.emit("change.#{step.id}", eventData)
-        api.channel.emit("exercise.#{step.id}.send.complete", eventData)
+        exercises.complete(step.id, eventData)
 
       onStepCompleted: ->
         exercises.emit("completed.#{step.id}")

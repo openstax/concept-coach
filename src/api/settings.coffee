@@ -1,3 +1,16 @@
+
+getDefaultSettings = (apiNameSpace, {action, method, url}) ->
+  setting = {}
+  triggerEvent = "#{apiNameSpace}.*.send.#{action}"
+
+  setting[triggerEvent] =
+    url: url
+    method: method
+    completedEvent: "#{apiNameSpace}.*.receive.#{action}"
+    succeededEvent: "#{apiNameSpace}.*.receive.#{action}.success"
+    failedEvent: "#{apiNameSpace}.*.receive.#{action}.failure"
+
+
 settings =
 
   endpoints:
