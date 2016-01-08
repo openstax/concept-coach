@@ -74,12 +74,12 @@ areOptionsGood = (options) ->
 
 # default actions
 defaultInit = ->
-  @apiChannel.on("#{@apiNameSpace}.*.receive.*", @update.bind(@))
-  @apiChannel.on("#{@apiNameSpace}.*.receive.failure", _.partial(checkFailure, _, @_errors))
+  @apiChannel.on("#{@apiNameSpace}.*.*.*", @update.bind(@))
+  @apiChannel.on("#{@apiNameSpace}.*.*.failure", _.partial(checkFailure, _, @_errors))
 
 defaultAction = (topic, eventData, action) ->
   @emit("#{action}.#{topic}", eventData)
-  @apiChannel.emit("#{@apiNameSpace}.#{topic}.send.#{action}", eventData)
+  @apiChannel.emit("#{@apiNameSpace}.#{topic}.#{action}", eventData)
 
 defaultLoad = (topic, data) ->
   data

@@ -45,14 +45,14 @@ fetch = (taskId) ->
   eventData.query = taskId
 
   channel.emit("fetch.#{taskId}", eventData)
-  api.channel.emit("task.#{taskId}.send.fetch", eventData)
+  api.channel.emit("task.#{taskId}.fetch", eventData)
 
 fetchByModule = ({collectionUUID, moduleUUID}) ->
   eventData = {data: {collectionUUID, moduleUUID}, status: 'loading'}
   eventData.query = "#{collectionUUID}/#{moduleUUID}"
 
   channel.emit("fetch.#{collectionUUID}/#{moduleUUID}", eventData)
-  api.channel.emit("task.#{collectionUUID}/#{moduleUUID}.send.fetchByModule", eventData)
+  api.channel.emit("task.#{collectionUUID}/#{moduleUUID}.fetchByModule", eventData)
 
 get = (taskId) ->
   tasks[taskId]
@@ -87,8 +87,8 @@ getModuleInfo = (taskId, cnxUrl = '') ->
   moduleInfo
 
 init = ->
-  api.channel.on("task.*.receive.*", update)
-  api.channel.on('task.*.receive.failure', checkFailure)
+  api.channel.on("task.*.*.*", update)
+  api.channel.on('task.*.*.failure', checkFailure)
 
 module.exports = {
   init,

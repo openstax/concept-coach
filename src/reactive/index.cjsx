@@ -20,7 +20,7 @@ Reactive = React.createClass
     getStatusMessage: React.PropTypes.func
 
   getDefaultProps: ->
-    apiChannelPattern: '{apiChannelName}.{topic}.send.*'
+    apiChannelPattern: '{apiChannelName}.{topic}.*'
     channelUpdatePattern: 'load.{topic}'
 
   getInitialState: ->

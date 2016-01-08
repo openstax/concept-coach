@@ -56,7 +56,7 @@ User =
     )
 
   ensureStatusLoaded: (force = false) ->
-    api.channel.emit('user.status.send.fetch') if force or not @isLoggedIn()
+    api.channel.emit('user.status.fetch') if force or not @isLoggedIn()
 
   isLoggedIn: ->
     !!@profile_url
@@ -76,7 +76,7 @@ User =
     @channel.emit('logout.received')
 
   init: ->
-    api.channel.on 'user.status.receive.*', ({data}) ->
+    api.channel.on 'user.status.*.*', ({data}) ->
       User.isLoaded = true
 
       if data.access_token

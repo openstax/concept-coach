@@ -63,7 +63,7 @@ handleAPIEvent = (apiEventChannel, baseUrl, setting, requestEvent = {}) ->
       .done((responseData) ->
         delete LOADING[apiSetting.url]
         try
-          completedEvent = interpolate(setting.completedEvent, requestEvent.data)
+          completedEvent = interpolate("#{setting.eventName}.success", requestEvent.data)
           completedData = getResponseDataByEnv(isLocal, requestEvent, responseData)
           apiEventChannel.emit(completedEvent, completedData)
         catch error
@@ -74,14 +74,11 @@ handleAPIEvent = (apiEventChannel, baseUrl, setting, requestEvent = {}) ->
         {responseJSON} = response
 
         failedData = getResponseDataByEnv(isLocal, requestEvent, responseJSON)
-        if _.isString(setting.failedEvent)
-          failedEvent = interpolate(setting.failedEvent, requestEvent.data)
-          apiEventChannel.emit(failedEvent, failedData)
+        failedEvent = interpolate("#{setting.eventName}.failure", requestEvent.data)
+        apiEventChannel.emit(failedEvent, failedData)
 
         defaultFail(response)
         apiEventChannel.emit('error', {response, apiSetting, failedData})
-      ).always((response) ->
-        apiEventChannel.emit('completed')
       )
   , delay
 
@@ -93,6 +90,7 @@ loader = (apiEventChannel, settings) ->
     API_ACCESS_TOKEN = token
 
   _.each settings.endpoints, (setting, eventName) ->
+    setting.eventName = eventName
     apiEventChannel.on eventName, _.partial(handleAPIEvent, apiEventChannel, setting.baseUrl or settings.baseUrl, setting)
 
 
