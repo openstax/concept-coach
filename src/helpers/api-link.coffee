@@ -10,9 +10,6 @@ ACTIONS = [
   'get'
   'fetch'
   'update'
-  'checkFailure'
-  'handledAllErrors'
-  'getUnhandledErrors'
 ]
 
 OPTION_TYPES =
