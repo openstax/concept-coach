@@ -10,6 +10,8 @@ ACTIONS = [
   'get'
   'fetch'
   'update'
+  'destroy'
+  'reset'
 ]
 
 OPTION_TYPES =
@@ -85,6 +87,13 @@ defaultGet = defaultLoad
 
 defaultUpdate = (query, data) ->
   @load(query, data)
+
+defaultDestroy = ->
+  @removeAllListeners()
+  @reset()
+
+defaultReset = ->
+  @_items = {}
 
 # sender
 sender = (topic, eventData, action) ->
@@ -162,10 +171,9 @@ class ApiLink extends EventEmitter2
     @_update?(query, data) or defaultUpdate.call(@, query, data)
 
   reset: ->
-    @_items = {}
+    @_reset?() or defaultReset.call(@)
 
   destroy: ->
-    @removeAllListeners()
-    @reset()
+    @_destroy?() defaultDestroy.call(@)
 
 module.exports = {ApiLink}
