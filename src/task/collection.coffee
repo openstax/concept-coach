@@ -9,21 +9,21 @@ user = require '../user/model'
 
 ERRORS_TO_SILENCE = ['page_has_no_exercises']
 
-task =
+TASK_OPTIONS =
   apiNameSpace: 'task'
   apiChannel: api.channel
   errors:
     silencers: ERRORS_TO_SILENCE
 
+class TaskApi extends ApiLink
   load: (taskId, data) ->
     _.each data.steps, (step) ->
       exercises.quickLoad(step.id, step)
-    # return false so that default load runs
-    false
+    super(taskId, data)
+
   init: ->
     user.channel.on 'change', @reset.bind(@)
-    # return false so that default init runs
-    false
+    super()
 
   fetchByModule: ({collectionUUID, moduleUUID}) ->
     eventData = {data: {collectionUUID, moduleUUID}, status: 'loading'}
@@ -61,4 +61,4 @@ task =
 
     moduleInfo
 
-module.exports = new ApiLink(task)
+module.exports = new TaskApi(TASK_OPTIONS)

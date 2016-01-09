@@ -36,7 +36,7 @@ ExerciseBase = React.createClass
     exerciseProps =
       taskId: step.task_id
       step: step
-      getCurrentPanel: getCurrentPanel
+      getCurrentPanel: exercises.getCurrentPanel.bind(exercises)
 
       setAnswerId: (id, answerId) ->
         step.answer_id = answerId

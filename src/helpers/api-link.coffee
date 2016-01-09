@@ -4,25 +4,12 @@ _ = require 'underscore'
 assign = require 'lodash/object/assign'
 cloneDeep = require 'lodash/lang/cloneDeep'
 
-ACTIONS = [
-  'init'
-  'load'
-  'get'
-  'fetch'
-  'update'
-  'destroy'
-  'reset'
-]
-
 OPTION_TYPES =
   apiChannel: (option) ->
     option instanceof EventEmitter2
   apiNameSpace: _.isString
 
 # private utils
-isHook = (option, key) ->
-  key in ACTIONS
-
 isErrorSilent = (error, silencers = []) ->
   _.indexOf(silencers, error.code) > -1
 
@@ -72,35 +59,16 @@ areOptionsGood = (options) ->
 
 
 # default actions
-defaultInit = ->
-  @apiChannel.on("#{@apiNameSpace}.*.*.*", @update.bind(@))
-  @apiChannel.on("#{@apiNameSpace}.*.*.failure", _.partial(checkFailure, _, @_errors))
-
 defaultAction = (topic, eventData, action) ->
   @emit("#{action}.#{topic}", eventData)
   @apiChannel.emit("#{@apiNameSpace}.#{topic}.#{action}", eventData)
-
-defaultLoad = (topic, data) ->
-  data
-
-defaultGet = defaultLoad
-
-defaultUpdate = (query, data) ->
-  @load(query, data)
-
-defaultDestroy = ->
-  @removeAllListeners()
-  @reset()
-
-defaultReset = ->
-  @_items = {}
 
 # sender
 sender = (topic, eventData, action) ->
   eventData.status ?= "#{action}ing"
   eventData.query ?= topic
 
-  @["_#{action}"]?(topic, eventData) or defaultAction.call(@, topic, eventData, action)
+  defaultAction.call(@, topic, eventData, action)
 
 # linker
 class ApiLink extends EventEmitter2
@@ -127,7 +95,6 @@ class ApiLink extends EventEmitter2
     protect = _.union ['apiNameSpace', 'errors', 'apiChannel'], _.keys(EventEmitter2.prototype)
 
     _.each(defaultActions, (actionName) ->
-      options["_#{actionName}"] = options[actionName] if _.isFunction(options[actionName])
       options[actionName] = _.partial(sender, _, _, actionName)
     )
 
@@ -141,16 +108,13 @@ class ApiLink extends EventEmitter2
     # or maybe assign if isnt value
     return unless _.isFunction(hook)
 
-    if isHook(hook, key)
-      @["_#{key}"] = hook.bind(@)
-    else
-      @[key] = hook.bind(@)
+    @[key] = hook.bind(@)
 
   init: ->
-    @_init?() or defaultInit.call(@)
+    @apiChannel.on("#{@apiNameSpace}.*.*.*", @update.bind(@))
+    @apiChannel.on("#{@apiNameSpace}.*.*.failure", _.partial(checkFailure, _, @_errors))
 
   load: (topic, data) ->
-    data = @_load?(topic, data) or defaultLoad.call(@, topic, data)
     @_items[topic] = data
 
     status = if data.errors? then 'failed' else 'loaded'
@@ -158,8 +122,7 @@ class ApiLink extends EventEmitter2
 
   get: (topic) ->
     # only allow access to immutable copy
-    data = cloneDeep(@_items[topic])
-    data = @_get?(topic, data) or defaultGet.call(@, topic, data)
+    cloneDeep(@_items[topic])
 
   fetch: (topic) ->
     eventData = {data: {id: topic}, status: 'loading'}
@@ -168,12 +131,13 @@ class ApiLink extends EventEmitter2
   update: (eventData) ->
     return unless eventData?
     {data, query} = eventData
-    @_update?(query, data) or defaultUpdate.call(@, query, data)
+    @load(query, data)
 
   reset: ->
-    @_reset?() or defaultReset.call(@)
+    @_items = {}
 
   destroy: ->
-    @_destroy?() defaultDestroy.call(@)
+    @removeAllListeners()
+    @reset()
 
 module.exports = {ApiLink}

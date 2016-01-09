@@ -38,7 +38,7 @@ Reactive = React.createClass
     props ?= @props
     {topic, store, fetcher} = props
 
-    if _.isFunction(fetcher) then fetcher(props) else store.fetch(topic)
+    if _.isFunction(fetcher) then fetcher.call(store, props) else store.fetch(topic)
 
   getState: (eventData = {}, props) ->
     props ?= @props

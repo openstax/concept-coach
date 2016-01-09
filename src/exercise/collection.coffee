@@ -3,13 +3,14 @@ api = require '../api'
 
 user = require '../user/model'
 
-exercise =
+EXERCISE_OPTIONS =
   apiNameSpace: 'exercise'
   apiChannel: api.channel
+
+class ExerciseApi extends ApiLink
   init: ->
     user.channel.on 'change', @reset.bind(@)
-    # return false so that default load runs
-    false
+    super()
 
   quickLoad: (topic, data) ->
     @_items[topic] = data
@@ -24,4 +25,4 @@ exercise =
       panel = 'multiple-choice'
     panel
 
-module.exports = new ApiLink(exercise, ['save', 'complete'])
+module.exports = new ExerciseApi(EXERCISE_OPTIONS, ['save', 'complete'])
