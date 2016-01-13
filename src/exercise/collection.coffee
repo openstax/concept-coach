@@ -25,7 +25,7 @@ class ExerciseApi extends ApiLink
   getCurrentPanel: (topic) ->
     panel = 'review'
 
-    step = steps[stepId]
+    step = @get(topic)
     question = step?.content?.questions?[0]
     return panel unless question?
 
