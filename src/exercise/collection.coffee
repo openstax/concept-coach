@@ -1,7 +1,13 @@
 api = require '../api'
 {ApiLink} = require '../helpers/api-link'
 
+_ = require 'underscore'
+
 user = require '../user/model'
+
+STEP_TYPES =
+  'free-response': ['free_response']
+  'multiple-choice': ['answer_id', 'is_completed']
 
 EXERCISE_OPTIONS =
   apiNameSpace: 'exercise'
@@ -17,12 +23,25 @@ class ExerciseApi extends ApiLink
     @emit("quickLoad.#{topic}", {data})
 
   getCurrentPanel: (topic) ->
-    step = @get(topic)
-    panel = 'free-response'
-    if step?.correct_answer_id?
-      panel = 'review'
-    else if step?.free_response?
-      panel = 'multiple-choice'
+    panel = 'review'
+
+    step = steps[stepId]
+    question = step?.content?.questions?[0]
+    return panel unless question?
+
+    {formats} = question
+
+    _.find(STEP_TYPES, (stepChecks, format) ->
+      return false unless format in formats
+      isStepCompleted = _.reduce(stepChecks, (isOtherCompleted, currentCheck) ->
+        step[currentCheck]? and step[currentCheck] and isOtherCompleted
+      , true)
+
+      unless isStepCompleted
+        panel = format
+        true
+    )
+
     panel
 
 module.exports = new ExerciseApi(EXERCISE_OPTIONS, ['save', 'complete'])
