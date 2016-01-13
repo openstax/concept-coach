@@ -61,4 +61,17 @@ class TaskApi extends ApiLink
 
     moduleInfo
 
+  getAsPage: (taskId) ->
+    task = @get(taskId)
+    return unless task?
+
+    {moduleUUID, steps} = task
+
+    page = _.pick task, 'last_worked_at', 'id'
+    _.extend page, _.first(_.first(steps).related_content)
+    page.exercises = steps
+    page.uuid = moduleUUID
+
+    page
+
 module.exports = new TaskApi(TASK_OPTIONS)
