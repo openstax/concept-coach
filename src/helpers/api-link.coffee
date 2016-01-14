@@ -6,8 +6,9 @@ cloneDeep = require 'lodash/lang/cloneDeep'
 
 UPDATE_DEFAULTS =
   collection:
-    _initData: ->
-      @_items = {}
+    _initData: (data) ->
+      @_initialData = data if data?
+      @_items = @_initialData or {}
     _getData: (topic) ->
       @_items[topic]
     _setData: (topic, data) ->
@@ -17,8 +18,9 @@ UPDATE_DEFAULTS =
 
   model:
     _initData: (data) ->
+      @_initialData = data if data?
       @_dataKeys = []
-      UPDATE_DEFAULTS.model._setData.call(@, data)
+      UPDATE_DEFAULTS.model._setData.call(@, @_initialData)
 
     _getData: ->
       _.pick(@, @_dataKeys)
@@ -38,8 +40,8 @@ UPDATE_DEFAULTS =
       _.each(@_dataKeys, (key) =>
         delete @[key]
       )
+      UPDATE_DEFAULTS.model._initData.call(@)
 
-      @_dataKeys = []
 
 OPTION_TYPES =
   apiChannel: (option) ->
@@ -123,7 +125,7 @@ sender = (topic, eventData, action) ->
 
 # linker
 class ApiLink extends EventEmitter2
-  constructor: (linkOptions = {}, additionalActions = [], type = 'collection') ->
+  constructor: (linkOptions = {}, additionalActions = [], type = 'collection', initialData) ->
     options =
       errors:
         silencers: []
@@ -143,7 +145,7 @@ class ApiLink extends EventEmitter2
     @_errors = errors
     @_type = type
 
-    UPDATE_DEFAULTS[@_type]._initData.call(@)
+    UPDATE_DEFAULTS[@_type]._initData.call(@, initialData)
 
     @_protectedKeys = _.union ['apiNameSpace', 'errors', 'apiChannel'], _.keys(EventEmitter2.prototype)
 

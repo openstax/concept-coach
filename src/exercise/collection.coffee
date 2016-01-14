@@ -15,7 +15,7 @@ EXERCISE_OPTIONS =
 
 class ExerciseApi extends ApiLink
   init: ->
-    user.channel.on 'change', @reset.bind(@)
+    user.on 'change', @reset.bind(@)
     super()
 
   quickLoad: (topic, data) ->

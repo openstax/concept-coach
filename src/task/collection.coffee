@@ -22,7 +22,7 @@ class TaskApi extends ApiLink
     super(taskId, data)
 
   init: ->
-    user.channel.on 'change', @reset.bind(@)
+    user.on 'change', @reset.bind(@)
     super()
 
   fetchByModule: ({collectionUUID, moduleUUID}) ->

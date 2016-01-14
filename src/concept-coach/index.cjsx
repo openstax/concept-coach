@@ -127,7 +127,7 @@ class ConceptCoachAPI extends EventEmitter2
 
   open: (props) ->
     # wait until our logout request has been received and the close
-    User.channel.once 'logout.received', =>
+    User.once 'logout.received', =>
       @close()
 
     openProps = _.extend({}, props, open: true)

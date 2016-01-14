@@ -1,8 +1,7 @@
 _ = require 'underscore'
-React = require 'react'
-EventEmitter2 = require 'eventemitter2'
 Course = require '../course/model'
 api = require '../api'
+{ApiLink} = require '../helpers/api-link'
 
 BLANK_USER =
   is_admin: false
@@ -11,22 +10,17 @@ BLANK_USER =
   name: null
   profile_url: null
   courses: []
-
-User =
   isLoaded: false
-  channel: new EventEmitter2 wildcard: true
 
-  update: (data) ->
-    _.extend(this, data.user)
-    @_course_data = data.courses
-    pending = @validatedPendingCourses()
-    @courses = _.compact _.map data.courses, (course) ->
-      if course.is_concept_coach and _.detect(course.roles, (role) -> role.type is 'student')
-        new Course(course)
-    _.each pending, (course) =>
-      @courses.push(course)
-      course.register(course.enrollment_code, @)
-    @channel.emit('change')
+class UserApi extends ApiLink
+  isLoggedIn: ->
+    !!@profile_url
+
+  getCourse: (collectionUUID) ->
+    _.findWhere( @courses, ecosystem_book_uuid: collectionUUID )
+
+  registeredCourses: ->
+    _.filter @courses, (course) -> course.isRegistered()
 
   validatedPendingCourses: ->
     _.filter @courses, (course) -> course.isValidated()
@@ -42,11 +36,17 @@ User =
     isRegistered: !!course?.isRegistered()
     preValidate: (not @isLoggedIn()) and (not course?.isValidated())
 
-  getCourse: (collectionUUID) ->
-    _.findWhere( @courses, ecosystem_book_uuid: collectionUUID )
-
-  registeredCourses: ->
-    _.filter @courses, (course) -> course.isRegistered()
+  update: (data) ->
+    _.extend(this, data.user)
+    @_course_data = data.courses
+    pending = @validatedPendingCourses()
+    @courses = _.compact _.map data.courses, (course) ->
+      if course.is_concept_coach and _.detect(course.roles, (role) -> role.type is 'student')
+        new Course(course)
+    _.each pending, (course) =>
+      @courses.push(course)
+      course.register(course.enrollment_code, @)
+    @emit('change')
 
   findOrCreateCourse: (collectionUUID) ->
     @getCourse(collectionUUID) or (
@@ -56,49 +56,38 @@ User =
     )
 
   ensureStatusLoaded: (force = false) ->
-    api.channel.emit('user.status.fetch') if force or not @isLoggedIn()
-
-  isLoggedIn: ->
-    !!@profile_url
+    @apiChannel.emit('user.status.fetch') if force or not @isLoggedIn()
 
   onCourseUpdate: (course) ->
-    @channel.emit('change')
+    @emit('change')
     @ensureStatusLoaded(true) # re-fetch course list from server
 
   removeCourse: (course) ->
     index = @courses.indexOf(course)
     @courses.splice(index, 1) unless index is -1
-    @channel.emit('change')
+    @emit('change')
 
   _signalLogoutCompleted: ->
     _.extend(this, BLANK_USER)
     @isLoggingOut = true
-    @channel.emit('logout.received')
+    @emit('logout.received')
 
   init: ->
-    api.channel.on 'user.status.*.*', ({data}) ->
-      User.isLoaded = true
+    @apiChannel.on 'user.status.*.*', ({data}) =>
+      @isLoaded = true
 
       if data.access_token
-        api.channel.emit('set.access_token', data.access_token)
-      User.endpoints = data.endpoints
+        @apiChannel.emit('set.access_token', data.access_token)
+      @endpoints = data.endpoints
       if data.user
-        User.update(data)
+        @update(data)
       else
         _.extend(this, BLANK_USER)
-        User.channel.emit('change')
+        @emit('change')
 
   destroy: ->
-    User.channel.removeAllListeners()
-
     _.each @courses, (course) ->
       course.channel.removeAllListeners()
+    super()
 
-    @courses = []
-
-
-# start out as a blank user
-_.extend(User, BLANK_USER)
-
-
-module.exports = User
+module.exports = new UserApi({apiNameSpace: 'user', apiChannel: api.channel}, [], 'model', BLANK_USER)

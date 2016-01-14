@@ -3,9 +3,9 @@ User = require './model'
 UserStatusMixin = {
 
   componentDidMount: ->
-    User.channel.on("change", @onUserChange)
+    User.on("change", @onUserChange)
   componentWillUnmount: ->
-    User.channel.off("change", @onUserChange)
+    User.off("change", @onUserChange)
   onUserChange: ->
     @forceUpdate() if @isMounted()
   getUser: ->
