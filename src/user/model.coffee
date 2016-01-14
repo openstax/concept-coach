@@ -10,7 +10,13 @@ BLANK_USER =
   name: null
   profile_url: null
   courses: []
+  _course_data: []
+  endpoints: {}
   isLoaded: false
+  isLoggingOut: false
+
+isCourseRole = (course, type) ->
+  _.detect(course.roles, (role) -> role.type is type)
 
 class UserApi extends ApiLink
   isLoggedIn: ->
@@ -27,7 +33,7 @@ class UserApi extends ApiLink
 
   isTeacherForCourse: (collectionUUID) ->
     course = _.findWhere @_course_data, ecosystem_book_uuid: collectionUUID
-    course and _.detect(course.roles, (role) -> role.type is 'teacher')
+    course and isCourseRole(course, 'teacher')
 
   status: (collectionUUID) ->
     course = @getCourse(collectionUUID)
@@ -36,18 +42,6 @@ class UserApi extends ApiLink
     isRegistered: !!course?.isRegistered()
     preValidate: (not @isLoggedIn()) and (not course?.isValidated())
 
-  update: (data) ->
-    _.extend(this, data.user)
-    @_course_data = data.courses
-    pending = @validatedPendingCourses()
-    @courses = _.compact _.map data.courses, (course) ->
-      if course.is_concept_coach and _.detect(course.roles, (role) -> role.type is 'student')
-        new Course(course)
-    _.each pending, (course) =>
-      @courses.push(course)
-      course.register(course.enrollment_code, @)
-    @emit('change')
-
   findOrCreateCourse: (collectionUUID) ->
     @getCourse(collectionUUID) or (
       course = new Course(ecosystem_book_uuid: collectionUUID)
@@ -55,35 +49,53 @@ class UserApi extends ApiLink
       course
     )
 
-  ensureStatusLoaded: (force = false) ->
-    @apiChannel.emit('user.status.fetch') if force or not @isLoggedIn()
-
+  # TODO see if we can remove and just use user.fetch()
   onCourseUpdate: (course) ->
-    @emit('change')
     @ensureStatusLoaded(true) # re-fetch course list from server
 
-  removeCourse: (course) ->
-    index = @courses.indexOf(course)
-    @courses.splice(index, 1) unless index is -1
-    @emit('change')
-
   _signalLogoutCompleted: ->
-    _.extend(this, BLANK_USER)
+    @reset()
     @isLoggingOut = true
     @emit('logout.received')
 
-  init: ->
-    @apiChannel.on 'user.status.*.*', ({data}) =>
-      @isLoaded = true
+  ensureStatusLoaded: (force = false) ->
+    @fetch() if force or not @isLoggedIn()
 
-      if data.access_token
-        @apiChannel.emit('set.access_token', data.access_token)
-      @endpoints = data.endpoints
-      if data.user
-        @update(data)
-      else
-        _.extend(this, BLANK_USER)
-        @emit('change')
+  loadUser: (user) ->
+    _.extend(@, user)
+
+  loadCourses: (courses) ->
+    @_course_data = courses
+
+    pending = @validatedPendingCourses()
+    @courses = _.chain(courses)
+      .map (course) ->
+        new Course(course) if course.is_concept_coach and isCourseRole(course, 'student')
+      .compact()
+      .value()
+
+    _.each pending, (course) =>
+      @courses.push(course)
+      course.register(course.enrollment_code, @)
+
+  load: (topic, data) ->
+    @isLoaded = true
+    @endpoints = data.endpoints
+
+    if data.access_token
+      @apiChannel.emit('set.access_token', data.access_token)
+
+    if data.user
+      @loadUser(data.user)
+      @loadCourses(data.courses)
+    else
+      @reset()
+
+    status = if data.errors? then 'failed' else 'loaded'
+    @emit('change', {data, status})
+
+  fetch: ->
+    super('status', {})
 
   destroy: ->
     _.each @courses, (course) ->

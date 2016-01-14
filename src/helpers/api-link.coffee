@@ -197,8 +197,9 @@ class ApiLink extends EventEmitter2
     cloneDeep(UPDATE_DEFAULTS[@_type]._getData.call(@, topic))
 
   # Sends out the call to the api for fetching data.
-  fetch: (topic) ->
-    eventData = {data: {id: topic}, status: 'loading'}
+  fetch: (topic, payload) ->
+    payload ?= {id: topic}
+    eventData = {data: payload, status: 'loading'}
     sender.call(@, topic, eventData, 'fetch')
 
   reset: ->
