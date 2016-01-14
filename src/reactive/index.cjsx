@@ -81,7 +81,7 @@ Reactive = React.createClass
     {store} = props
     {storeChannelUpdate, apiChannelSend} = state
 
-    store.on?(storeChannelUpdate, @update) or store.channel.on(storeChannelUpdate, @update)
+    store.on(storeChannelUpdate, @update)
     api.channel.on(apiChannelSend, @setStatus)
 
   stopListening: (props, state) ->
@@ -91,7 +91,7 @@ Reactive = React.createClass
     {store} = props
     {storeChannelUpdate, apiChannelSend} = state
 
-    store.off?(storeChannelUpdate, @update) or store.channel.off(storeChannelUpdate, @update)
+    store.off(storeChannelUpdate, @update)
     api.channel.off(apiChannelSend, @setStatus)
 
   componentWillMount: ->
