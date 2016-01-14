@@ -57,6 +57,9 @@ class UserApi extends ApiLink
   ensureStatusLoaded: ->
     @fetch() unless @isLoggedIn()
 
+  get: ->
+    @
+
   loadUser: (user) ->
     _.extend(@, user)
 

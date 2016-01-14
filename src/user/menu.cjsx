@@ -1,16 +1,10 @@
 React = require 'react'
 BS = require 'react-bootstrap'
 EventEmitter2 = require 'eventemitter2'
-{CloseButton} = require 'openstax-react-components'
 
 Status = require './status-mixin'
-
 Course = require '../course/model'
-
 api = require '../api'
-
-getWaitingText = (status) ->
-  "#{status}…"
 
 UserMenu = React.createClass
   mixins: [Status]
@@ -32,9 +26,6 @@ UserMenu = React.createClass
   showProfile: (clickEvent) ->
     clickEvent.preventDefault()
     @context.navigator.emit('show.profile', view: 'profile')
-
-  update: ->
-    @forceUpdate() if @isMounted()
 
   close: (clickEvent) ->
     clickEvent.preventDefault()
