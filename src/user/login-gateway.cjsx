@@ -48,7 +48,7 @@ LoginGateway = React.createClass
   windowClosedCheck: ->
     return unless @isMounted()
     if @state.loginWindow and @state.loginWindow.closed
-      User.ensureStatusLoaded(true)
+      User.fetch()
     else
       _.delay( @windowClosedCheck, SECOND)
 

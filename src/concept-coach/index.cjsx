@@ -88,7 +88,7 @@ class ConceptCoachAPI extends EventEmitter2
 
     listenAndBroadcast(@)
     setupAPIListeners(@)
-    User.ensureStatusLoaded(true)
+    User.fetch()
 
   destroy: ->
     @close?()

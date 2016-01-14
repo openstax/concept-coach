@@ -49,17 +49,13 @@ class UserApi extends ApiLink
       course
     )
 
-  # TODO see if we can remove and just use user.fetch()
-  onCourseUpdate: (course) ->
-    @ensureStatusLoaded(true) # re-fetch course list from server
-
   _signalLogoutCompleted: ->
     @reset()
     @isLoggingOut = true
     @emit('logout.received')
 
-  ensureStatusLoaded: (force = false) ->
-    @fetch() if force or not @isLoggedIn()
+  ensureStatusLoaded: ->
+    @fetch() unless @isLoggedIn()
 
   loadUser: (user) ->
     _.extend(@, user)

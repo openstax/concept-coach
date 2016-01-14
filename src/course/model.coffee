@@ -81,7 +81,7 @@ class Course
     other.status = @status
     other.enrollment_code = @enrollment_code
     other.periods = [ @to?.period ]
-    user.onCourseUpdate(other)
+    user.fetch()
 
   _onValidated: (response) ->
     {data} = response
