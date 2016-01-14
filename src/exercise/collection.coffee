@@ -15,7 +15,7 @@ EXERCISE_OPTIONS =
 
 class ExerciseApi extends ApiLink
   init: ->
-    user.on 'change', @reset.bind(@)
+    user.on 'logout.received', @reset.bind(@)
     super()
 
   quickLoad: (topic, data) ->
