@@ -36362,10 +36362,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.goToStep(stepIndex);
 	  },
 	  isStepAllowed: function(stepIndex) {
-	    var task, taskId;
+	    return this.isExerciseStep(stepIndex) || (this.isReviewStep(stepIndex) && this.canReview()) || (this.isContinueStep(stepIndex) && this.shouldContinue());
+	  },
+	  isExerciseStep: function(stepIndex) {
+	    var task;
 	    task = this.state.task;
-	    taskId = this.props.taskId;
-	    return (stepIndex <= task.steps.length) || (this.isReviewStep(stepIndex) && this.canReview()) || (this.isContinueStep(stepIndex) && this.shouldContinue());
+	    return stepIndex < task.steps.length;
 	  },
 	  canReview: function() {
 	    var taskId;
