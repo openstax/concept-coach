@@ -35493,11 +35493,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 315 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(_) {var ArbitraryHtmlAndMath, Feedback, React, classnames;
+	var ArbitraryHtmlAndMath, Feedback, React, _, classnames;
 
 	React = __webpack_require__(6);
 
 	classnames = __webpack_require__(209);
+
+	_ = __webpack_require__(2);
 
 	ArbitraryHtmlAndMath = __webpack_require__(309);
 
@@ -35535,7 +35537,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  Feedback: Feedback
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ },
 /* 316 */
@@ -37281,7 +37282,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "onClick": this.close,
 	      "className": 'concept-coach-dashboard-nav'
 	    }, React.createElement(BS.Button, {
-	      "className": 'btn-plain close'
+	      "className": 'btn-plain -coach-close'
 	    }, "Close")))));
 	  }
 	});
