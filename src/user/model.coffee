@@ -11,7 +11,6 @@ BLANK_USER =
   profile_url: null
   courses: []
   _course_data: []
-  endpoints: {}
   isLoaded: false
   isLoggingOut: false
 
@@ -97,8 +96,7 @@ class UserApi extends ApiLink
     super('status', {})
 
   destroy: ->
-    _.each @courses, (course) ->
-      course.channel.removeAllListeners()
+    _.invoke @courses, 'destroy'
     super()
 
 module.exports = new UserApi({apiNameSpace: 'user', apiChannel: api.channel}, [], 'model', BLANK_USER)

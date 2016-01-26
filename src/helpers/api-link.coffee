@@ -79,7 +79,7 @@ getUnhandledErrors = (errors, {silencers, map}) ->
     .value()
 
 checkFailure = (response, errorOptions) ->
-  if response.data.errors
+  if response.data?.errors
     response.data.errors = getUnhandledErrors(response.data.errors, errorOptions)
     response.stopErrorDisplay = _.isEmpty(response.data.errors)
 
@@ -186,7 +186,7 @@ class ApiLink extends EventEmitter2
   load: (topic, data) ->
     UPDATE_DEFAULTS[@_type]._setData.call(@, topic, data)
 
-    status = if data.errors? then 'failed' else 'loaded'
+    status = if not data or data.errors? then 'failed' else 'loaded'
     @emit("load.#{topic}", {data, status})
 
   # For getting the latest data on `topic`.

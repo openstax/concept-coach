@@ -17,7 +17,7 @@ TASK_OPTIONS =
 
 class TaskApi extends ApiLink
   load: (taskId, data) ->
-    _.each data.steps, (step) ->
+    _.each data?.steps, (step) ->
       exercises.quickLoad(step.id, step)
     super(taskId, data)
 
