@@ -95,7 +95,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	coachWrapped = helpers.wrapComponent(Coach);
 
-	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl', 'processHtmlAndMath'];
+	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl', 'getNextPage', 'processHtmlAndMath'];
 
 	WRAPPER_CLASSNAME = 'concept-coach-wrapper';
 
@@ -258,6 +258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    openProps = _.extend({}, props, {
 	      open: true
 	    });
+	    openProps.triggeredFrom = _.pick(props, 'moduleUUID', 'collectionUUID');
 	    return this.component.setProps(openProps);
 	  };
 
@@ -22926,11 +22927,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  is_customer_service: false,
 	  name: null,
 	  profile_url: null,
-	  courses: []
+	  courses: [],
+	  _course_data: [],
+	  isLoaded: false,
+	  isLoggingOut: false
 	};
 
 	User = {
-	  isLoaded: false,
 	  channel: new EventEmitter2({
 	    wildcard: true
 	  }),
@@ -23041,9 +23044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  destroy: function() {
 	    User.channel.removeAllListeners();
-	    _.each(this.courses, function(course) {
-	      return course.channel.removeAllListeners();
-	    });
+	    _.invoke(this.courses, 'destroy');
 	    return this.courses = [];
 	  }
 	};
@@ -23122,7 +23123,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return msg;
 	      }
 	    } else {
-	      return this.name + " " + (_.first(this.periods).name) + " period";
+	      return this.name + " " + (_.first(this.periods).name);
 	    }
 	  };
 
@@ -23263,6 +23264,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.channel.emit('change');
 	  };
 
+	  Course.prototype.destroy = function() {
+	    this.channel.emit('destroy');
+	    return this.channel.removeAllListeners();
+	  };
+
 	  return Course;
 
 	})();
@@ -23286,10 +23292,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	_ = __webpack_require__(2);
 
 	user = __webpack_require__(202);
-
-	user.channel.on('logout.received', function() {
-	  return steps = {};
-	});
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -23362,6 +23364,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	init = function() {
+	  user.channel.on('logout.received', function() {
+	    return steps = {};
+	  });
 	  return api.channel.on("exercise.*.receive.*", update);
 	};
 
@@ -23477,10 +23482,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	tasks = {};
 
 	user = __webpack_require__(202);
-
-	user.channel.on('logout.received', function() {
-	  return tasks = {};
-	});
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -23624,6 +23625,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	init = function() {
+	  user.channel.on('logout.received', function() {
+	    return tasks = {};
+	  });
 	  api.channel.on("task.*.receive.*", update);
 	  return api.channel.on('task.*.receive.failure', checkFailure);
 	};
@@ -23745,7 +23749,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  propTypes: {
 	    close: React.PropTypes.func,
 	    moduleUUID: React.PropTypes.string.isRequired,
-	    collectionUUID: React.PropTypes.string.isRequired
+	    collectionUUID: React.PropTypes.string.isRequired,
+	    triggeredFrom: React.PropTypes.shape({
+	      moduleUUID: React.PropTypes.string,
+	      collectionUUID: React.PropTypes.string
+	    })
 	  },
 	  getDefaultProps: function() {
 	    return {
@@ -23762,6 +23770,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  childContextTypes: {
 	    moduleUUID: React.PropTypes.string,
 	    collectionUUID: React.PropTypes.string,
+	    triggeredFrom: React.PropTypes.shape({
+	      moduleUUID: React.PropTypes.string,
+	      collectionUUID: React.PropTypes.string
+	    }),
+	    getNextPage: React.PropTypes.func,
 	    view: React.PropTypes.oneOf(_.flatten(VIEWS)),
 	    cnxUrl: React.PropTypes.string,
 	    bookUrlPattern: React.PropTypes.string,
@@ -23770,9 +23783,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    processHtmlAndMath: React.PropTypes.func
 	  },
 	  getChildContext: function() {
-	    var bookUrlPattern, close, cnxUrl, collectionUUID, moduleUUID, processHtmlAndMath, ref2, view;
+	    var bookUrlPattern, close, cnxUrl, collectionUUID, getNextPage, moduleUUID, processHtmlAndMath, ref2, triggeredFrom, view;
 	    view = this.state.view;
-	    ref2 = this.props, cnxUrl = ref2.cnxUrl, close = ref2.close, moduleUUID = ref2.moduleUUID, collectionUUID = ref2.collectionUUID;
+	    ref2 = this.props, cnxUrl = ref2.cnxUrl, close = ref2.close, moduleUUID = ref2.moduleUUID, collectionUUID = ref2.collectionUUID, getNextPage = ref2.getNextPage, triggeredFrom = ref2.triggeredFrom;
 	    bookUrlPattern = '{cnxUrl}/contents/{ecosystem_book_uuid}';
 	    processHtmlAndMath = this.props.processHtmlAndMath;
 	    return {
@@ -23783,7 +23796,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      bookUrlPattern: bookUrlPattern,
 	      navigator: navigator,
 	      moduleUUID: moduleUUID,
-	      collectionUUID: collectionUUID
+	      collectionUUID: collectionUUID,
+	      triggeredFrom: triggeredFrom,
+	      getNextPage: getNextPage
 	    };
 	  },
 	  componentWillMount: function() {
@@ -36876,9 +36891,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  },
 	  render: function() {
-	    var bookEnd, breadcrumbs, canReview, crumbs, currentStep, moduleInfo, ref, ref1, reviewEnd, shouldContinue, task;
+	    var breadcrumbs, canReview, crumbs, currentStep, moduleInfo, ref, ref1, reviewEnd, task;
 	    ref = this.state, task = ref.task, moduleInfo = ref.moduleInfo;
-	    ref1 = this.props, currentStep = ref1.currentStep, canReview = ref1.canReview, shouldContinue = ref1.shouldContinue;
+	    ref1 = this.props, currentStep = ref1.currentStep, canReview = ref1.canReview;
 	    if (_.isEmpty(task.steps)) {
 	      return null;
 	    }
@@ -36890,9 +36905,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	    });
 	    reviewEnd = this.makeCrumbEnd('summary', canReview);
-	    bookEnd = this.makeCrumbEnd('continue', shouldContinue);
 	    crumbs.push(reviewEnd);
-	    crumbs.push(bookEnd);
 	    breadcrumbs = _.map(crumbs, (function(_this) {
 	      return function(crumb, index) {
 	        var classes, disabled;
@@ -36929,17 +36942,49 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 331 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ContinueToBookButton, ExerciseButton, ExerciseStep, React, TaskReview, _, ref, tasks;
+	var BS, ChapterSectionMixin, ContinueToBookButton, ExerciseButton, ExerciseStep, React, ReturnToBookButton, ReviewControls, TaskReview, _, ref, tasks;
 
 	React = __webpack_require__(6);
+
+	BS = __webpack_require__(237);
 
 	_ = __webpack_require__(2);
 
 	tasks = __webpack_require__(206);
 
+	ChapterSectionMixin = __webpack_require__(210).ChapterSectionMixin;
+
 	ExerciseStep = __webpack_require__(329).ExerciseStep;
 
-	ref = __webpack_require__(332), ExerciseButton = ref.ExerciseButton, ContinueToBookButton = ref.ContinueToBookButton;
+	ref = __webpack_require__(332), ExerciseButton = ref.ExerciseButton, ContinueToBookButton = ref.ContinueToBookButton, ReturnToBookButton = ref.ReturnToBookButton;
+
+	ReviewControls = React.createClass({
+	  displayName: 'ReviewControls',
+	  mixins: [ChapterSectionMixin],
+	  propTypes: {
+	    moduleUUID: React.PropTypes.string.isRequired,
+	    collectionUUID: React.PropTypes.string.isRequired,
+	    taskId: React.PropTypes.string.isRequired
+	  },
+	  render: function() {
+	    var collectionUUID, moduleInfo, moduleUUID, ref1, section, taskId;
+	    ref1 = this.props, taskId = ref1.taskId, moduleUUID = ref1.moduleUUID, collectionUUID = ref1.collectionUUID;
+	    moduleInfo = tasks.getModuleInfo(taskId);
+	    section = this.sectionFormat(moduleInfo.chapter_section);
+	    return React.createElement(BS.ButtonGroup, {
+	      "justified": true,
+	      "className": 'concept-coach-task-review-controls'
+	    }, React.createElement(ReturnToBookButton, {
+	      "className": 'btn-lg',
+	      "moduleUUID": moduleUUID,
+	      "collectionUUID": collectionUUID,
+	      "section": section
+	    }), React.createElement(ContinueToBookButton, {
+	      "className": 'btn-lg',
+	      "moduleUUID": moduleUUID
+	    }));
+	  }
+	});
 
 	TaskReview = React.createClass({
 	  displayName: 'TaskReview',
@@ -36970,9 +37015,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  },
 	  render: function() {
-	    var completeSteps, completeStepsReview, continueToBookButton, incompleteSteps, ref1, ref2, status, taskId;
+	    var collectionUUID, completeSteps, completeStepsReview, completedEnd, completedMessage, incompleteSteps, moduleUUID, ref1, ref2, status, taskId;
 	    ref1 = this.state, completeSteps = ref1.completeSteps, incompleteSteps = ref1.incompleteSteps;
-	    ref2 = this.props, status = ref2.status, taskId = ref2.taskId;
+	    ref2 = this.props, status = ref2.status, taskId = ref2.taskId, moduleUUID = ref2.moduleUUID, collectionUUID = ref2.collectionUUID;
 	    if (_.isEmpty(completeSteps)) {
 	      completeStepsReview = React.createElement("div", {
 	        "className": 'card-body'
@@ -36993,14 +37038,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	    if (_.isEmpty(incompleteSteps)) {
-	      continueToBookButton = React.createElement(ContinueToBookButton, {
-	        "bsStyle": 'primary',
-	        "className": 'review-continue-to-book'
-	      });
+	      completedMessage = React.createElement("div", {
+	        "className": 'card-body coach-coach-review-completed'
+	      }, React.createElement("h2", null, "You\'re done."), React.createElement(ReviewControls, {
+	        "taskId": taskId,
+	        "moduleUUID": moduleUUID,
+	        "collectionUUID": collectionUUID
+	      }), React.createElement("p", null, "or review your work below."));
+	      completedEnd = React.createElement("div", {
+	        "className": 'card-body coach-coach-review-completed'
+	      }, React.createElement(ReviewControls, {
+	        "taskId": taskId,
+	        "moduleUUID": moduleUUID,
+	        "collectionUUID": collectionUUID
+	      }));
 	    }
 	    return React.createElement("div", {
 	      "className": 'concept-coach-task-review'
-	    }, completeStepsReview, continueToBookButton);
+	    }, completedMessage, completeStepsReview, completedEnd);
 	  }
 	});
 
@@ -37013,20 +37068,94 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 332 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var BS, ContinueToBookButton, ExerciseButton, React, _, channel;
+	var BS, BookButton, BookLink, BookLinkBase, ContinueToBookButton, EventEmitter2, ExerciseButton, GoToBookLink, React, ReturnToBookButton, _, classnames;
 
-	React = __webpack_require__(6);
+	React = __webpack_require__(214);
 
 	BS = __webpack_require__(237);
 
 	_ = __webpack_require__(2);
 
-	channel = __webpack_require__(199).channel;
+	EventEmitter2 = __webpack_require__(4);
+
+	classnames = __webpack_require__(209);
+
+	BookLinkBase = React.createClass({
+	  displayName: 'BookLinkBase',
+	  propTypes: {
+	    children: React.PropTypes.node,
+	    collectionUUID: React.PropTypes.string.isRequired,
+	    moduleUUID: React.PropTypes.string,
+	    link: React.PropTypes.string
+	  },
+	  contextTypes: {
+	    close: React.PropTypes.func,
+	    navigator: React.PropTypes.instanceOf(EventEmitter2)
+	  },
+	  broadcastNav: function(clickEvent) {
+	    var close, navigator, onClick, ref;
+	    clickEvent.preventDefault();
+	    onClick = this.props.onClick;
+	    ref = this.context, close = ref.close, navigator = ref.navigator;
+	    close();
+	    navigator.emit('close.for.book', _.pick(this.props, 'collectionUUID', 'moduleUUID', 'link'));
+	    if (typeof onClick === "function") {
+	      onClick(clickEvent);
+	    }
+	    return true;
+	  },
+	  render: function() {
+	    var children;
+	    children = this.props.children;
+	    if (children == null) {
+	      return null;
+	    }
+	    return React.addons.cloneWithProps(children, {
+	      onClick: this.broadcastNav
+	    });
+	  }
+	});
+
+	BookLink = React.createClass({
+	  displayName: 'BookLink',
+	  propTypes: {
+	    children: React.PropTypes.node
+	  },
+	  render: function() {
+	    var children, className, classes, linkProps, ref;
+	    ref = this.props, children = ref.children, className = ref.className;
+	    linkProps = _.omit(this.props, 'children', 'className');
+	    classes = classnames('concept-coach-book-link', className);
+	    return React.createElement(BookLinkBase, React.__spread({}, linkProps), React.createElement("a", {
+	      "role": 'button',
+	      "className": classes
+	    }, children));
+	  }
+	});
+
+	BookButton = React.createClass({
+	  displayName: 'BookButton',
+	  propTypes: {
+	    children: React.PropTypes.node
+	  },
+	  render: function() {
+	    var children, className, classes, linkProps, ref;
+	    ref = this.props, children = ref.children, className = ref.className;
+	    linkProps = _.omit(this.props, 'children', 'className');
+	    classes = classnames('concept-coach-book-link', className);
+	    return React.createElement(BookLinkBase, React.__spread({}, linkProps), React.createElement(BS.Button, React.__spread({
+	      "className": classes
+	    }, linkProps), children));
+	  }
+	});
 
 	ExerciseButton = React.createClass({
 	  displayName: 'ExerciseButton',
 	  propTypes: {
-	    childern: React.PropTypes.node
+	    children: React.PropTypes.node
+	  },
+	  contextTypes: {
+	    navigator: React.PropTypes.instanceOf(EventEmitter2)
 	  },
 	  getDefaultProps: function() {
 	    return {
@@ -37035,7 +37164,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  showExercise: function() {
 	    var base;
-	    channel.emit('show.task', {
+	    this.context.navigator.emit('show.task', {
 	      view: 'task'
 	    });
 	    return typeof (base = this.props).onClick === "function" ? base.onClick() : void 0;
@@ -37050,31 +37179,114 @@ return /******/ (function(modules) { // webpackBootstrap
 	ContinueToBookButton = React.createClass({
 	  displayName: 'ContinueToBookButton',
 	  propTypes: {
-	    childern: React.PropTypes.node
+	    children: React.PropTypes.node,
+	    moduleUUID: React.PropTypes.string
 	  },
 	  contextTypes: {
-	    close: React.PropTypes.func
+	    collectionUUID: React.PropTypes.string,
+	    getNextPage: React.PropTypes.func
+	  },
+	  getInitialState: function() {
+	    return this.getNextPage();
 	  },
 	  getDefaultProps: function() {
 	    return {
-	      children: 'Continue to Book'
+	      bsStyle: 'primary'
 	    };
 	  },
-	  continueToBook: function() {
-	    return this.context.close();
+	  componentWillReceiveProps: function(nextProps, nextContext) {
+	    var nextPage;
+	    nextPage = this.getNextPage(nextProps, nextContext);
+	    return this.setState(nextPage);
+	  },
+	  getNextPage: function(props, context) {
+	    var collectionUUID, fallBack, moduleUUID;
+	    if (props == null) {
+	      props = this.props;
+	    }
+	    if (context == null) {
+	      context = this.context;
+	    }
+	    moduleUUID = props.moduleUUID;
+	    collectionUUID = context.collectionUUID;
+	    fallBack = {
+	      nextChapter: 'Reading',
+	      nextModuleUUID: moduleUUID
+	    };
+	    return (typeof context.getNextPage === "function" ? context.getNextPage({
+	      moduleUUID: moduleUUID,
+	      collectionUUID: collectionUUID
+	    }) : void 0) || fallBack;
 	  },
 	  render: function() {
-	    var props;
+	    var collectionUUID, continueLabel, nextChapter, nextModuleUUID, props, ref;
 	    props = _.omit(this.props, 'children');
-	    return React.createElement(BS.Button, React.__spread({}, props, {
-	      "onClick": this.continueToBook
-	    }), this.props.children);
+	    ref = this.state, nextChapter = ref.nextChapter, nextModuleUUID = ref.nextModuleUUID;
+	    collectionUUID = this.context.collectionUUID;
+	    if (!_.isEmpty(this.props.children)) {
+	      continueLabel = this.props.children;
+	    }
+	    if (continueLabel == null) {
+	      continueLabel = "Continue to " + nextChapter;
+	    }
+	    return React.createElement(BookButton, React.__spread({}, props, {
+	      "moduleUUID": nextModuleUUID,
+	      "collectionUUID": collectionUUID
+	    }), continueLabel, React.createElement("i", {
+	      "className": 'fa fa-caret-right'
+	    }));
+	  }
+	});
+
+	GoToBookLink = React.createClass({
+	  displayName: 'GoToBookLink',
+	  contextTypes: {
+	    moduleUUID: React.PropTypes.string,
+	    collectionUUID: React.PropTypes.string,
+	    triggeredFrom: React.PropTypes.shape({
+	      moduleUUID: React.PropTypes.string,
+	      collectionUUID: React.PropTypes.string
+	    })
+	  },
+	  isFromOpen: function() {
+	    var triggeredFrom, viewingInfo;
+	    triggeredFrom = this.context.triggeredFrom;
+	    viewingInfo = _.pick(this.props, 'moduleUUID', 'collectionUUID');
+	    return _.isEqual(triggeredFrom, viewingInfo);
+	  },
+	  render: function() {
+	    var linkAction;
+	    linkAction = this.isFromOpen() ? 'Return' : 'Go';
+	    return React.createElement(BookLink, React.__spread({}, this.props), linkAction, " to Reading");
+	  }
+	});
+
+	ReturnToBookButton = React.createClass({
+	  displayName: 'ReturnToBookButton',
+	  getDefaultProps: function() {
+	    return {
+	      section: 'Reading'
+	    };
+	  },
+	  render: function() {
+	    var className, classes, ref, section;
+	    ref = this.props, section = ref.section, className = ref.className;
+	    classes = classnames('btn-plain', className);
+	    return React.createElement(BookButton, React.__spread({}, this.props, {
+	      "className": classes
+	    }), React.createElement("i", {
+	      "className": 'fa fa-caret-left'
+	    }), "Return to ", section);
 	  }
 	});
 
 	module.exports = {
 	  ExerciseButton: ExerciseButton,
-	  ContinueToBookButton: ContinueToBookButton
+	  ContinueToBookButton: ContinueToBookButton,
+	  ReturnToBookButton: ReturnToBookButton,
+	  GoToBookLink: GoToBookLink,
+	  BookLink: BookLink,
+	  BookLinkBase: BookLinkBase
 	};
 
 
@@ -37082,7 +37294,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 333 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ChapterSectionMixin, React, TaskTitle, _, classnames, componentModel, navigation, tasks;
+	var ChapterSectionMixin, GoToBookLink, React, TaskTitle, _, classnames, tasks;
 
 	React = __webpack_require__(6);
 
@@ -37092,34 +37304,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	tasks = __webpack_require__(206);
 
-	navigation = __webpack_require__(199);
-
 	ChapterSectionMixin = __webpack_require__(210).ChapterSectionMixin;
 
-	componentModel = __webpack_require__(198);
+	GoToBookLink = __webpack_require__(332).GoToBookLink;
 
 	TaskTitle = React.createClass({
 	  displayName: 'TaskTitle',
 	  mixins: [ChapterSectionMixin],
 	  contextTypes: {
-	    close: React.PropTypes.func
-	  },
-	  broadcastNav: function(clickEvent) {
-	    var close, cnxUrl, collectionUUID, link, moduleUUID, ref, taskId;
-	    clickEvent.preventDefault();
-	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
-	    close = this.context.close;
-	    link = tasks.getModuleInfo(taskId, cnxUrl).link;
-	    close();
-	    navigation.channel.emit('close.for.book', {
-	      collectionUUID: collectionUUID,
-	      moduleUUID: moduleUUID,
-	      link: link
-	    });
-	    return true;
+	    close: React.PropTypes.func,
+	    moduleUUID: React.PropTypes.string,
+	    collectionUUID: React.PropTypes.string
 	  },
 	  render: function() {
-	    var close, cnxUrl, linkProps, moduleInfo, noTitle, ref, section, sectionProps, taskId, title, titleClasses;
+	    var close, cnxUrl, linkProps, moduleInfo, ref, section, sectionProps, taskId, title, titleClasses;
 	    ref = this.props, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
 	    close = this.context.close;
 	    moduleInfo = tasks.getModuleInfo(taskId, cnxUrl);
@@ -37133,28 +37331,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (section != null) {
 	      sectionProps['data-section'] = section;
 	    }
-	    linkProps = {
-	      role: 'button'
-	    };
+	    linkProps = _.pick(this.props, 'collectionUUID', 'moduleUUID');
+	    linkProps.role = 'button';
+	    linkProps.link = moduleInfo.link;
 	    if (moduleInfo.title) {
 	      linkProps.target = '_blank';
-	      linkProps.onClick = this.broadcastNav;
-	      title = React.createElement("span", null, " Go to", React.createElement("span", React.__spread({}, sectionProps), moduleInfo.title));
-	    } else {
-	      noTitle = React.createElement("span", null, "Back to Book");
-	      linkProps = {
-	        onClick: close
-	      };
+	      title = React.createElement("h3", React.__spread({}, sectionProps), moduleInfo.title);
 	    }
 	    titleClasses = classnames('concept-coach-title', {
-	      'has-title': moduleInfo.title != null,
-	      'back-to-book': noTitle != null
+	      'has-title': moduleInfo.title != null
 	    });
-	    return React.createElement("p", {
+	    return React.createElement("div", {
 	      "className": titleClasses
-	    }, React.createElement("a", React.__spread({}, linkProps), React.createElement("i", {
-	      "className": 'fa fa-book'
-	    }), title, noTitle));
+	    }, title, React.createElement("span", {
+	      "className": 'concept-coach-title-link'
+	    }, React.createElement(GoToBookLink, React.__spread({}, linkProps))));
 	  }
 	});
 
@@ -37727,7 +37918,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 343 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var BS, CourseItem, EventEmitter2, React, _, componentModel, interpolate, navigation;
+	var BS, BookLinkBase, CourseItem, EventEmitter2, React, _, interpolate, navigation;
 
 	React = __webpack_require__(6);
 
@@ -37739,50 +37930,47 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(2);
 
-	navigation = __webpack_require__(199);
+	BookLinkBase = __webpack_require__(332).BookLinkBase;
 
-	componentModel = __webpack_require__(198);
+	navigation = __webpack_require__(199);
 
 	CourseItem = React.createClass({
 	  displayName: 'CourseItem',
 	  contextTypes: {
 	    cnxUrl: React.PropTypes.string,
-	    bookUrlPattern: React.PropTypes.string,
-	    navigator: React.PropTypes.instanceOf(EventEmitter2),
-	    close: React.PropTypes.func
+	    bookUrlPattern: React.PropTypes.string
 	  },
-	  broadcastNav: function(link) {
-	    var bookUrlPattern, close, cnxUrl, course, ecosystem_book_uuid, navigator, ref, routeData;
+	  getLink: function() {
+	    var bookUrlPattern, cnxUrl, course, ecosystem_book_uuid, link, ref, routeData;
 	    course = this.props.course;
-	    ref = this.context, close = ref.close, cnxUrl = ref.cnxUrl, bookUrlPattern = ref.bookUrlPattern, navigator = ref.navigator;
+	    ref = this.context, cnxUrl = ref.cnxUrl, bookUrlPattern = ref.bookUrlPattern;
 	    ecosystem_book_uuid = course.ecosystem_book_uuid;
+	    if (bookUrlPattern == null) {
+	      bookUrlPattern = '';
+	    }
 	    link = interpolate(bookUrlPattern, {
 	      cnxUrl: cnxUrl,
 	      ecosystem_book_uuid: ecosystem_book_uuid
 	    });
 	    routeData = navigation.getDataByView('task');
-	    link = "" + link + routeData.route;
-	    componentModel.update({
-	      scrollY: 0
-	    });
-	    close();
-	    return navigator.emit('close.for.book', {
-	      collectionUUID: ecosystem_book_uuid,
-	      link: link
-	    });
+	    return "" + link + routeData.route;
 	  },
 	  render: function() {
-	    var category, course, ref;
+	    var category, course, ecosystem_book_uuid, link, ref;
 	    course = this.props.course;
 	    if (!course.isRegistered()) {
 	      return null;
 	    }
+	    ecosystem_book_uuid = course.ecosystem_book_uuid;
+	    link = this.getLink();
 	    category = ((ref = course.catalog_offering_identifier) != null ? ref.toLowerCase() : void 0) || 'unknown';
-	    return React.createElement(BS.ListGroupItem, {
-	      "onClick": this.broadcastNav,
+	    return React.createElement(BookLinkBase, {
+	      "collectionUUID": ecosystem_book_uuid,
+	      "link": link
+	    }, React.createElement(BS.ListGroupItem, {
 	      "className": 'concept-coach-course-item',
 	      "data-category": category
-	    }, course.description());
+	    }, course.description()));
 	  }
 	});
 

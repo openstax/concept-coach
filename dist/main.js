@@ -85,25 +85,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Task = __webpack_require__(37).Task;
 
-	navigation = (ref1 = __webpack_require__(91), Navigation = ref1.Navigation, ref1);
+	navigation = (ref1 = __webpack_require__(87), Navigation = ref1.Navigation, ref1);
 
-	CourseRegistration = __webpack_require__(95);
+	CourseRegistration = __webpack_require__(94);
 
-	ErrorNotification = __webpack_require__(105);
+	ErrorNotification = __webpack_require__(104);
 
-	AccountsIframe = __webpack_require__(106);
+	AccountsIframe = __webpack_require__(105);
 
-	LoginGateway = __webpack_require__(104);
+	LoginGateway = __webpack_require__(103);
 
 	User = __webpack_require__(78);
 
 	ExerciseStep = __webpack_require__(81).ExerciseStep;
 
-	Dashboard = __webpack_require__(107).Dashboard;
+	Dashboard = __webpack_require__(106).Dashboard;
 
-	Progress = __webpack_require__(108).Progress;
+	Progress = __webpack_require__(107).Progress;
 
-	channel = __webpack_require__(89).channel;
+	channel = __webpack_require__(115).channel;
 
 	navigator = navigation.channel;
 
@@ -114,7 +114,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  propTypes: {
 	    close: React.PropTypes.func,
 	    moduleUUID: React.PropTypes.string.isRequired,
-	    collectionUUID: React.PropTypes.string.isRequired
+	    collectionUUID: React.PropTypes.string.isRequired,
+	    triggeredFrom: React.PropTypes.shape({
+	      moduleUUID: React.PropTypes.string,
+	      collectionUUID: React.PropTypes.string
+	    })
 	  },
 	  getDefaultProps: function() {
 	    return {
@@ -131,6 +135,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  childContextTypes: {
 	    moduleUUID: React.PropTypes.string,
 	    collectionUUID: React.PropTypes.string,
+	    triggeredFrom: React.PropTypes.shape({
+	      moduleUUID: React.PropTypes.string,
+	      collectionUUID: React.PropTypes.string
+	    }),
+	    getNextPage: React.PropTypes.func,
 	    view: React.PropTypes.oneOf(_.flatten(VIEWS)),
 	    cnxUrl: React.PropTypes.string,
 	    bookUrlPattern: React.PropTypes.string,
@@ -139,9 +148,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    processHtmlAndMath: React.PropTypes.func
 	  },
 	  getChildContext: function() {
-	    var bookUrlPattern, close, cnxUrl, collectionUUID, moduleUUID, processHtmlAndMath, ref2, view;
+	    var bookUrlPattern, close, cnxUrl, collectionUUID, getNextPage, moduleUUID, processHtmlAndMath, ref2, triggeredFrom, view;
 	    view = this.state.view;
-	    ref2 = this.props, cnxUrl = ref2.cnxUrl, close = ref2.close, moduleUUID = ref2.moduleUUID, collectionUUID = ref2.collectionUUID;
+	    ref2 = this.props, cnxUrl = ref2.cnxUrl, close = ref2.close, moduleUUID = ref2.moduleUUID, collectionUUID = ref2.collectionUUID, getNextPage = ref2.getNextPage, triggeredFrom = ref2.triggeredFrom;
 	    bookUrlPattern = '{cnxUrl}/contents/{ecosystem_book_uuid}';
 	    processHtmlAndMath = this.props.processHtmlAndMath;
 	    return {
@@ -152,7 +161,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      bookUrlPattern: bookUrlPattern,
 	      navigator: navigator,
 	      moduleUUID: moduleUUID,
-	      collectionUUID: collectionUUID
+	      collectionUUID: collectionUUID,
+	      triggeredFrom: triggeredFrom,
+	      getNextPage: getNextPage
 	    };
 	  },
 	  componentWillMount: function() {
@@ -3743,9 +3754,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	TaskReview = __webpack_require__(83).TaskReview;
 
-	TaskTitle = __webpack_require__(88).TaskTitle;
+	TaskTitle = __webpack_require__(85).TaskTitle;
 
-	NoExercises = __webpack_require__(90).NoExercises;
+	NoExercises = __webpack_require__(86).NoExercises;
 
 	TaskBase = React.createClass({
 	  displayName: 'TaskBase',
@@ -3942,10 +3953,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	user = __webpack_require__(78);
 
-	user.channel.on('logout.received', function() {
-	  return tasks = {};
-	});
-
 	channel = new EventEmitter2({
 	  wildcard: true
 	});
@@ -4088,6 +4095,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	init = function() {
+	  user.channel.on('logout.received', function() {
+	    return tasks = {};
+	  });
 	  api.channel.on("task.*.receive.*", update);
 	  return api.channel.on('task.*.receive.failure', checkFailure);
 	};
@@ -15004,10 +15014,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	user = __webpack_require__(78);
 
-	user.channel.on('logout.received', function() {
-	  return steps = {};
-	});
-
 	channel = new EventEmitter2({
 	  wildcard: true
 	});
@@ -15079,6 +15085,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	init = function() {
+	  user.channel.on('logout.received', function() {
+	    return steps = {};
+	  });
 	  return api.channel.on("exercise.*.receive.*", update);
 	};
 
@@ -15114,11 +15123,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  is_customer_service: false,
 	  name: null,
 	  profile_url: null,
-	  courses: []
+	  courses: [],
+	  _course_data: [],
+	  isLoaded: false,
+	  isLoggingOut: false
 	};
 
 	User = {
-	  isLoaded: false,
 	  channel: new EventEmitter2({
 	    wildcard: true
 	  }),
@@ -15229,9 +15240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  destroy: function() {
 	    User.channel.removeAllListeners();
-	    _.each(this.courses, function(course) {
-	      return course.channel.removeAllListeners();
-	    });
+	    _.invoke(this.courses, 'destroy');
 	    return this.courses = [];
 	  }
 	};
@@ -15310,7 +15319,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return msg;
 	      }
 	    } else {
-	      return this.name + " " + (_.first(this.periods).name) + " period";
+	      return this.name + " " + (_.first(this.periods).name);
 	    }
 	  };
 
@@ -15449,6 +15458,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    delete this.isBusy;
 	    return this.channel.emit('change');
+	  };
+
+	  Course.prototype.destroy = function() {
+	    this.channel.emit('destroy');
+	    return this.channel.removeAllListeners();
 	  };
 
 	  return Course;
@@ -15838,9 +15852,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  },
 	  render: function() {
-	    var bookEnd, breadcrumbs, canReview, crumbs, currentStep, moduleInfo, ref, ref1, reviewEnd, shouldContinue, task;
+	    var breadcrumbs, canReview, crumbs, currentStep, moduleInfo, ref, ref1, reviewEnd, task;
 	    ref = this.state, task = ref.task, moduleInfo = ref.moduleInfo;
-	    ref1 = this.props, currentStep = ref1.currentStep, canReview = ref1.canReview, shouldContinue = ref1.shouldContinue;
+	    ref1 = this.props, currentStep = ref1.currentStep, canReview = ref1.canReview;
 	    if (_.isEmpty(task.steps)) {
 	      return null;
 	    }
@@ -15852,9 +15866,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	    });
 	    reviewEnd = this.makeCrumbEnd('summary', canReview);
-	    bookEnd = this.makeCrumbEnd('continue', shouldContinue);
 	    crumbs.push(reviewEnd);
-	    crumbs.push(bookEnd);
 	    breadcrumbs = _.map(crumbs, (function(_this) {
 	      return function(crumb, index) {
 	        var classes, disabled;
@@ -15891,17 +15903,49 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ContinueToBookButton, ExerciseButton, ExerciseStep, React, TaskReview, _, ref, tasks;
+	var BS, ChapterSectionMixin, ContinueToBookButton, ExerciseButton, ExerciseStep, React, ReturnToBookButton, ReviewControls, TaskReview, _, ref, tasks;
 
 	React = __webpack_require__(2);
+
+	BS = __webpack_require__(16);
 
 	_ = __webpack_require__(3);
 
 	tasks = __webpack_require__(38);
 
+	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
+
 	ExerciseStep = __webpack_require__(81).ExerciseStep;
 
-	ref = __webpack_require__(84), ExerciseButton = ref.ExerciseButton, ContinueToBookButton = ref.ContinueToBookButton;
+	ref = __webpack_require__(84), ExerciseButton = ref.ExerciseButton, ContinueToBookButton = ref.ContinueToBookButton, ReturnToBookButton = ref.ReturnToBookButton;
+
+	ReviewControls = React.createClass({
+	  displayName: 'ReviewControls',
+	  mixins: [ChapterSectionMixin],
+	  propTypes: {
+	    moduleUUID: React.PropTypes.string.isRequired,
+	    collectionUUID: React.PropTypes.string.isRequired,
+	    taskId: React.PropTypes.string.isRequired
+	  },
+	  render: function() {
+	    var collectionUUID, moduleInfo, moduleUUID, ref1, section, taskId;
+	    ref1 = this.props, taskId = ref1.taskId, moduleUUID = ref1.moduleUUID, collectionUUID = ref1.collectionUUID;
+	    moduleInfo = tasks.getModuleInfo(taskId);
+	    section = this.sectionFormat(moduleInfo.chapter_section);
+	    return React.createElement(BS.ButtonGroup, {
+	      "justified": true,
+	      "className": 'concept-coach-task-review-controls'
+	    }, React.createElement(ReturnToBookButton, {
+	      "className": 'btn-lg',
+	      "moduleUUID": moduleUUID,
+	      "collectionUUID": collectionUUID,
+	      "section": section
+	    }), React.createElement(ContinueToBookButton, {
+	      "className": 'btn-lg',
+	      "moduleUUID": moduleUUID
+	    }));
+	  }
+	});
 
 	TaskReview = React.createClass({
 	  displayName: 'TaskReview',
@@ -15932,9 +15976,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	  },
 	  render: function() {
-	    var completeSteps, completeStepsReview, continueToBookButton, incompleteSteps, ref1, ref2, status, taskId;
+	    var collectionUUID, completeSteps, completeStepsReview, completedEnd, completedMessage, incompleteSteps, moduleUUID, ref1, ref2, status, taskId;
 	    ref1 = this.state, completeSteps = ref1.completeSteps, incompleteSteps = ref1.incompleteSteps;
-	    ref2 = this.props, status = ref2.status, taskId = ref2.taskId;
+	    ref2 = this.props, status = ref2.status, taskId = ref2.taskId, moduleUUID = ref2.moduleUUID, collectionUUID = ref2.collectionUUID;
 	    if (_.isEmpty(completeSteps)) {
 	      completeStepsReview = React.createElement("div", {
 	        "className": 'card-body'
@@ -15955,14 +15999,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	    }
 	    if (_.isEmpty(incompleteSteps)) {
-	      continueToBookButton = React.createElement(ContinueToBookButton, {
-	        "bsStyle": 'primary',
-	        "className": 'review-continue-to-book'
-	      });
+	      completedMessage = React.createElement("div", {
+	        "className": 'card-body coach-coach-review-completed'
+	      }, React.createElement("h2", null, "You\'re done."), React.createElement(ReviewControls, {
+	        "taskId": taskId,
+	        "moduleUUID": moduleUUID,
+	        "collectionUUID": collectionUUID
+	      }), React.createElement("p", null, "or review your work below."));
+	      completedEnd = React.createElement("div", {
+	        "className": 'card-body coach-coach-review-completed'
+	      }, React.createElement(ReviewControls, {
+	        "taskId": taskId,
+	        "moduleUUID": moduleUUID,
+	        "collectionUUID": collectionUUID
+	      }));
 	    }
 	    return React.createElement("div", {
 	      "className": 'concept-coach-task-review'
-	    }, completeStepsReview, continueToBookButton);
+	    }, completedMessage, completeStepsReview, completedEnd);
 	  }
 	});
 
@@ -15975,20 +16029,94 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var BS, ContinueToBookButton, ExerciseButton, React, _, channel;
+	var BS, BookButton, BookLink, BookLinkBase, ContinueToBookButton, EventEmitter2, ExerciseButton, GoToBookLink, React, ReturnToBookButton, _, classnames;
 
-	React = __webpack_require__(2);
+	React = __webpack_require__(10);
 
 	BS = __webpack_require__(16);
 
 	_ = __webpack_require__(3);
 
-	channel = __webpack_require__(85).channel;
+	EventEmitter2 = __webpack_require__(5);
+
+	classnames = __webpack_require__(4);
+
+	BookLinkBase = React.createClass({
+	  displayName: 'BookLinkBase',
+	  propTypes: {
+	    children: React.PropTypes.node,
+	    collectionUUID: React.PropTypes.string.isRequired,
+	    moduleUUID: React.PropTypes.string,
+	    link: React.PropTypes.string
+	  },
+	  contextTypes: {
+	    close: React.PropTypes.func,
+	    navigator: React.PropTypes.instanceOf(EventEmitter2)
+	  },
+	  broadcastNav: function(clickEvent) {
+	    var close, navigator, onClick, ref;
+	    clickEvent.preventDefault();
+	    onClick = this.props.onClick;
+	    ref = this.context, close = ref.close, navigator = ref.navigator;
+	    close();
+	    navigator.emit('close.for.book', _.pick(this.props, 'collectionUUID', 'moduleUUID', 'link'));
+	    if (typeof onClick === "function") {
+	      onClick(clickEvent);
+	    }
+	    return true;
+	  },
+	  render: function() {
+	    var children;
+	    children = this.props.children;
+	    if (children == null) {
+	      return null;
+	    }
+	    return React.addons.cloneWithProps(children, {
+	      onClick: this.broadcastNav
+	    });
+	  }
+	});
+
+	BookLink = React.createClass({
+	  displayName: 'BookLink',
+	  propTypes: {
+	    children: React.PropTypes.node
+	  },
+	  render: function() {
+	    var children, className, classes, linkProps, ref;
+	    ref = this.props, children = ref.children, className = ref.className;
+	    linkProps = _.omit(this.props, 'children', 'className');
+	    classes = classnames('concept-coach-book-link', className);
+	    return React.createElement(BookLinkBase, React.__spread({}, linkProps), React.createElement("a", {
+	      "role": 'button',
+	      "className": classes
+	    }, children));
+	  }
+	});
+
+	BookButton = React.createClass({
+	  displayName: 'BookButton',
+	  propTypes: {
+	    children: React.PropTypes.node
+	  },
+	  render: function() {
+	    var children, className, classes, linkProps, ref;
+	    ref = this.props, children = ref.children, className = ref.className;
+	    linkProps = _.omit(this.props, 'children', 'className');
+	    classes = classnames('concept-coach-book-link', className);
+	    return React.createElement(BookLinkBase, React.__spread({}, linkProps), React.createElement(BS.Button, React.__spread({
+	      "className": classes
+	    }, linkProps), children));
+	  }
+	});
 
 	ExerciseButton = React.createClass({
 	  displayName: 'ExerciseButton',
 	  propTypes: {
-	    childern: React.PropTypes.node
+	    children: React.PropTypes.node
+	  },
+	  contextTypes: {
+	    navigator: React.PropTypes.instanceOf(EventEmitter2)
 	  },
 	  getDefaultProps: function() {
 	    return {
@@ -15997,7 +16125,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  showExercise: function() {
 	    var base;
-	    channel.emit('show.task', {
+	    this.context.navigator.emit('show.task', {
 	      view: 'task'
 	    });
 	    return typeof (base = this.props).onClick === "function" ? base.onClick() : void 0;
@@ -16012,31 +16140,114 @@ return /******/ (function(modules) { // webpackBootstrap
 	ContinueToBookButton = React.createClass({
 	  displayName: 'ContinueToBookButton',
 	  propTypes: {
-	    childern: React.PropTypes.node
+	    children: React.PropTypes.node,
+	    moduleUUID: React.PropTypes.string
 	  },
 	  contextTypes: {
-	    close: React.PropTypes.func
+	    collectionUUID: React.PropTypes.string,
+	    getNextPage: React.PropTypes.func
+	  },
+	  getInitialState: function() {
+	    return this.getNextPage();
 	  },
 	  getDefaultProps: function() {
 	    return {
-	      children: 'Continue to Book'
+	      bsStyle: 'primary'
 	    };
 	  },
-	  continueToBook: function() {
-	    return this.context.close();
+	  componentWillReceiveProps: function(nextProps, nextContext) {
+	    var nextPage;
+	    nextPage = this.getNextPage(nextProps, nextContext);
+	    return this.setState(nextPage);
+	  },
+	  getNextPage: function(props, context) {
+	    var collectionUUID, fallBack, moduleUUID;
+	    if (props == null) {
+	      props = this.props;
+	    }
+	    if (context == null) {
+	      context = this.context;
+	    }
+	    moduleUUID = props.moduleUUID;
+	    collectionUUID = context.collectionUUID;
+	    fallBack = {
+	      nextChapter: 'Reading',
+	      nextModuleUUID: moduleUUID
+	    };
+	    return (typeof context.getNextPage === "function" ? context.getNextPage({
+	      moduleUUID: moduleUUID,
+	      collectionUUID: collectionUUID
+	    }) : void 0) || fallBack;
 	  },
 	  render: function() {
-	    var props;
+	    var collectionUUID, continueLabel, nextChapter, nextModuleUUID, props, ref;
 	    props = _.omit(this.props, 'children');
-	    return React.createElement(BS.Button, React.__spread({}, props, {
-	      "onClick": this.continueToBook
-	    }), this.props.children);
+	    ref = this.state, nextChapter = ref.nextChapter, nextModuleUUID = ref.nextModuleUUID;
+	    collectionUUID = this.context.collectionUUID;
+	    if (!_.isEmpty(this.props.children)) {
+	      continueLabel = this.props.children;
+	    }
+	    if (continueLabel == null) {
+	      continueLabel = "Continue to " + nextChapter;
+	    }
+	    return React.createElement(BookButton, React.__spread({}, props, {
+	      "moduleUUID": nextModuleUUID,
+	      "collectionUUID": collectionUUID
+	    }), continueLabel, React.createElement("i", {
+	      "className": 'fa fa-caret-right'
+	    }));
+	  }
+	});
+
+	GoToBookLink = React.createClass({
+	  displayName: 'GoToBookLink',
+	  contextTypes: {
+	    moduleUUID: React.PropTypes.string,
+	    collectionUUID: React.PropTypes.string,
+	    triggeredFrom: React.PropTypes.shape({
+	      moduleUUID: React.PropTypes.string,
+	      collectionUUID: React.PropTypes.string
+	    })
+	  },
+	  isFromOpen: function() {
+	    var triggeredFrom, viewingInfo;
+	    triggeredFrom = this.context.triggeredFrom;
+	    viewingInfo = _.pick(this.props, 'moduleUUID', 'collectionUUID');
+	    return _.isEqual(triggeredFrom, viewingInfo);
+	  },
+	  render: function() {
+	    var linkAction;
+	    linkAction = this.isFromOpen() ? 'Return' : 'Go';
+	    return React.createElement(BookLink, React.__spread({}, this.props), linkAction, " to Reading");
+	  }
+	});
+
+	ReturnToBookButton = React.createClass({
+	  displayName: 'ReturnToBookButton',
+	  getDefaultProps: function() {
+	    return {
+	      section: 'Reading'
+	    };
+	  },
+	  render: function() {
+	    var className, classes, ref, section;
+	    ref = this.props, section = ref.section, className = ref.className;
+	    classes = classnames('btn-plain', className);
+	    return React.createElement(BookButton, React.__spread({}, this.props, {
+	      "className": classes
+	    }), React.createElement("i", {
+	      "className": 'fa fa-caret-left'
+	    }), "Return to ", section);
 	  }
 	});
 
 	module.exports = {
 	  ExerciseButton: ExerciseButton,
-	  ContinueToBookButton: ContinueToBookButton
+	  ContinueToBookButton: ContinueToBookButton,
+	  ReturnToBookButton: ReturnToBookButton,
+	  GoToBookLink: GoToBookLink,
+	  BookLink: BookLink,
+	  BookLinkBase: BookLinkBase
 	};
 
 
@@ -16044,120 +16255,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var EventEmitter2, _, channel, getDataByView, getViewByRoute, initialize, loader, navigation, settings;
-
-	_ = __webpack_require__(3);
-
-	EventEmitter2 = __webpack_require__(5);
-
-	settings = __webpack_require__(86);
-
-	loader = __webpack_require__(87).loader;
-
-	navigation = {};
-
-	channel = new EventEmitter2({
-	  wildcard: true
-	});
-
-	initialize = function(options) {
-	  _.extend(navigation, options);
-	  return loader(navigation, settings.views);
-	};
-
-	getDataByView = function(view) {
-	  return navigation.views[view];
-	};
-
-	getViewByRoute = function(route) {
-	  var navData, ref, view;
-	  navData = _.findWhere(navigation.views, {
-	    route: route
-	  });
-	  view = navData != null ? (ref = navData.state) != null ? ref.view : void 0 : void 0;
-	  if (view != null) {
-	    if (view === 'default') {
-	      view = 'task';
-	    }
-	  }
-	  return view;
-	};
-
-	module.exports = {
-	  channel: channel,
-	  initialize: initialize,
-	  getDataByView: getDataByView,
-	  getViewByRoute: getViewByRoute
-	};
-
-
-/***/ },
-/* 86 */
-/***/ function(module, exports) {
-
-	var DEFAULT_PATTERN, settings;
-
-	DEFAULT_PATTERN = '{prefix}{base}{view}';
-
-	settings = {
-	  views: {
-	    profile: DEFAULT_PATTERN,
-	    prevalidate: DEFAULT_PATTERN,
-	    dashboard: DEFAULT_PATTERN,
-	    task: DEFAULT_PATTERN,
-	    registration: DEFAULT_PATTERN,
-	    progress: DEFAULT_PATTERN,
-	    loading: DEFAULT_PATTERN,
-	    login: DEFAULT_PATTERN,
-	    logout: DEFAULT_PATTERN,
-	    "default": '{prefix}{base}',
-	    close: '{prefix}'
-	  }
-	};
-
-	module.exports = settings;
-
-
-/***/ },
-/* 87 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _, interpolate, loader, makeViewSettings;
-
-	_ = __webpack_require__(3);
-
-	interpolate = __webpack_require__(39);
-
-	makeViewSettings = function(viewOptions, routePattern, view) {
-	  var route;
-	  viewOptions = _.extend({}, viewOptions, {
-	    view: view
-	  });
-	  route = interpolate(routePattern, viewOptions);
-	  return {
-	    state: {
-	      view: view
-	    },
-	    route: route
-	  };
-	};
-
-	loader = function(model, viewSettings) {
-	  var viewOptions;
-	  viewOptions = _.pick(model, 'prefix', 'base');
-	  return model.views = _.mapObject(viewSettings, _.partial(makeViewSettings, viewOptions));
-	};
-
-	module.exports = {
-	  loader: loader
-	};
-
-
-/***/ },
-/* 88 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var ChapterSectionMixin, React, TaskTitle, _, classnames, componentModel, navigation, tasks;
+	var ChapterSectionMixin, GoToBookLink, React, TaskTitle, _, classnames, tasks;
 
 	React = __webpack_require__(2);
 
@@ -16167,34 +16265,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	tasks = __webpack_require__(38);
 
-	navigation = __webpack_require__(85);
-
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	componentModel = __webpack_require__(89);
+	GoToBookLink = __webpack_require__(84).GoToBookLink;
 
 	TaskTitle = React.createClass({
 	  displayName: 'TaskTitle',
 	  mixins: [ChapterSectionMixin],
 	  contextTypes: {
-	    close: React.PropTypes.func
-	  },
-	  broadcastNav: function(clickEvent) {
-	    var close, cnxUrl, collectionUUID, link, moduleUUID, ref, taskId;
-	    clickEvent.preventDefault();
-	    ref = this.props, collectionUUID = ref.collectionUUID, moduleUUID = ref.moduleUUID, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
-	    close = this.context.close;
-	    link = tasks.getModuleInfo(taskId, cnxUrl).link;
-	    close();
-	    navigation.channel.emit('close.for.book', {
-	      collectionUUID: collectionUUID,
-	      moduleUUID: moduleUUID,
-	      link: link
-	    });
-	    return true;
+	    close: React.PropTypes.func,
+	    moduleUUID: React.PropTypes.string,
+	    collectionUUID: React.PropTypes.string
 	  },
 	  render: function() {
-	    var close, cnxUrl, linkProps, moduleInfo, noTitle, ref, section, sectionProps, taskId, title, titleClasses;
+	    var close, cnxUrl, linkProps, moduleInfo, ref, section, sectionProps, taskId, title, titleClasses;
 	    ref = this.props, taskId = ref.taskId, cnxUrl = ref.cnxUrl;
 	    close = this.context.close;
 	    moduleInfo = tasks.getModuleInfo(taskId, cnxUrl);
@@ -16208,28 +16292,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (section != null) {
 	      sectionProps['data-section'] = section;
 	    }
-	    linkProps = {
-	      role: 'button'
-	    };
+	    linkProps = _.pick(this.props, 'collectionUUID', 'moduleUUID');
+	    linkProps.role = 'button';
+	    linkProps.link = moduleInfo.link;
 	    if (moduleInfo.title) {
 	      linkProps.target = '_blank';
-	      linkProps.onClick = this.broadcastNav;
-	      title = React.createElement("span", null, " Go to", React.createElement("span", React.__spread({}, sectionProps), moduleInfo.title));
-	    } else {
-	      noTitle = React.createElement("span", null, "Back to Book");
-	      linkProps = {
-	        onClick: close
-	      };
+	      title = React.createElement("h3", React.__spread({}, sectionProps), moduleInfo.title);
 	    }
 	    titleClasses = classnames('concept-coach-title', {
-	      'has-title': moduleInfo.title != null,
-	      'back-to-book': noTitle != null
+	      'has-title': moduleInfo.title != null
 	    });
-	    return React.createElement("p", {
+	    return React.createElement("div", {
 	      "className": titleClasses
-	    }, React.createElement("a", React.__spread({}, linkProps), React.createElement("i", {
-	      "className": 'fa fa-book'
-	    }), title, noTitle));
+	    }, title, React.createElement("span", {
+	      "className": 'concept-coach-title-link'
+	    }, React.createElement(GoToBookLink, React.__spread({}, linkProps))));
 	  }
 	});
 
@@ -16239,29 +16316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 89 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var EventEmitter2, _, coach;
-
-	_ = __webpack_require__(3);
-
-	EventEmitter2 = __webpack_require__(5);
-
-	coach = {
-	  update: function(options) {
-	    return _.extend(this, options);
-	  },
-	  channel: new EventEmitter2({
-	    wildcard: true
-	  })
-	};
-
-	module.exports = coach;
-
-
-/***/ },
-/* 90 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var NoExercises, React;
@@ -16283,7 +16338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 91 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CloseButton, Course, CourseNameBase, Navigation, React, UserMenu, api, channel, user;
@@ -16294,17 +16349,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	CloseButton = __webpack_require__(6).CloseButton;
 
-	CourseNameBase = __webpack_require__(92).CourseNameBase;
+	CourseNameBase = __webpack_require__(88).CourseNameBase;
 
 	Course = __webpack_require__(79);
 
 	user = __webpack_require__(78);
 
-	channel = __webpack_require__(85).channel;
+	channel = __webpack_require__(89).channel;
 
 	api = __webpack_require__(40);
 
-	UserMenu = __webpack_require__(93);
+	UserMenu = __webpack_require__(92);
 
 	Navigation = React.createClass({
 	  displayName: 'Navigation',
@@ -16393,7 +16448,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 92 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CourseNameBase, React, _, classnames;
@@ -16427,7 +16482,120 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 93 */
+/* 89 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var EventEmitter2, _, channel, getDataByView, getViewByRoute, initialize, loader, navigation, settings;
+
+	_ = __webpack_require__(3);
+
+	EventEmitter2 = __webpack_require__(5);
+
+	settings = __webpack_require__(90);
+
+	loader = __webpack_require__(91).loader;
+
+	navigation = {};
+
+	channel = new EventEmitter2({
+	  wildcard: true
+	});
+
+	initialize = function(options) {
+	  _.extend(navigation, options);
+	  return loader(navigation, settings.views);
+	};
+
+	getDataByView = function(view) {
+	  return navigation.views[view];
+	};
+
+	getViewByRoute = function(route) {
+	  var navData, ref, view;
+	  navData = _.findWhere(navigation.views, {
+	    route: route
+	  });
+	  view = navData != null ? (ref = navData.state) != null ? ref.view : void 0 : void 0;
+	  if (view != null) {
+	    if (view === 'default') {
+	      view = 'task';
+	    }
+	  }
+	  return view;
+	};
+
+	module.exports = {
+	  channel: channel,
+	  initialize: initialize,
+	  getDataByView: getDataByView,
+	  getViewByRoute: getViewByRoute
+	};
+
+
+/***/ },
+/* 90 */
+/***/ function(module, exports) {
+
+	var DEFAULT_PATTERN, settings;
+
+	DEFAULT_PATTERN = '{prefix}{base}{view}';
+
+	settings = {
+	  views: {
+	    profile: DEFAULT_PATTERN,
+	    prevalidate: DEFAULT_PATTERN,
+	    dashboard: DEFAULT_PATTERN,
+	    task: DEFAULT_PATTERN,
+	    registration: DEFAULT_PATTERN,
+	    progress: DEFAULT_PATTERN,
+	    loading: DEFAULT_PATTERN,
+	    login: DEFAULT_PATTERN,
+	    logout: DEFAULT_PATTERN,
+	    "default": '{prefix}{base}',
+	    close: '{prefix}'
+	  }
+	};
+
+	module.exports = settings;
+
+
+/***/ },
+/* 91 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _, interpolate, loader, makeViewSettings;
+
+	_ = __webpack_require__(3);
+
+	interpolate = __webpack_require__(39);
+
+	makeViewSettings = function(viewOptions, routePattern, view) {
+	  var route;
+	  viewOptions = _.extend({}, viewOptions, {
+	    view: view
+	  });
+	  route = interpolate(routePattern, viewOptions);
+	  return {
+	    state: {
+	      view: view
+	    },
+	    route: route
+	  };
+	};
+
+	loader = function(model, viewSettings) {
+	  var viewOptions;
+	  viewOptions = _.pick(model, 'prefix', 'base');
+	  return model.views = _.mapObject(viewSettings, _.partial(makeViewSettings, viewOptions));
+	};
+
+	module.exports = {
+	  loader: loader
+	};
+
+
+/***/ },
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CloseButton, Course, EventEmitter2, React, Status, UserMenu, api, getWaitingText;
@@ -16440,7 +16608,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	CloseButton = __webpack_require__(6).CloseButton;
 
-	Status = __webpack_require__(94);
+	Status = __webpack_require__(93);
 
 	Course = __webpack_require__(79);
 
@@ -16523,7 +16691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var User, UserStatusMixin;
@@ -16551,20 +16719,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, CourseRegistration, EnrollOrLogin, ModifyCourseRegistration, NewCourseRegistration, React, UserStatus;
 
 	React = __webpack_require__(2);
 
-	NewCourseRegistration = __webpack_require__(96);
+	NewCourseRegistration = __webpack_require__(95);
 
-	ModifyCourseRegistration = __webpack_require__(102);
+	ModifyCourseRegistration = __webpack_require__(101);
 
-	EnrollOrLogin = __webpack_require__(103);
+	EnrollOrLogin = __webpack_require__(102);
 
-	UserStatus = __webpack_require__(94);
+	UserStatus = __webpack_require__(93);
 
 	Course = __webpack_require__(79);
 
@@ -16590,7 +16758,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ConfirmJoin, Course, ENTER, InviteCodeInput, Navigation, NewCourseRegistration, React, User, _;
@@ -16605,11 +16773,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ENTER = 'Enter';
 
-	InviteCodeInput = __webpack_require__(97);
+	InviteCodeInput = __webpack_require__(96);
 
-	ConfirmJoin = __webpack_require__(101);
+	ConfirmJoin = __webpack_require__(100);
 
-	Navigation = __webpack_require__(85);
+	Navigation = __webpack_require__(89);
 
 	User = __webpack_require__(78);
 
@@ -16704,7 +16872,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, Course, CourseListing, ENTER, ErrorList, InviteCodeInput, React, User;
@@ -16715,9 +16883,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ENTER = 'Enter';
 
-	CourseListing = __webpack_require__(98).CourseListing;
+	CourseListing = __webpack_require__(97).CourseListing;
 
-	ErrorList = __webpack_require__(100);
+	ErrorList = __webpack_require__(99);
 
 	Course = __webpack_require__(79);
 
@@ -16780,7 +16948,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CourseItem, CourseListing, React, _;
@@ -16791,7 +16959,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	CourseItem = __webpack_require__(99).CourseItem;
+	CourseItem = __webpack_require__(98).CourseItem;
 
 	CourseListing = React.createClass({
 	  displayName: 'CourseListing',
@@ -16821,10 +16989,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 99 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var BS, CourseItem, EventEmitter2, React, _, componentModel, interpolate, navigation;
+	var BS, BookLinkBase, CourseItem, EventEmitter2, React, _, interpolate, navigation;
 
 	React = __webpack_require__(2);
 
@@ -16836,50 +17004,47 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	navigation = __webpack_require__(85);
+	BookLinkBase = __webpack_require__(84).BookLinkBase;
 
-	componentModel = __webpack_require__(89);
+	navigation = __webpack_require__(89);
 
 	CourseItem = React.createClass({
 	  displayName: 'CourseItem',
 	  contextTypes: {
 	    cnxUrl: React.PropTypes.string,
-	    bookUrlPattern: React.PropTypes.string,
-	    navigator: React.PropTypes.instanceOf(EventEmitter2),
-	    close: React.PropTypes.func
+	    bookUrlPattern: React.PropTypes.string
 	  },
-	  broadcastNav: function(link) {
-	    var bookUrlPattern, close, cnxUrl, course, ecosystem_book_uuid, navigator, ref, routeData;
+	  getLink: function() {
+	    var bookUrlPattern, cnxUrl, course, ecosystem_book_uuid, link, ref, routeData;
 	    course = this.props.course;
-	    ref = this.context, close = ref.close, cnxUrl = ref.cnxUrl, bookUrlPattern = ref.bookUrlPattern, navigator = ref.navigator;
+	    ref = this.context, cnxUrl = ref.cnxUrl, bookUrlPattern = ref.bookUrlPattern;
 	    ecosystem_book_uuid = course.ecosystem_book_uuid;
+	    if (bookUrlPattern == null) {
+	      bookUrlPattern = '';
+	    }
 	    link = interpolate(bookUrlPattern, {
 	      cnxUrl: cnxUrl,
 	      ecosystem_book_uuid: ecosystem_book_uuid
 	    });
 	    routeData = navigation.getDataByView('task');
-	    link = "" + link + routeData.route;
-	    componentModel.update({
-	      scrollY: 0
-	    });
-	    close();
-	    return navigator.emit('close.for.book', {
-	      collectionUUID: ecosystem_book_uuid,
-	      link: link
-	    });
+	    return "" + link + routeData.route;
 	  },
 	  render: function() {
-	    var category, course, ref;
+	    var category, course, ecosystem_book_uuid, link, ref;
 	    course = this.props.course;
 	    if (!course.isRegistered()) {
 	      return null;
 	    }
+	    ecosystem_book_uuid = course.ecosystem_book_uuid;
+	    link = this.getLink();
 	    category = ((ref = course.catalog_offering_identifier) != null ? ref.toLowerCase() : void 0) || 'unknown';
-	    return React.createElement(BS.ListGroupItem, {
-	      "onClick": this.broadcastNav,
+	    return React.createElement(BookLinkBase, {
+	      "collectionUUID": ecosystem_book_uuid,
+	      "link": link
+	    }, React.createElement(BS.ListGroupItem, {
 	      "className": 'concept-coach-course-item',
 	      "data-category": category
-	    }, course.description());
+	    }, course.description()));
 	  }
 	});
 
@@ -16889,7 +17054,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 100 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, ErrorList, React;
@@ -16930,7 +17095,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 101 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, ConfirmJoin, Course, ENTER, ErrorList, React;
@@ -16943,7 +17108,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Course = __webpack_require__(79);
 
-	ErrorList = __webpack_require__(100);
+	ErrorList = __webpack_require__(99);
 
 	AsyncButton = __webpack_require__(6).AsyncButton;
 
@@ -17008,7 +17173,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 102 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ConfirmJoin, Course, InviteCodeInput, ModifyCourseRegistration, Navigation, React, User, _;
@@ -17017,15 +17182,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	InviteCodeInput = __webpack_require__(97);
+	InviteCodeInput = __webpack_require__(96);
 
-	ConfirmJoin = __webpack_require__(101);
+	ConfirmJoin = __webpack_require__(100);
 
 	User = __webpack_require__(78);
 
 	Course = __webpack_require__(79);
 
-	Navigation = __webpack_require__(85);
+	Navigation = __webpack_require__(89);
 
 	ModifyCourseRegistration = React.createClass({displayName: "ModifyCourseRegistration",
 	  propTypes: {
@@ -17095,18 +17260,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 103 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, EnrollOrLogin, LoginGateway, NewCourseRegistration, React;
 
 	React = __webpack_require__(2);
 
-	NewCourseRegistration = __webpack_require__(96);
+	NewCourseRegistration = __webpack_require__(95);
 
 	Course = __webpack_require__(79);
 
-	LoginGateway = __webpack_require__(104);
+	LoginGateway = __webpack_require__(103);
 
 	EnrollOrLogin = React.createClass({displayName: "EnrollOrLogin",
 	  propTypes: {
@@ -17127,7 +17292,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 104 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var LoginGateway, React, SECOND, User, _, api;
@@ -17236,7 +17401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 105 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, ErrorNotification, React, _, api;
@@ -17350,7 +17515,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 106 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AccountsIframe, React, User, api, classnames;
@@ -17491,7 +17656,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 107 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CourseListing, Dashboard, DashboardBase, React, Reactive, User, _, apiChannelName, classnames;
@@ -17504,7 +17669,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Reactive = __webpack_require__(80).Reactive;
 
-	CourseListing = __webpack_require__(98).CourseListing;
+	CourseListing = __webpack_require__(97).CourseListing;
 
 	User = __webpack_require__(78);
 
@@ -17550,7 +17715,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 108 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, ChapterSectionMixin, CurrentProgress, ExerciseButton, Progress, ProgressBase, React, Reactive, SectionProgress, _, apiChannelName, channel, classnames, progresses, tasks;
@@ -17567,13 +17732,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ExerciseButton = __webpack_require__(84).ExerciseButton;
 
-	SectionProgress = __webpack_require__(109).SectionProgress;
+	SectionProgress = __webpack_require__(108).SectionProgress;
 
-	ChapterProgress = __webpack_require__(110).ChapterProgress;
+	ChapterProgress = __webpack_require__(109).ChapterProgress;
 
-	CurrentProgress = __webpack_require__(114).CurrentProgress;
+	CurrentProgress = __webpack_require__(113).CurrentProgress;
 
-	channel = (progresses = __webpack_require__(115)).channel;
+	channel = (progresses = __webpack_require__(114)).channel;
 
 	tasks = __webpack_require__(38);
 
@@ -17646,7 +17811,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 109 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, SectionProgress, _, classnames;
@@ -17687,7 +17852,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 110 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, ChapterSectionMixin, PageProgress, React, _, classnames;
@@ -17700,7 +17865,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	PageProgress = __webpack_require__(111).PageProgress;
+	PageProgress = __webpack_require__(110).PageProgress;
 
 	ChapterProgress = React.createClass({
 	  displayName: 'ChapterProgress',
@@ -17756,7 +17921,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 111 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterSectionMixin, EventEmitter2, ExerciseProgress, PageProgress, React, ResizeListenerMixin, _, classnames, dateFormat, ref;
@@ -17765,7 +17930,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	dateFormat = __webpack_require__(112);
+	dateFormat = __webpack_require__(111);
 
 	classnames = __webpack_require__(4);
 
@@ -17773,7 +17938,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(6), ChapterSectionMixin = ref.ChapterSectionMixin, ResizeListenerMixin = ref.ResizeListenerMixin;
 
-	ExerciseProgress = __webpack_require__(113).ExerciseProgress;
+	ExerciseProgress = __webpack_require__(112).ExerciseProgress;
 
 	PageProgress = React.createClass({
 	  displayName: 'PageProgress',
@@ -17846,7 +18011,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 112 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -18078,7 +18243,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 113 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ExerciseProgress, React, classnames;
@@ -18120,7 +18285,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 114 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, CurrentProgress, CurrentProgressBase, React, Reactive, _, apiChannelName, channel, classnames, tasks;
@@ -18137,7 +18302,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	apiChannelName = 'task';
 
-	ChapterProgress = __webpack_require__(110).ChapterProgress;
+	ChapterProgress = __webpack_require__(109).ChapterProgress;
 
 	CurrentProgressBase = React.createClass({
 	  displayName: 'CurrentProgressBase',
@@ -18198,7 +18363,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 115 */
+/* 114 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, _, api, apiChannelName, channel, fetch, get, getFilteredChapters, init, load, local, update;
@@ -18281,6 +18446,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 115 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var EventEmitter2, _, coach;
+
+	_ = __webpack_require__(3);
+
+	EventEmitter2 = __webpack_require__(5);
+
+	coach = {
+	  update: function(options) {
+	    return _.extend(this, options);
+	  },
+	  channel: new EventEmitter2({
+	    wildcard: true
+	  })
+	};
+
+	module.exports = coach;
+
+
+/***/ },
 /* 116 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -18298,15 +18485,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	restAPI = __webpack_require__(40);
 
-	componentModel = __webpack_require__(89);
+	componentModel = __webpack_require__(115);
 
-	navigation = __webpack_require__(85);
+	navigation = __webpack_require__(89);
 
 	User = __webpack_require__(78);
 
 	exercise = __webpack_require__(77);
 
-	progress = __webpack_require__(115);
+	progress = __webpack_require__(114);
 
 	task = __webpack_require__(38);
 
@@ -18314,7 +18501,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	coachWrapped = helpers.wrapComponent(Coach);
 
-	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl', 'processHtmlAndMath'];
+	PROPS = ['moduleUUID', 'collectionUUID', 'cnxUrl', 'getNextPage', 'processHtmlAndMath'];
 
 	WRAPPER_CLASSNAME = 'concept-coach-wrapper';
 
@@ -18477,6 +18664,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    openProps = _.extend({}, props, {
 	      open: true
 	    });
+	    openProps.triggeredFrom = _.pick(props, 'moduleUUID', 'collectionUUID');
 	    return this.component.setProps(openProps);
 	  };
 
@@ -18640,11 +18828,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	channel = __webpack_require__(89).channel;
+	channel = __webpack_require__(115).channel;
 
 	api = __webpack_require__(40);
 
-	navigation = __webpack_require__(85);
+	navigation = __webpack_require__(89);
 
 	CCModal = React.createClass({
 	  displayName: 'CCModal',
@@ -18739,7 +18927,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(121), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
 
-	channel = __webpack_require__(89).channel;
+	channel = __webpack_require__(115).channel;
 
 	Launcher = React.createClass({
 	  displayName: 'Launcher',
