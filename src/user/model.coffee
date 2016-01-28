@@ -11,9 +11,11 @@ BLANK_USER =
   name: null
   profile_url: null
   courses: []
+  _course_data: []
+  isLoaded: false
+  isLoggingOut: false
 
 User =
-  isLoaded: false
   channel: new EventEmitter2 wildcard: true
 
   update: (data) ->
@@ -90,10 +92,7 @@ User =
 
   destroy: ->
     User.channel.removeAllListeners()
-
-    _.each @courses, (course) ->
-      course.channel.removeAllListeners()
-
+    _.invoke @courses, 'destroy'
     @courses = []
 
 

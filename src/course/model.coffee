@@ -48,7 +48,7 @@ class Course
       msg = @describeMovePart(@to)
       if @from then "from #{@describeMovePart(@from)} to #{msg}" else msg
     else
-      "#{@name} #{_.first(@periods).name} period"
+      "#{@name} #{_.first(@periods).name}"
 
   describeMovePart: (part) ->
     return '' unless part
@@ -136,6 +136,10 @@ class Course
     response.stopErrorDisplay = true if @errors
     delete @isBusy
     @channel.emit('change')
+
+  destroy: ->
+    @channel.emit('destroy')
+    @channel.removeAllListeners()
 
 
 module.exports = Course
