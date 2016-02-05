@@ -22763,6 +22763,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      method: 'PUT',
 	      failedEvent: 'course.{id}.receive.confirmation.failure',
 	      completedEvent: 'course.{id}.receive.confirmation.complete'
+	    },
+	    'course.*.send.studentUpdate': {
+	      url: 'api/user/courses/{id}/student',
+	      method: 'PATCH',
+	      failedEvent: 'course.*.send.studentUpdate.failure',
+	      completedEvent: 'course.*.receive.studentUpdate.complete'
 	    }
 	  }
 	};
@@ -22861,6 +22867,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    progress: DEFAULT_PATTERN,
 	    loading: DEFAULT_PATTERN,
 	    login: DEFAULT_PATTERN,
+	    student_id: DEFAULT_PATTERN,
 	    logout: DEFAULT_PATTERN,
 	    "default": '{prefix}{base}',
 	    close: '{prefix}'
@@ -23086,7 +23093,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  function Course(attributes) {
 	    this.channel = new EventEmitter2;
 	    _.extend(this, attributes);
-	    _.bindAll(this, '_onRegistered', '_onConfirmed', '_onValidated');
+	    _.bindAll(this, '_onRegistered', '_onConfirmed', '_onValidated', '_onStudentUpdated');
 	  }
 
 	  Course.prototype.isRegistered = function() {
@@ -23246,6 +23253,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.channel.emit('change');
 	  };
 
+	  Course.prototype._onStudentUpdated = function(response) {
+	    if (response != null ? response.data : void 0) {
+	      _.extend(this, response.data);
+	    }
+	    return this.channel.emit('change');
+	  };
+
+	  Course.prototype.updateStudent = function(attributes) {
+	    var data;
+	    data = _.extend({}, attributes, {
+	      id: this.id
+	    });
+	    api.channel.once("course." + this.ecosystem_book_uuid + ".receive.studentUpdate.*", this._onStudentUpdated);
+	    return api.channel.emit("course." + this.ecosystem_book_uuid + ".send.studentUpdate", {
+	      data: data
+	    });
+	  };
+
 	  Course.prototype._onRegistered = function(response) {
 	    var data;
 	    if (_.isEmpty(response)) {
@@ -23310,7 +23335,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	load = function(stepId, data) {
-	  steps[stepId] = data;
+	  var temp_free_response;
+	  temp_free_response = steps[stepId].temp_free_response;
+	  steps[stepId] = _.extend({
+	    temp_free_response: temp_free_response
+	  }, data);
 	  return channel.emit("load." + stepId, {
 	    data: data
 	  });
@@ -23660,9 +23689,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(208), ConceptCoach = ref.ConceptCoach, channel = ref.channel;
 
-	CCModal = __webpack_require__(359).CCModal;
+	CCModal = __webpack_require__(358).CCModal;
 
-	Launcher = __webpack_require__(360).Launcher;
+	Launcher = __webpack_require__(359).Launcher;
 
 	Coach = React.createClass({
 	  displayName: 'Coach',
@@ -23705,7 +23734,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 208 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var AccountsIframe, ConceptCoach, CourseRegistration, Dashboard, ErrorNotification, EventEmitter2, ExerciseStep, LoginGateway, Navigation, Progress, React, SmartOverflow, SpyMode, Task, User, VIEWS, _, channel, classnames, navigation, navigator, ref, ref1,
+	var AccountsIframe, ConceptCoach, CourseRegistration, Dashboard, ErrorNotification, EventEmitter2, ExerciseStep, LoginGateway, Navigation, Progress, React, SmartOverflow, SpyMode, Task, UpdateStudentIdentifier, User, VIEWS, _, channel, classnames, navigation, navigator, ref, ref1,
 	  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 	React = __webpack_require__(6);
@@ -23718,31 +23747,33 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(210), SmartOverflow = ref.SmartOverflow, SpyMode = ref.SpyMode;
 
-	Task = __webpack_require__(327).Task;
+	Task = __webpack_require__(324).Task;
 
-	navigation = (ref1 = __webpack_require__(335), Navigation = ref1.Navigation, ref1);
+	navigation = (ref1 = __webpack_require__(332), Navigation = ref1.Navigation, ref1);
 
-	CourseRegistration = __webpack_require__(339);
+	CourseRegistration = __webpack_require__(336);
 
-	ErrorNotification = __webpack_require__(349);
+	ErrorNotification = __webpack_require__(347);
 
-	AccountsIframe = __webpack_require__(350);
+	AccountsIframe = __webpack_require__(348);
 
-	LoginGateway = __webpack_require__(348);
+	UpdateStudentIdentifier = __webpack_require__(349);
+
+	LoginGateway = __webpack_require__(346);
 
 	User = __webpack_require__(202);
 
-	ExerciseStep = __webpack_require__(329).ExerciseStep;
+	ExerciseStep = __webpack_require__(326).ExerciseStep;
 
-	Dashboard = __webpack_require__(351).Dashboard;
+	Dashboard = __webpack_require__(350).Dashboard;
 
-	Progress = __webpack_require__(352).Progress;
+	Progress = __webpack_require__(351).Progress;
 
 	channel = __webpack_require__(198).channel;
 
 	navigator = navigation.channel;
 
-	VIEWS = ['loading', 'login', 'registration', ['task', 'progress', 'profile', 'dashboard', 'registration'], 'logout'];
+	VIEWS = ['loading', 'login', 'registration', ['task', 'progress', 'profile', 'dashboard', 'registration', 'student_id'], 'logout'];
 
 	ConceptCoach = React.createClass({
 	  displayName: 'ConceptCoach',
@@ -23882,10 +23913,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    return this.setState(userState);
 	  },
-	  childComponent: function() {
-	    var course, view;
+	  childComponent: function(course) {
+	    var view;
 	    view = this.state.view;
-	    course = User.getCourse(this.props.collectionUUID);
 	    switch (view) {
 	      case 'loading':
 	        return React.createElement("span", null, React.createElement("i", {
@@ -23918,6 +23948,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	      case 'registration':
 	        return React.createElement(CourseRegistration, React.__spread({}, this.props));
+	      case 'student_id':
+	        return React.createElement(UpdateStudentIdentifier, React.__spread({}, this.props, {
+	          "course": course
+	        }));
 	      default:
 	        return React.createElement("h3", {
 	          "className": "error"
@@ -23939,7 +23973,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "course": course
 	    }), React.createElement("div", {
 	      "className": className
-	    }, this.childComponent())));
+	    }, this.childComponent(course))));
 	  }
 	});
 
@@ -24011,15 +24045,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Exercise = __webpack_require__(211);
 
-	FreeResponse = __webpack_require__(316);
+	FreeResponse = __webpack_require__(313);
 
 	ExerciseGroup = __webpack_require__(233);
 
-	Breadcrumb = __webpack_require__(317);
+	Breadcrumb = __webpack_require__(314);
 
-	SpyMode = __webpack_require__(318);
+	SpyMode = __webpack_require__(315);
 
-	PinnedHeaderFooterCard = __webpack_require__(319);
+	PinnedHeaderFooterCard = __webpack_require__(316);
 
 	ref = __webpack_require__(235), PinnedHeader = ref.PinnedHeader, CardBody = ref.CardBody, PinnableFooter = ref.PinnableFooter;
 
@@ -24027,21 +24061,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ArbitraryHtmlAndMath = __webpack_require__(309);
 
-	SmartOverflow = __webpack_require__(325);
+	SmartOverflow = __webpack_require__(322);
 
 	RefreshButton = __webpack_require__(306);
 
 	AsyncButton = __webpack_require__(305);
 
-	CloseButton = __webpack_require__(326);
+	CloseButton = __webpack_require__(323);
 
 	ChapterSectionMixin = __webpack_require__(234);
 
-	GetPositionMixin = __webpack_require__(324);
+	GetPositionMixin = __webpack_require__(321);
 
-	ResizeListenerMixin = __webpack_require__(323);
+	ResizeListenerMixin = __webpack_require__(320);
 
-	KeysHelper = __webpack_require__(313);
+	KeysHelper = __webpack_require__(312);
 
 	module.exports = {
 	  Exercise: Exercise,
@@ -24133,9 +24167,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.updateCurrentPanel(nextProps);
 	  },
 	  updateCurrentPanel: function(props) {
-	    var currentPanel, getCurrentPanel, id, ref;
-	    ref = props || this.props, id = ref.id, getCurrentPanel = ref.getCurrentPanel;
-	    currentPanel = getCurrentPanel(id);
+	    var currentPanel, id;
+	    id = (props || this.props).id;
+	    currentPanel = this.props.getCurrentPanel(id);
 	    if ((currentPanel != null) && this.state.currentPanel !== currentPanel) {
 	      return this.setState({
 	        currentPanel: currentPanel
@@ -24407,7 +24441,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  },
 	  render: function() {
-	    var ControlButtons, cardClasses, className, controlButtons, controlProps, controlText, footer, footerProps, group, isContinueEnabled, onInputChange, panel, panelProps, pinned, ref2, ref3, related_content, step, waitingText;
+	    var ControlButtons, cardClasses, className, controlButtons, controlProps, controlText, footer, footerProps, group, isContinueEnabled, onInputChange, panel, panelProps, pinned, ref2, related_content, step, waitingText;
 	    ref2 = this.props, step = ref2.step, panel = ref2.panel, pinned = ref2.pinned, isContinueEnabled = ref2.isContinueEnabled, waitingText = ref2.waitingText, controlButtons = ref2.controlButtons, className = ref2.className, footer = ref2.footer;
 	    group = step.group, related_content = step.related_content;
 	    ControlButtons = CONTROLS[panel];
@@ -24435,7 +24469,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    })), React.createElement(ExerciseGroup, {
 	      "key": 'step-exercise-group',
 	      "group": group,
-	      "exercise_uid": ((ref3 = step.content) != null ? ref3.uid : void 0),
 	      "related_content": related_content
 	    })));
 	  }
@@ -26918,32 +26951,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return labels;
 	  },
 	  render: function() {
-	    var className, exerciseUid, exercise_uid, group, groupDOM, labels, ref, related_content;
-	    ref = this.props, group = ref.group, related_content = ref.related_content, exercise_uid = ref.exercise_uid;
-	    groupDOM = [];
+	    var className, group, groupDOM, labels, ref, related_content;
+	    ref = this.props, group = ref.group, related_content = ref.related_content;
+	    groupDOM = null;
 	    if (RULES[group].show) {
 	      className = group.replace(' ', '_');
 	      labels = this.getGroupLabel(group, related_content);
-	      groupDOM = [
-	        React.createElement("i", {
-	          "className": "icon-sm icon-" + className,
-	          "key": 'group-icon'
-	        }), React.createElement("span", {
-	          "className": 'openstax-step-group-label',
-	          "key": 'group-label'
-	        }, labels)
-	      ];
+	      groupDOM = React.createElement("div", {
+	        "className": 'openstax-step-group'
+	      }, React.createElement("i", {
+	        "className": "icon-sm icon-" + className
+	      }), React.createElement("span", {
+	        "className": 'openstax-step-group-label'
+	      }, labels));
 	    }
-	    if (exercise_uid) {
-	      exerciseUid = React.createElement("span", {
-	        "className": 'exercise-uid',
-	        "key": 'exercise-uid'
-	      }, exercise_uid);
-	      groupDOM.push(exerciseUid);
-	    }
-	    return React.createElement("div", {
-	      "className": 'openstax-step-group'
-	    }, groupDOM);
+	    return groupDOM;
 	  }
 	});
 
@@ -34750,7 +34772,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Question = __webpack_require__(311);
 
-	FreeResponse = __webpack_require__(316);
+	FreeResponse = __webpack_require__(313);
 
 	ref = __webpack_require__(307), propTypes = ref.propTypes, props = ref.props;
 
@@ -34793,17 +34815,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  },
 	  componentWillReceiveProps: function(nextProps) {
-	    var answer_id, free_response, nextAnswers;
-	    free_response = nextProps.free_response, answer_id = nextProps.answer_id;
-	    nextAnswers = {};
-	    if (this.state.freeResponse !== free_response) {
-	      nextAnswers.freeResponse = free_response;
-	    }
-	    if (this.state.answerId !== answer_id) {
-	      nextAnswers.answerId = answer_id;
-	    }
-	    if (!_.isEmpty(nextAnswers)) {
-	      return this.setState(nextAnswers);
+	    var answer_id, free_response, mode;
+	    mode = nextProps.mode, free_response = nextProps.free_response, answer_id = nextProps.answer_id;
+	    switch (mode) {
+	      case 'free-response':
+	        if (this.state.freeResponse !== free_response) {
+	          return this.setState({
+	            freeResponse: free_response
+	          });
+	        }
+	        break;
+	      case 'multiple-choice':
+	        if (this.state.answerId !== answer_id) {
+	          return this.setState({
+	            answerId: answer_id
+	          });
+	        }
 	    }
 	  },
 	  focusBox: function() {
@@ -34882,7 +34909,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "key": 'step-question',
 	      "model": question,
 	      "answer_id": answerId,
-	      "keySet": answerKeySet
+	      "keySet": answerKeySet,
+	      "exercise_uid": content.uid
 	    }), this.getFreeResponse()));
 	  }
 	});
@@ -35084,7 +35112,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 311 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Answer, AnswersTable, ArbitraryHtmlAndMath, Feedback, Question, QuestionHtml, React, _, classnames;
+	var Answer, AnswersTable, ArbitraryHtmlAndMath, Feedback, KEYS, KEYSETS_PROPS, QuestionHtml, React, _, classnames, idCounter, isAnswerChecked, isAnswerCorrect, keymaster, keysHelper,
+	  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 	React = __webpack_require__(6);
 
@@ -35092,96 +35121,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(209);
 
-	AnswersTable = __webpack_require__(312).AnswersTable;
+	keymaster = __webpack_require__(232);
 
-	Answer = __webpack_require__(314).Answer;
-
-	Feedback = __webpack_require__(315).Feedback;
-
-	ArbitraryHtmlAndMath = __webpack_require__(309);
-
-	QuestionHtml = React.createClass({
-	  displayName: 'QuestionHtml',
-	  propTypes: {
-	    html: React.PropTypes.string,
-	    type: React.PropTypes.string
-	  },
-	  getDefaultProps: function() {
-	    return {
-	      html: '',
-	      type: ''
-	    };
-	  },
-	  contextTypes: {
-	    processHtmlAndMath: React.PropTypes.func
-	  },
-	  render: function() {
-	    var html, htmlAndMathProps, ref, type;
-	    ref = this.props, html = ref.html, type = ref.type;
-	    if (!(html.length > 0)) {
-	      return null;
-	    }
-	    htmlAndMathProps = _.pick(this.context, 'processHtmlAndMath');
-	    return React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
-	      "className": "question-" + type,
-	      "block": true,
-	      "html": html
-	    }));
-	  }
-	});
-
-	Question = React.createClass({
-	  displayName: 'Question',
-	  propTypes: {
-	    model: React.PropTypes.object.isRequired,
-	    correct_answer_id: React.PropTypes.string,
-	    exercise_uid: React.PropTypes.string
-	  },
-	  childContextTypes: {
-	    processHtmlAndMath: React.PropTypes.func
-	  },
-	  getChildContext: function() {
-	    return {
-	      processHtmlAndMath: this.props.processHtmlAndMath
-	    };
-	  },
-	  render: function() {
-	    var classes, correct_answer_id, exercise_uid, hasCorrectAnswer, model, ref, stem_html, stimulus_html;
-	    ref = this.props, model = ref.model, correct_answer_id = ref.correct_answer_id, exercise_uid = ref.exercise_uid;
-	    stem_html = model.stem_html, stimulus_html = model.stimulus_html;
-	    hasCorrectAnswer = !!correct_answer_id;
-	    classes = classnames('openstax-question', {
-	      'has-correct-answer': hasCorrectAnswer
-	    });
-	    return React.createElement("div", {
-	      "className": classes
-	    }, React.createElement(QuestionHtml, {
-	      "type": 'stem',
-	      "html": stem_html
-	    }), React.createElement(QuestionHtml, {
-	      "type": 'stimulus',
-	      "html": stimulus_html
-	    }), this.props.children, React.createElement(AnswersTable, React.__spread({}, this.props)), React.createElement("div", {
-	      "className": "exercise-uid"
-	    }, exercise_uid));
-	  }
-	});
-
-	module.exports = Question;
-
-
-/***/ },
-/* 312 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Answer, AnswersTable, ArbitraryHtmlAndMath, Feedback, KEYS, KEYSETS_PROPS, React, _, idCounter, isAnswerChecked, keysHelper,
-	  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-	React = __webpack_require__(6);
-
-	_ = __webpack_require__(2);
-
-	keysHelper = __webpack_require__(313);
+	keysHelper = __webpack_require__(312);
 
 	KEYS = {
 	  'multiple-choice-numbers': _.range(1, 10)
@@ -35194,172 +35136,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	KEYSETS_PROPS = _.keys(KEYS);
 
 	KEYSETS_PROPS.push(null);
-
-	ArbitraryHtmlAndMath = __webpack_require__(309);
-
-	Answer = __webpack_require__(314).Answer;
-
-	Feedback = __webpack_require__(315).Feedback;
-
-	idCounter = 0;
-
-	isAnswerChecked = function(answer, chosenAnswer) {
-	  var isChecked, ref;
-	  return isChecked = (ref = answer.id, indexOf.call(chosenAnswer, ref) >= 0);
-	};
-
-	AnswersTable = React.createClass({
-	  displayName: 'AnswersTable',
-	  propTypes: {
-	    model: React.PropTypes.object.isRequired,
-	    type: React.PropTypes.string.isRequired,
-	    answer_id: React.PropTypes.string,
-	    correct_answer_id: React.PropTypes.string,
-	    feedback_html: React.PropTypes.string,
-	    answered_count: React.PropTypes.number,
-	    show_all_feedback: React.PropTypes.bool,
-	    onChange: React.PropTypes.func,
-	    onChangeAttempt: React.PropTypes.func,
-	    keySet: React.PropTypes.oneOf(KEYSETS_PROPS)
-	  },
-	  getDefaultProps: function() {
-	    return {
-	      type: 'student',
-	      show_all_feedback: false,
-	      keySet: 'multiple-choice'
-	    };
-	  },
-	  getInitialState: function() {
-	    return {
-	      answer_id: null
-	    };
-	  },
-	  onChangeAnswer: function(answer, changeEvent) {
-	    var base;
-	    if (this.props.onChange != null) {
-	      this.setState({
-	        answer_id: answer.id
-	      });
-	      return this.props.onChange(answer);
-	    } else {
-	      changeEvent.preventDefault();
-	      return typeof (base = this.props).onChangeAttempt === "function" ? base.onChangeAttempt(answer) : void 0;
-	    }
-	  },
-	  render: function() {
-	    var answer_id, answered_count, answers, answersHtml, checkedAnswerIndex, choicesEnabled, chosenAnswer, correct_answer_id, feedback, feedback_html, hasCorrectAnswer, id, keySet, model, questionAnswerProps, ref, show_all_feedback, type;
-	    ref = this.props, model = ref.model, type = ref.type, answered_count = ref.answered_count, choicesEnabled = ref.choicesEnabled, correct_answer_id = ref.correct_answer_id, answer_id = ref.answer_id, feedback_html = ref.feedback_html, show_all_feedback = ref.show_all_feedback, keySet = ref.keySet;
-	    answers = model.answers, id = model.id;
-	    if (!((answers != null ? answers.length : void 0) > 0)) {
-	      return null;
-	    }
-	    chosenAnswer = [answer_id, this.state.answer_id];
-	    checkedAnswerIndex = null;
-	    hasCorrectAnswer = !!correct_answer_id;
-	    questionAnswerProps = {
-	      qid: id || ("auto-" + (idCounter++)),
-	      correctAnswerId: correct_answer_id,
-	      hasCorrectAnswer: hasCorrectAnswer,
-	      chosenAnswer: chosenAnswer,
-	      onChangeAnswer: this.onChangeAnswer,
-	      type: type,
-	      answered_count: answered_count,
-	      disabled: !choicesEnabled,
-	      show_all_feedback: show_all_feedback
-	    };
-	    answersHtml = _.chain(answers).sortBy(function(answer) {
-	      return parseInt(answer.id);
-	    }).map(function(answer, i) {
-	      var additionalProps, answerProps, ref1;
-	      additionalProps = {
-	        answer: answer,
-	        iter: i,
-	        key: questionAnswerProps.qid + "-option-" + i,
-	        keyControl: (ref1 = KEYS[keySet]) != null ? ref1[i] : void 0
-	      };
-	      answerProps = _.extend({}, additionalProps, questionAnswerProps);
-	      if (isAnswerChecked(answer, chosenAnswer)) {
-	        checkedAnswerIndex = i;
-	      }
-	      return React.createElement(Answer, React.__spread({}, answerProps));
-	    }).value();
-	    if (feedback_html) {
-	      feedback = React.createElement(Feedback, {
-	        "key": 'question-mc-feedback'
-	      }, feedback_html);
-	    }
-	    if ((feedback != null) && (checkedAnswerIndex != null)) {
-	      answersHtml.splice(checkedAnswerIndex + 1, 0, feedback);
-	    }
-	    return React.createElement("div", {
-	      "className": 'answers-table'
-	    }, answersHtml);
-	  }
-	});
-
-	module.exports = {
-	  AnswersTable: AnswersTable
-	};
-
-
-/***/ },
-/* 313 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var _, handleKeys, keymaster, keysHelper,
-	  slice = [].slice;
-
-	_ = __webpack_require__(2);
-
-	keymaster = __webpack_require__(232);
-
-	keysHelper = {};
-
-	handleKeys = function() {
-	  var keyFN, keymasterArgs, keys;
-	  keyFN = arguments[0], keys = arguments[1], keymasterArgs = 3 <= arguments.length ? slice.call(arguments, 2) : [];
-	  if (!keys) {
-	    return keys != null;
-	  }
-	  if (_.isArray(keys)) {
-	    return _.each(keys, function(key) {
-	      return keyFN.apply(null, [key.toString()].concat(slice.call(keymasterArgs)));
-	    });
-	  } else {
-	    return keyFN.apply(null, [keys].concat(slice.call(keymasterArgs)));
-	  }
-	};
-
-	keysHelper.on = _.partial(handleKeys, keymaster);
-
-	keysHelper.off = _.partial(handleKeys, keymaster.unbind);
-
-	keysHelper.getCharFromNumKey = function(numKey, offset) {
-	  if (offset == null) {
-	    offset = 1;
-	  }
-	  return String.fromCharCode((97 - offset) + numKey);
-	};
-
-	module.exports = keysHelper;
-
-
-/***/ },
-/* 314 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Answer, ArbitraryHtmlAndMath, React, _, classnames, idCounter, isAnswerChecked, isAnswerCorrect, keymaster, keysHelper,
-	  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-	React = __webpack_require__(6);
-
-	_ = __webpack_require__(2);
-
-	classnames = __webpack_require__(209);
-
-	keymaster = __webpack_require__(232);
-
-	keysHelper = __webpack_require__(313);
 
 	ArbitraryHtmlAndMath = __webpack_require__(309);
 
@@ -35483,9 +35259,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }, answer.feedback_html);
 	    }
 	    htmlAndMathProps = _.pick(this.context, 'processHtmlAndMath');
-	    return React.createElement("div", {
-	      "className": 'openstax-answer'
-	    }, React.createElement("div", {
+	    return React.createElement("div", null, React.createElement("div", {
 	      "className": classes
 	    }, selectedCount, radioBox, React.createElement("label", {
 	      "htmlFor": qid + "-option-" + iter,
@@ -35498,25 +35272,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    })))), feedback);
 	  }
 	});
-
-	module.exports = {
-	  Answer: Answer
-	};
-
-
-/***/ },
-/* 315 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var ArbitraryHtmlAndMath, Feedback, React, _, classnames;
-
-	React = __webpack_require__(6);
-
-	classnames = __webpack_require__(209);
-
-	_ = __webpack_require__(2);
-
-	ArbitraryHtmlAndMath = __webpack_require__(309);
 
 	Feedback = React.createClass({
 	  displayName: 'Feedback',
@@ -35548,13 +35303,207 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	});
 
-	module.exports = {
-	  Feedback: Feedback
-	};
+	AnswersTable = React.createClass({
+	  displayName: 'AnswersTable',
+	  propTypes: {
+	    model: React.PropTypes.object.isRequired,
+	    type: React.PropTypes.string.isRequired,
+	    answer_id: React.PropTypes.string,
+	    correct_answer_id: React.PropTypes.string,
+	    feedback_html: React.PropTypes.string,
+	    answered_count: React.PropTypes.number,
+	    show_all_feedback: React.PropTypes.bool,
+	    onChange: React.PropTypes.func,
+	    onChangeAttempt: React.PropTypes.func,
+	    keySet: React.PropTypes.oneOf(KEYSETS_PROPS)
+	  },
+	  getDefaultProps: function() {
+	    return {
+	      type: 'student',
+	      show_all_feedback: false,
+	      keySet: 'multiple-choice'
+	    };
+	  },
+	  getInitialState: function() {
+	    return {
+	      answer_id: null
+	    };
+	  },
+	  onChangeAnswer: function(answer, changeEvent) {
+	    var base;
+	    if (this.props.onChange != null) {
+	      this.setState({
+	        answer_id: answer.id
+	      });
+	      return this.props.onChange(answer);
+	    } else {
+	      changeEvent.preventDefault();
+	      return typeof (base = this.props).onChangeAttempt === "function" ? base.onChangeAttempt(answer) : void 0;
+	    }
+	  },
+	  render: function() {
+	    var answer_id, answered_count, answers, answersHtml, checkedAnswerIndex, choicesEnabled, chosenAnswer, correct_answer_id, feedback, feedback_html, hasCorrectAnswer, id, keySet, model, questionAnswerProps, ref, show_all_feedback, type;
+	    ref = this.props, model = ref.model, type = ref.type, answered_count = ref.answered_count, choicesEnabled = ref.choicesEnabled, correct_answer_id = ref.correct_answer_id, answer_id = ref.answer_id, feedback_html = ref.feedback_html, show_all_feedback = ref.show_all_feedback, keySet = ref.keySet;
+	    answers = model.answers, id = model.id;
+	    if (!((answers != null ? answers.length : void 0) > 0)) {
+	      return null;
+	    }
+	    chosenAnswer = [answer_id, this.state.answer_id];
+	    checkedAnswerIndex = null;
+	    hasCorrectAnswer = !!correct_answer_id;
+	    questionAnswerProps = {
+	      qid: id || ("auto-" + (idCounter++)),
+	      correctAnswerId: correct_answer_id,
+	      hasCorrectAnswer: hasCorrectAnswer,
+	      chosenAnswer: chosenAnswer,
+	      onChangeAnswer: this.onChangeAnswer,
+	      type: type,
+	      answered_count: answered_count,
+	      disabled: !choicesEnabled,
+	      show_all_feedback: show_all_feedback
+	    };
+	    answersHtml = _.chain(answers).sortBy(function(answer) {
+	      return parseInt(answer.id);
+	    }).map(function(answer, i) {
+	      var additionalProps, answerProps, ref1;
+	      additionalProps = {
+	        answer: answer,
+	        iter: i,
+	        key: questionAnswerProps.qid + "-option-" + i,
+	        keyControl: (ref1 = KEYS[keySet]) != null ? ref1[i] : void 0
+	      };
+	      answerProps = _.extend({}, additionalProps, questionAnswerProps);
+	      if (isAnswerChecked(answer, chosenAnswer)) {
+	        checkedAnswerIndex = i;
+	      }
+	      return React.createElement(Answer, React.__spread({}, answerProps));
+	    }).value();
+	    if (feedback_html) {
+	      feedback = React.createElement(Feedback, {
+	        "key": 'question-mc-feedback'
+	      }, feedback_html);
+	    }
+	    if ((feedback != null) && (checkedAnswerIndex != null)) {
+	      answersHtml.splice(checkedAnswerIndex + 1, 0, feedback);
+	    }
+	    return React.createElement("div", {
+	      "className": 'answers-table'
+	    }, answersHtml);
+	  }
+	});
+
+	QuestionHtml = React.createClass({
+	  displayName: 'QuestionHtml',
+	  propTypes: {
+	    html: React.PropTypes.string,
+	    type: React.PropTypes.string
+	  },
+	  getDefaultProps: function() {
+	    return {
+	      html: '',
+	      type: ''
+	    };
+	  },
+	  contextTypes: {
+	    processHtmlAndMath: React.PropTypes.func
+	  },
+	  render: function() {
+	    var html, htmlAndMathProps, ref, type;
+	    ref = this.props, html = ref.html, type = ref.type;
+	    if (!(html.length > 0)) {
+	      return null;
+	    }
+	    htmlAndMathProps = _.pick(this.context, 'processHtmlAndMath');
+	    return React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
+	      "className": "question-" + type,
+	      "block": true,
+	      "html": html
+	    }));
+	  }
+	});
+
+	module.exports = React.createClass({
+	  displayName: 'Question',
+	  propTypes: {
+	    model: React.PropTypes.object.isRequired,
+	    correct_answer_id: React.PropTypes.string,
+	    exercise_uid: React.PropTypes.string
+	  },
+	  childContextTypes: {
+	    processHtmlAndMath: React.PropTypes.func
+	  },
+	  getChildContext: function() {
+	    return {
+	      processHtmlAndMath: this.props.processHtmlAndMath
+	    };
+	  },
+	  render: function() {
+	    var classes, correct_answer_id, exercise_uid, hasCorrectAnswer, model, ref, stem_html, stimulus_html;
+	    ref = this.props, model = ref.model, correct_answer_id = ref.correct_answer_id, exercise_uid = ref.exercise_uid;
+	    stem_html = model.stem_html, stimulus_html = model.stimulus_html;
+	    hasCorrectAnswer = !!correct_answer_id;
+	    classes = classnames('openstax-question', {
+	      'has-correct-answer': hasCorrectAnswer
+	    });
+	    return React.createElement("div", {
+	      "className": classes
+	    }, React.createElement(QuestionHtml, {
+	      "type": 'stem',
+	      "html": stem_html
+	    }), React.createElement(QuestionHtml, {
+	      "type": 'stimulus',
+	      "html": stimulus_html
+	    }), this.props.children, React.createElement(AnswersTable, React.__spread({}, this.props)), React.createElement("div", {
+	      "className": "exercise-uid"
+	    }, exercise_uid));
+	  }
+	});
 
 
 /***/ },
-/* 316 */
+/* 312 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var _, handleKeys, keymaster, keysHelper,
+	  slice = [].slice;
+
+	_ = __webpack_require__(2);
+
+	keymaster = __webpack_require__(232);
+
+	keysHelper = {};
+
+	handleKeys = function() {
+	  var keyFN, keymasterArgs, keys;
+	  keyFN = arguments[0], keys = arguments[1], keymasterArgs = 3 <= arguments.length ? slice.call(arguments, 2) : [];
+	  if (!keys) {
+	    return keys != null;
+	  }
+	  if (_.isArray(keys)) {
+	    return _.each(keys, function(key) {
+	      return keyFN.apply(null, [key.toString()].concat(slice.call(keymasterArgs)));
+	    });
+	  } else {
+	    return keyFN.apply(null, [keys].concat(slice.call(keymasterArgs)));
+	  }
+	};
+
+	keysHelper.on = _.partial(handleKeys, keymaster);
+
+	keysHelper.off = _.partial(handleKeys, keymaster.unbind);
+
+	keysHelper.getCharFromNumKey = function(numKey, offset) {
+	  if (offset == null) {
+	    offset = 1;
+	  }
+	  return String.fromCharCode((97 - offset) + numKey);
+	};
+
+	module.exports = keysHelper;
+
+
+/***/ },
+/* 313 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var FreeResponse, React;
@@ -35592,7 +35541,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 317 */
+/* 314 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Breadcrumb, React, _, classnames;
@@ -35659,7 +35608,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var className, classes, crumb, crumbClasses, crumbType, goToStep, iconClasses, isCompleted, isCorrect, isCurrent, isEnd, isIncorrect, propsToPassOn, ref, ref1, status, step, title;
 	    ref = this.props, step = ref.step, crumb = ref.crumb, goToStep = ref.goToStep, className = ref.className;
 	    ref1 = this.state, isCorrect = ref1.isCorrect, isIncorrect = ref1.isIncorrect, isCurrent = ref1.isCurrent, isCompleted = ref1.isCompleted, isEnd = ref1.isEnd, crumbType = ref1.crumbType;
-	    propsToPassOn = _.omit(this.props, 'onClick', 'title', 'className', 'data-chapter', 'key');
+	    propsToPassOn = _.pick(this.props, 'onMouseEnter', 'onMouseLeave', 'style', 'tabIndex');
 	    if (isCurrent) {
 	      title = "Current Step (" + crumbType + ")";
 	    }
@@ -35710,7 +35659,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 318 */
+/* 315 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, SpyModeContent, SpyModeWrapper, classnames;
@@ -35765,7 +35714,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 319 */
+/* 316 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CardBody, GetPositionMixin, PinnableFooter, PinnedHeader, React, ResizeListenerMixin, ScrollListenerMixin, _, ref;
@@ -35774,11 +35723,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(2);
 
-	ScrollListenerMixin = __webpack_require__(320).ScrollListenerMixin;
+	ScrollListenerMixin = __webpack_require__(317).ScrollListenerMixin;
 
-	ResizeListenerMixin = __webpack_require__(323);
+	ResizeListenerMixin = __webpack_require__(320);
 
-	GetPositionMixin = __webpack_require__(324);
+	GetPositionMixin = __webpack_require__(321);
 
 	ref = __webpack_require__(235), PinnedHeader = ref.PinnedHeader, CardBody = ref.CardBody, PinnableFooter = ref.PinnableFooter;
 
@@ -35976,11 +35925,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 320 */
+/* 317 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ScrollBlocker = __webpack_require__(321);
-	var ScrollListenerMixin = __webpack_require__(322);
+	var ScrollBlocker = __webpack_require__(318);
+	var ScrollListenerMixin = __webpack_require__(319);
 
 	module.exports = {
 	  ScrollBlocker: ScrollBlocker,
@@ -35988,7 +35937,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 321 */
+/* 318 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/** @jsx React.DOM */
@@ -36027,7 +35976,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	module.exports = ScrollBlocker;
 
 /***/ },
-/* 322 */
+/* 319 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -36095,7 +36044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 323 */
+/* 320 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, _;
@@ -36152,12 +36101,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  _getComponentSize: function() {
 	    var componentNode;
-	    if (!this.isMounted()) {
-	      return {
-	        height: 0,
-	        width: 0
-	      };
-	    }
 	    componentNode = this.getDOMNode();
 	    return {
 	      width: componentNode.offsetWidth,
@@ -36166,9 +36109,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  setInitialSize: function() {
 	    var componentEl, sizesInitial, windowEl;
-	    if (!this.isMounted()) {
-	      return;
-	    }
 	    windowEl = this._getWindowSize();
 	    componentEl = this._getComponentSize();
 	    sizesInitial = {
@@ -36185,7 +36125,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 324 */
+/* 321 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -36196,7 +36136,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 325 */
+/* 322 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, ResizeListenerMixin, SmartOverflow, _, classnames;
@@ -36207,7 +36147,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(209);
 
-	ResizeListenerMixin = __webpack_require__(323);
+	ResizeListenerMixin = __webpack_require__(320);
 
 	SmartOverflow = React.createClass({displayName: "SmartOverflow",
 	  propTypes: {
@@ -36281,7 +36221,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 326 */
+/* 323 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, classnames;
@@ -36303,7 +36243,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 327 */
+/* 324 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Breadcrumbs, EventEmitter2, ExerciseStep, NoExercises, React, Reactive, SpyMode, Task, TaskBase, TaskReview, TaskTitle, _, api, apiChannelName, breadcrumbs, channel, classnames, exercises, ref, ref1, tasks;
@@ -36322,19 +36262,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	api = __webpack_require__(161);
 
-	Reactive = __webpack_require__(328).Reactive;
+	Reactive = __webpack_require__(325).Reactive;
 
 	apiChannelName = 'task';
 
-	exercises = (ref = __webpack_require__(329), ExerciseStep = ref.ExerciseStep, ref);
+	exercises = (ref = __webpack_require__(326), ExerciseStep = ref.ExerciseStep, ref);
 
-	breadcrumbs = (ref1 = __webpack_require__(330), Breadcrumbs = ref1.Breadcrumbs, ref1);
+	breadcrumbs = (ref1 = __webpack_require__(327), Breadcrumbs = ref1.Breadcrumbs, ref1);
 
-	TaskReview = __webpack_require__(331).TaskReview;
+	TaskReview = __webpack_require__(328).TaskReview;
 
-	TaskTitle = __webpack_require__(333).TaskTitle;
+	TaskTitle = __webpack_require__(330).TaskTitle;
 
-	NoExercises = __webpack_require__(334).NoExercises;
+	NoExercises = __webpack_require__(331).NoExercises;
 
 	TaskBase = React.createClass({
 	  displayName: 'TaskBase',
@@ -36512,7 +36452,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 328 */
+/* 325 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, Reactive, _, api, classnames, interpolate;
@@ -36668,7 +36608,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 329 */
+/* 326 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Exercise, ExerciseBase, ExerciseStep, React, Reactive, _, api, apiChannelName, channel, exercises, getCurrentPanel, ref, tasks;
@@ -36685,7 +36625,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	api = __webpack_require__(161);
 
-	Reactive = __webpack_require__(328).Reactive;
+	Reactive = __webpack_require__(325).Reactive;
 
 	apiChannelName = 'exercise';
 
@@ -36729,6 +36669,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      step: step,
 	      getCurrentPanel: getCurrentPanel,
 	      canReview: true,
+	      freeResponseValue: step.temp_free_response,
 	      setAnswerId: function(id, answerId) {
 	        var eventData;
 	        step.answer_id = answerId;
@@ -36750,6 +36691,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        };
 	        channel.emit("change." + step.id, eventData);
 	        return api.channel.emit("exercise." + step.id + ".send.save", eventData);
+	      },
+	      onFreeResponseChange: function(freeResponse) {
+	        return step.temp_free_response = freeResponse;
 	      },
 	      onContinue: function() {
 	        var eventData;
@@ -36801,7 +36745,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 330 */
+/* 327 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Breadcrumb, BreadcrumbDynamic, Breadcrumbs, React, _, classnames, exercises, tasks;
@@ -36939,7 +36883,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 331 */
+/* 328 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, ChapterSectionMixin, ContinueToBookButton, ExerciseButton, ExerciseStep, React, ReturnToBookButton, ReviewControls, TaskReview, _, ref, tasks;
@@ -36954,9 +36898,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(210).ChapterSectionMixin;
 
-	ExerciseStep = __webpack_require__(329).ExerciseStep;
+	ExerciseStep = __webpack_require__(326).ExerciseStep;
 
-	ref = __webpack_require__(332), ExerciseButton = ref.ExerciseButton, ContinueToBookButton = ref.ContinueToBookButton, ReturnToBookButton = ref.ReturnToBookButton;
+	ref = __webpack_require__(329), ExerciseButton = ref.ExerciseButton, ContinueToBookButton = ref.ContinueToBookButton, ReturnToBookButton = ref.ReturnToBookButton;
 
 	ReviewControls = React.createClass({
 	  displayName: 'ReviewControls',
@@ -37065,7 +37009,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 332 */
+/* 329 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, BookButton, BookLink, BookLinkBase, ContinueToBookButton, EventEmitter2, ExerciseButton, GoToBookLink, React, ReturnToBookButton, _, classnames;
@@ -37291,7 +37235,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 333 */
+/* 330 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterSectionMixin, GoToBookLink, React, TaskTitle, _, classnames, tasks;
@@ -37306,7 +37250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(210).ChapterSectionMixin;
 
-	GoToBookLink = __webpack_require__(332).GoToBookLink;
+	GoToBookLink = __webpack_require__(329).GoToBookLink;
 
 	TaskTitle = React.createClass({
 	  displayName: 'TaskTitle',
@@ -37355,7 +37299,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 334 */
+/* 331 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var NoExercises, React;
@@ -37377,7 +37321,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 335 */
+/* 332 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CloseButton, Course, CourseNameBase, Navigation, React, UserMenu, api, channel, user;
@@ -37388,7 +37332,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	CloseButton = __webpack_require__(210).CloseButton;
 
-	CourseNameBase = __webpack_require__(336).CourseNameBase;
+	CourseNameBase = __webpack_require__(333).CourseNameBase;
 
 	Course = __webpack_require__(203);
 
@@ -37398,7 +37342,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	api = __webpack_require__(161);
 
-	UserMenu = __webpack_require__(337);
+	UserMenu = __webpack_require__(334);
 
 	Navigation = React.createClass({
 	  displayName: 'Navigation',
@@ -37487,7 +37431,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 336 */
+/* 333 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CourseNameBase, React, _, classnames;
@@ -37521,7 +37465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 337 */
+/* 334 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CloseButton, Course, EventEmitter2, React, Status, UserMenu, api, getWaitingText;
@@ -37534,7 +37478,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	CloseButton = __webpack_require__(210).CloseButton;
 
-	Status = __webpack_require__(338);
+	Status = __webpack_require__(335);
 
 	Course = __webpack_require__(203);
 
@@ -37568,6 +37512,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	      view: 'profile'
 	    });
 	  },
+	  updateStudentId: function(clickEvent) {
+	    clickEvent.preventDefault();
+	    return this.context.navigator.emit('show.student_id', {
+	      view: 'student_id'
+	    });
+	  },
 	  update: function() {
 	    if (this.isMounted()) {
 	      return this.forceUpdate();
@@ -37587,13 +37537,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	  renderCourseOption: function() {
 	    var courseChangeText, ref;
 	    if ((ref = this.props.course) != null ? ref.isRegistered() : void 0) {
-	      courseChangeText = 'Change Course and ID';
+	      courseChangeText = 'Change Course';
 	    } else {
 	      courseChangeText = 'Register for Course';
 	    }
 	    return React.createElement(BS.MenuItem, {
 	      "onClick": this.modifyCourse
 	    }, courseChangeText);
+	  },
+	  renderStudentIdOption: function() {
+	    var ref;
+	    if (!((ref = this.props.course) != null ? ref.isRegistered() : void 0)) {
+	      return null;
+	    }
+	    return React.createElement(BS.MenuItem, {
+	      "onClick": this.updateStudentId
+	    }, "Change student ID");
 	  },
 	  render: function() {
 	    var user;
@@ -37607,7 +37566,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "title": user.name
 	    }, this.renderCourseOption(), React.createElement(BS.MenuItem, {
 	      "onClick": this.showProfile
-	    }, "Account Profile"), React.createElement(BS.MenuItem, {
+	    }, "Account Profile"), this.renderStudentIdOption(), React.createElement(BS.MenuItem, {
 	      "onClick": this.logoutUser
 	    }, "Logout"));
 	  }
@@ -37617,7 +37576,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 338 */
+/* 335 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var User, UserStatusMixin;
@@ -37645,20 +37604,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 339 */
+/* 336 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, CourseRegistration, EnrollOrLogin, ModifyCourseRegistration, NewCourseRegistration, React, UserStatus;
 
 	React = __webpack_require__(6);
 
-	NewCourseRegistration = __webpack_require__(340);
+	NewCourseRegistration = __webpack_require__(337);
 
-	ModifyCourseRegistration = __webpack_require__(346);
+	ModifyCourseRegistration = __webpack_require__(344);
 
-	EnrollOrLogin = __webpack_require__(347);
+	EnrollOrLogin = __webpack_require__(345);
 
-	UserStatus = __webpack_require__(338);
+	UserStatus = __webpack_require__(335);
 
 	Course = __webpack_require__(203);
 
@@ -37684,7 +37643,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 340 */
+/* 337 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ConfirmJoin, Course, ENTER, InviteCodeInput, Navigation, NewCourseRegistration, React, User, _;
@@ -37699,9 +37658,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ENTER = 'Enter';
 
-	InviteCodeInput = __webpack_require__(341);
+	InviteCodeInput = __webpack_require__(338);
 
-	ConfirmJoin = __webpack_require__(345);
+	ConfirmJoin = __webpack_require__(342);
 
 	Navigation = __webpack_require__(199);
 
@@ -37798,7 +37757,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 341 */
+/* 338 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, Course, CourseListing, ENTER, ErrorList, InviteCodeInput, React, User;
@@ -37809,9 +37768,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ENTER = 'Enter';
 
-	CourseListing = __webpack_require__(342).CourseListing;
+	CourseListing = __webpack_require__(339).CourseListing;
 
-	ErrorList = __webpack_require__(344);
+	ErrorList = __webpack_require__(341);
 
 	Course = __webpack_require__(203);
 
@@ -37874,7 +37833,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 342 */
+/* 339 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CourseItem, CourseListing, React, _;
@@ -37885,7 +37844,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(2);
 
-	CourseItem = __webpack_require__(343).CourseItem;
+	CourseItem = __webpack_require__(340).CourseItem;
 
 	CourseListing = React.createClass({
 	  displayName: 'CourseListing',
@@ -37915,7 +37874,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 343 */
+/* 340 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, BookLinkBase, CourseItem, EventEmitter2, React, _, interpolate, navigation;
@@ -37930,7 +37889,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(2);
 
-	BookLinkBase = __webpack_require__(332).BookLinkBase;
+	BookLinkBase = __webpack_require__(329).BookLinkBase;
 
 	navigation = __webpack_require__(199);
 
@@ -37980,7 +37939,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 344 */
+/* 341 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, ErrorList, React;
@@ -38021,10 +37980,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 345 */
+/* 342 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var AsyncButton, BS, ConfirmJoin, Course, ENTER, ErrorList, React;
+	var AsyncButton, BS, ConfirmJoin, Course, ENTER, ErrorList, React, RequestStudentId;
 
 	React = __webpack_require__(6);
 
@@ -38032,9 +37991,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ENTER = 'Enter';
 
+	RequestStudentId = __webpack_require__(343);
+
 	Course = __webpack_require__(203);
 
-	ErrorList = __webpack_require__(344);
+	ErrorList = __webpack_require__(341);
 
 	AsyncButton = __webpack_require__(210).AsyncButton;
 
@@ -38044,54 +38005,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	    course: React.PropTypes.instanceOf(Course).isRequired,
 	    optionalStudentId: React.PropTypes.bool
 	  },
-	  startConfirmation: function() {
-	    return this.props.course.confirm(this.refs.input.getValue());
-	  },
-	  onKeyPress: function(ev) {
-	    if (ev.key === ENTER) {
-	      return this.startConfirmation();
-	    }
-	  },
-	  onConfirmKeyPress: function(ev) {
-	    if (ev.key === ENTER) {
-	      return this.startConfirmation();
-	    }
-	  },
-	  cancelConfirmation: function() {
+	  onCancel: function() {
 	    return this.props.course.resetToBlankState();
+	  },
+	  startConfirmation: function(studentId) {
+	    return this.props.course.confirm(studentId);
 	  },
 	  render: function() {
 	    var label;
 	    label = this.props.optionalStudentId ? React.createElement("span", null, "Update school issued ID", React.createElement("br", null), "(", React.createElement("i", null, "leave blank to leave unchanged"), "):") : "Enter your school issued ID:";
-	    return React.createElement("div", {
-	      "className": "form-group"
-	    }, React.createElement("h3", {
-	      "className": "text-center"
-	    }, this.props.title), React.createElement(ErrorList, {
-	      "course": this.props.course
-	    }), React.createElement("div", {
-	      "className": "col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2 col-xs-12"
-	    }, React.createElement(BS.Input, {
-	      "type": "text",
-	      "ref": "input",
+	    return React.createElement(BS.Row, null, React.createElement(RequestStudentId, React.__spread({
+	      "onCancel": this.onCancel,
+	      "onSubmit": this.startConfirmation,
+	      "saveButtonLabel": "Confirm",
 	      "label": label,
-	      "placeholder": "School issued ID",
-	      "autoFocus": true,
-	      "onKeyPress": this.onKeyPress
-	    }), React.createElement("div", {
-	      "className": "text-center"
-	    }, React.createElement("button", {
-	      "className": "btn",
-	      "onClick": this.cancelConfirmation
-	    }, "Cancel"), React.createElement(AsyncButton, {
-	      "className": "btn btn-success",
-	      "isWaiting": !!this.props.course.isBusy,
-	      "waitingText": 'Confirming…',
-	      "onClick": this.startConfirmation,
-	      "style": {
-	        marginLeft: '3rem'
-	      }
-	    }, "Confirm"))));
+	      "onConfirmationCancel": this.onCancel
+	    }, this.props)));
 	  }
 	});
 
@@ -38099,18 +38028,96 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 346 */
+/* 343 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ConfirmJoin, Course, InviteCodeInput, ModifyCourseRegistration, Navigation, React, User, _;
+	var AsyncButton, BS, Course, ENTER, ErrorList, React, RequestStudentId;
+
+	React = __webpack_require__(6);
+
+	BS = __webpack_require__(237);
+
+	ENTER = 'Enter';
+
+	Course = __webpack_require__(203);
+
+	ErrorList = __webpack_require__(341);
+
+	AsyncButton = __webpack_require__(210).AsyncButton;
+
+	RequestStudentId = React.createClass({displayName: "RequestStudentId",
+	  propTypes: {
+	    onCancel: React.PropTypes.func.isRequired,
+	    onSubmit: React.PropTypes.func.isRequired,
+	    label: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]).isRequired,
+	    saveButtonLabel: React.PropTypes.string.isRequired,
+	    title: React.PropTypes.string.isRequired,
+	    course: React.PropTypes.instanceOf(Course).isRequired
+	  },
+	  startConfirmation: function() {
+	    return this.props.course.confirm(this.refs.input.getValue());
+	  },
+	  onKeyPress: function(ev) {
+	    if (ev.key === ENTER) {
+	      return this.onSubmit();
+	    }
+	  },
+	  onSubmit: function() {
+	    return this.props.onSubmit(this.refs.input.getValue());
+	  },
+	  render: function() {
+	    var button;
+	    button = React.createElement(AsyncButton, {
+	      "className": "btn btn-success",
+	      "isWaiting": !!this.props.course.isBusy,
+	      "waitingText": 'Confirming…',
+	      "onClick": this.onSubmit
+	    }, this.props.saveButtonLabel);
+	    return React.createElement("div", {
+	      "className": "request-student-id form-group"
+	    }, React.createElement("h3", {
+	      "className": "text-center"
+	    }, this.props.title), React.createElement(ErrorList, {
+	      "course": this.props.course
+	    }), React.createElement("div", {
+	      "className": 'panels'
+	    }, React.createElement("div", {
+	      "className": 'field'
+	    }, React.createElement(BS.Input, {
+	      "type": "text",
+	      "ref": "input",
+	      "label": this.props.label,
+	      "placeholder": "School issued ID",
+	      "autoFocus": true,
+	      "onKeyPress": this.onKeyPress,
+	      "buttonAfter": button
+	    })), React.createElement("div", {
+	      "className": "cancel"
+	    }, React.createElement("button", {
+	      "className": "btn",
+	      "onClick": this.props.onCancel
+	    }, "Cancel"))));
+	  }
+	});
+
+	module.exports = RequestStudentId;
+
+
+/***/ },
+/* 344 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var ConfirmJoin, Course, InviteCodeInput, ModifyCourseRegistration, Navigation, React, RequestStudentId, User, _;
 
 	React = __webpack_require__(6);
 
 	_ = __webpack_require__(2);
 
-	InviteCodeInput = __webpack_require__(341);
+	InviteCodeInput = __webpack_require__(338);
 
-	ConfirmJoin = __webpack_require__(345);
+	RequestStudentId = __webpack_require__(343);
+
+	ConfirmJoin = __webpack_require__(342);
 
 	User = __webpack_require__(202);
 
@@ -38186,18 +38193,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 347 */
+/* 345 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, EnrollOrLogin, LoginGateway, NewCourseRegistration, React;
 
 	React = __webpack_require__(6);
 
-	NewCourseRegistration = __webpack_require__(340);
+	NewCourseRegistration = __webpack_require__(337);
 
 	Course = __webpack_require__(203);
 
-	LoginGateway = __webpack_require__(348);
+	LoginGateway = __webpack_require__(346);
 
 	EnrollOrLogin = React.createClass({displayName: "EnrollOrLogin",
 	  propTypes: {
@@ -38218,7 +38225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 348 */
+/* 346 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var LoginGateway, React, SECOND, User, _, api;
@@ -38327,7 +38334,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 349 */
+/* 347 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, ErrorNotification, React, _, api;
@@ -38441,7 +38448,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 350 */
+/* 348 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AccountsIframe, React, User, api, classnames;
@@ -38582,7 +38589,107 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 351 */
+/* 349 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var AsyncButton, BS, Course, ENTER, ErrorList, Navigation, React, RequestStudentId, UpdateStudentIdentifer, _;
+
+	_ = __webpack_require__(2);
+
+	React = __webpack_require__(6);
+
+	BS = __webpack_require__(237);
+
+	AsyncButton = __webpack_require__(210).AsyncButton;
+
+	ENTER = 'Enter';
+
+	Course = __webpack_require__(203);
+
+	ErrorList = __webpack_require__(341);
+
+	RequestStudentId = __webpack_require__(343);
+
+	Navigation = __webpack_require__(199);
+
+	UpdateStudentIdentifer = React.createClass({displayName: "UpdateStudentIdentifer",
+	  componentWillMount: function() {
+	    var course;
+	    course = this.props.course || User.getCourse(this.props.collectionUUID) || new Course({
+	      ecosystem_book_uuid: this.props.collectionUUID
+	    });
+	    course.channel.on('change', this.onCourseChange);
+	    return this.setState({
+	      course: course
+	    });
+	  },
+	  componentWillUnmount: function() {
+	    return this.state.course.channel.off('change', this.onCourseChange);
+	  },
+	  onCourseChange: function() {
+	    if (this.props.course.student_identifier) {
+	      this.setState({
+	        requestSuccess: true
+	      });
+	      delete this.props.course.student_identifier;
+	      _.delay(this.onCancel, 1500);
+	    }
+	    return this.forceUpdate();
+	  },
+	  propTypes: {
+	    course: React.PropTypes.instanceOf(Course).isRequired
+	  },
+	  startConfirmation: function() {
+	    return this.props.course.confirm(this.refs.input.getValue());
+	  },
+	  onKeyPress: function(ev) {
+	    if (ev.key === ENTER) {
+	      return this.startConfirmation();
+	    }
+	  },
+	  onConfirmKeyPress: function(ev) {
+	    if (ev.key === ENTER) {
+	      return this.startConfirmation();
+	    }
+	  },
+	  cancelConfirmation: function() {
+	    return this.props.course.resetToBlankState();
+	  },
+	  onSubmit: function(studentId) {
+	    return this.props.course.updateStudent({
+	      student_identifier: studentId
+	    });
+	  },
+	  onCancel: function() {
+	    return Navigation.channel.emit('show.task', {
+	      view: 'task'
+	    });
+	  },
+	  renderComplete: function() {
+	    return React.createElement("h3", {
+	      "className": "text-center"
+	    }, "You have successfully updated your student identifier.");
+	  },
+	  render: function() {
+	    if (this.state.requestSuccess) {
+	      return this.renderComplete();
+	    }
+	    return React.createElement(BS.Row, null, React.createElement(RequestStudentId, React.__spread({
+	      "label": "Enter your school issued ID:",
+	      "title": "Change your student ID",
+	      "onCancel": this.onCancel,
+	      "onSubmit": this.onSubmit,
+	      "saveButtonLabel": "Save",
+	      "canCancel": true
+	    }, this.props)));
+	  }
+	});
+
+	module.exports = UpdateStudentIdentifer;
+
+
+/***/ },
+/* 350 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CourseListing, Dashboard, DashboardBase, React, Reactive, User, _, apiChannelName, classnames;
@@ -38593,9 +38700,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(209);
 
-	Reactive = __webpack_require__(328).Reactive;
+	Reactive = __webpack_require__(325).Reactive;
 
-	CourseListing = __webpack_require__(342).CourseListing;
+	CourseListing = __webpack_require__(339).CourseListing;
 
 	User = __webpack_require__(202);
 
@@ -38641,7 +38748,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 352 */
+/* 351 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, ChapterSectionMixin, CurrentProgress, ExerciseButton, Progress, ProgressBase, React, Reactive, SectionProgress, _, apiChannelName, channel, classnames, progresses, tasks;
@@ -38654,15 +38761,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(210).ChapterSectionMixin;
 
-	Reactive = __webpack_require__(328).Reactive;
+	Reactive = __webpack_require__(325).Reactive;
 
-	ExerciseButton = __webpack_require__(332).ExerciseButton;
+	ExerciseButton = __webpack_require__(329).ExerciseButton;
 
-	SectionProgress = __webpack_require__(353).SectionProgress;
+	SectionProgress = __webpack_require__(352).SectionProgress;
 
-	ChapterProgress = __webpack_require__(354).ChapterProgress;
+	ChapterProgress = __webpack_require__(353).ChapterProgress;
 
-	CurrentProgress = __webpack_require__(358).CurrentProgress;
+	CurrentProgress = __webpack_require__(357).CurrentProgress;
 
 	channel = (progresses = __webpack_require__(205)).channel;
 
@@ -38737,7 +38844,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 353 */
+/* 352 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, SectionProgress, _, classnames;
@@ -38778,7 +38885,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 354 */
+/* 353 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, ChapterSectionMixin, PageProgress, React, _, classnames;
@@ -38791,7 +38898,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(210).ChapterSectionMixin;
 
-	PageProgress = __webpack_require__(355).PageProgress;
+	PageProgress = __webpack_require__(354).PageProgress;
 
 	ChapterProgress = React.createClass({
 	  displayName: 'ChapterProgress',
@@ -38847,7 +38954,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 355 */
+/* 354 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterSectionMixin, EventEmitter2, ExerciseProgress, PageProgress, React, ResizeListenerMixin, _, classnames, dateFormat, ref;
@@ -38856,7 +38963,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(2);
 
-	dateFormat = __webpack_require__(356);
+	dateFormat = __webpack_require__(355);
 
 	classnames = __webpack_require__(209);
 
@@ -38864,7 +38971,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(210), ChapterSectionMixin = ref.ChapterSectionMixin, ResizeListenerMixin = ref.ResizeListenerMixin;
 
-	ExerciseProgress = __webpack_require__(357).ExerciseProgress;
+	ExerciseProgress = __webpack_require__(356).ExerciseProgress;
 
 	PageProgress = React.createClass({
 	  displayName: 'PageProgress',
@@ -38937,7 +39044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 356 */
+/* 355 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -39169,7 +39276,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 357 */
+/* 356 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ExerciseProgress, React, classnames;
@@ -39211,7 +39318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 358 */
+/* 357 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, CurrentProgress, CurrentProgressBase, React, Reactive, _, apiChannelName, channel, classnames, tasks;
@@ -39224,11 +39331,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	channel = (tasks = __webpack_require__(206)).channel;
 
-	Reactive = __webpack_require__(328).Reactive;
+	Reactive = __webpack_require__(325).Reactive;
 
 	apiChannelName = 'task';
 
-	ChapterProgress = __webpack_require__(354).ChapterProgress;
+	ChapterProgress = __webpack_require__(353).ChapterProgress;
 
 	CurrentProgressBase = React.createClass({
 	  displayName: 'CurrentProgressBase',
@@ -39289,7 +39396,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 359 */
+/* 358 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CCModal, React, _, api, channel, classnames, navigation;
@@ -39384,7 +39491,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 360 */
+/* 359 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, BackgroundAndDesk, LaptopAndMug, Launcher, React, _, channel, classnames, ref;
@@ -39397,7 +39504,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(209);
 
-	ref = __webpack_require__(361), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
+	ref = __webpack_require__(360), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
 
 	channel = __webpack_require__(198).channel;
 
@@ -39470,7 +39577,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 361 */
+/* 360 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BackgroundAndDesk, LaptopAndMug, React;
