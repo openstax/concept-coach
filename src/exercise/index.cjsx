@@ -38,6 +38,7 @@ ExerciseBase = React.createClass
       step: step
       getCurrentPanel: exercises.getCurrentPanel.bind(exercises)
       canReview: true
+      freeResponseValue: step.temp_free_response
 
       setAnswerId: (id, answerId) ->
         step.answer_id = answerId
@@ -50,6 +51,10 @@ ExerciseBase = React.createClass
         eventData = change: step, data: step, status: 'saving'
 
         exercises.save(step.id, eventData)
+
+      onFreeResponseChange: (freeResponse) ->
+        step.temp_free_response = freeResponse
+        exercises.load(step.id, step)
 
       onContinue: ->
         step.is_completed = true

@@ -51,4 +51,10 @@ settings =
       url: 'api/enrollment_changes/{id}/approve'
       method: 'PUT'
 
+    'course.*.send.studentUpdate':
+      url: 'api/user/courses/{id}/student'
+      method: 'PATCH'
+      failedEvent: 'course.*.send.studentUpdate.failure'
+      completedEvent: 'course.*.receive.studentUpdate.complete'
+
 module.exports = settings
