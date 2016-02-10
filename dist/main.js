@@ -18789,15 +18789,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  propTypes: {
 	    open: React.PropTypes.bool,
-	    displayLauncher: React.PropTypes.bool
+	    displayLauncher: React.PropTypes.bool,
+	    filterClick: React.PropTypes.func
 	  },
 	  render: function() {
-	    var coachProps, displayLauncher, launcher, modal, open;
-	    open = this.props.open;
-	    displayLauncher = this.props.displayLauncher;
+	    var coachProps, displayLauncher, filterClick, launcher, modal, open, ref1;
+	    ref1 = this.props, open = ref1.open, displayLauncher = ref1.displayLauncher, filterClick = ref1.filterClick;
 	    coachProps = _.omit(this.props, 'open');
 	    if (open) {
-	      modal = React.createElement(CCModal, null, React.createElement(ConceptCoach, React.__spread({}, coachProps)));
+	      modal = React.createElement(CCModal, {
+	        "filterClick": filterClick
+	      }, React.createElement(ConceptCoach, React.__spread({}, coachProps)));
 	    }
 	    if (displayLauncher) {
 	      launcher = React.createElement(Launcher, {
@@ -18872,9 +18874,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return modal.scrollTop = 0;
 	  },
 	  checkAllowed: function(focusEvent) {
-	    var modal;
+	    var base, modal;
 	    modal = this.getDOMNode();
-	    if (!modal.contains(focusEvent.target)) {
+	    if (!(modal.contains(focusEvent.target) || (typeof (base = this.props).filterClick === "function" ? base.filterClick(focusEvent) : void 0))) {
 	      focusEvent.preventDefault();
 	      focusEvent.stopImmediatePropagation();
 	      return modal.focus();
