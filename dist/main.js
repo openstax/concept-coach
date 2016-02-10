@@ -1729,6 +1729,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	RULES = {
 	  "default": DEFAULT_GROUP,
 	  core: DEFAULT_GROUP,
+	  recovery: DEFAULT_GROUP,
 	  personalized: {
 	    show: true,
 	    label: 'Personalized'
