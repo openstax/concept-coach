@@ -7,7 +7,7 @@
 		exports["OpenStaxConceptCoach"] = factory(require("react"), require("underscore"), require("react/addons"), require("react-bootstrap"), require("react-scroll-components"));
 	else
 		root["OpenStaxConceptCoach"] = factory(root["React"], root["_"], root["React.addons"], root["ReactBootstrap"], root["ReactScrollComponents"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_10__, __WEBPACK_EXTERNAL_MODULE_16__, __WEBPACK_EXTERNAL_MODULE_32__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__, __WEBPACK_EXTERNAL_MODULE_10__, __WEBPACK_EXTERNAL_MODULE_17__, __WEBPACK_EXTERNAL_MODULE_33__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -58,7 +58,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ConceptCoach = __webpack_require__(1).ConceptCoach;
 
-	ConceptCoachAPI = __webpack_require__(118);
+	ConceptCoachAPI = __webpack_require__(119);
 
 	module.exports = {
 	  ConceptCoach: ConceptCoach,
@@ -83,29 +83,29 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(6), SmartOverflow = ref.SmartOverflow, SpyMode = ref.SpyMode;
 
-	Task = __webpack_require__(37).Task;
+	Task = __webpack_require__(38).Task;
 
-	navigation = (ref1 = __webpack_require__(87), Navigation = ref1.Navigation, ref1);
+	navigation = (ref1 = __webpack_require__(88), Navigation = ref1.Navigation, ref1);
 
-	CourseRegistration = __webpack_require__(94);
+	CourseRegistration = __webpack_require__(95);
 
-	ErrorNotification = __webpack_require__(105);
+	ErrorNotification = __webpack_require__(106);
 
-	AccountsIframe = __webpack_require__(106);
+	AccountsIframe = __webpack_require__(107);
 
-	UpdateStudentIdentifier = __webpack_require__(107);
+	UpdateStudentIdentifier = __webpack_require__(108);
 
-	LoginGateway = __webpack_require__(104);
+	LoginGateway = __webpack_require__(105);
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
-	ExerciseStep = __webpack_require__(81).ExerciseStep;
+	ExerciseStep = __webpack_require__(82).ExerciseStep;
 
-	Dashboard = __webpack_require__(108).Dashboard;
+	Dashboard = __webpack_require__(109).Dashboard;
 
-	Progress = __webpack_require__(109).Progress;
+	Progress = __webpack_require__(110).Progress;
 
-	channel = __webpack_require__(117).channel;
+	channel = __webpack_require__(118).channel;
 
 	navigator = navigation.channel;
 
@@ -968,41 +968,43 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ArbitraryHtmlAndMath, AsyncButton, Breadcrumb, CardBody, ChapterSectionMixin, CloseButton, Exercise, ExerciseGroup, FreeResponse, GetPositionMixin, KeysHelper, PinnableFooter, PinnedHeader, PinnedHeaderFooterCard, Question, RefreshButton, ResizeListenerMixin, SmartOverflow, SpyMode, ref;
+	var ArbitraryHtmlAndMath, AsyncButton, Breadcrumb, CardBody, ChapterSectionMixin, CloseButton, Exercise, ExerciseGroup, ExerciseIdentifierLink, FreeResponse, GetPositionMixin, KeysHelper, PinnableFooter, PinnedHeader, PinnedHeaderFooterCard, Question, RefreshButton, ResizeListenerMixin, SmartOverflow, SpyMode, ref;
 
 	Exercise = __webpack_require__(7);
 
-	FreeResponse = __webpack_require__(28);
+	FreeResponse = __webpack_require__(29);
 
 	ExerciseGroup = __webpack_require__(12);
 
-	Breadcrumb = __webpack_require__(29);
+	Breadcrumb = __webpack_require__(30);
 
-	SpyMode = __webpack_require__(30);
+	SpyMode = __webpack_require__(31);
 
-	PinnedHeaderFooterCard = __webpack_require__(31);
+	PinnedHeaderFooterCard = __webpack_require__(32);
 
-	ref = __webpack_require__(14), PinnedHeader = ref.PinnedHeader, CardBody = ref.CardBody, PinnableFooter = ref.PinnableFooter;
+	ref = __webpack_require__(15), PinnedHeader = ref.PinnedHeader, CardBody = ref.CardBody, PinnableFooter = ref.PinnableFooter;
 
-	Question = __webpack_require__(23);
+	Question = __webpack_require__(24);
 
-	ArbitraryHtmlAndMath = __webpack_require__(21);
+	ArbitraryHtmlAndMath = __webpack_require__(22);
 
-	SmartOverflow = __webpack_require__(35);
+	SmartOverflow = __webpack_require__(36);
 
-	RefreshButton = __webpack_require__(18);
+	RefreshButton = __webpack_require__(19);
 
-	AsyncButton = __webpack_require__(17);
+	AsyncButton = __webpack_require__(18);
 
-	CloseButton = __webpack_require__(36);
+	CloseButton = __webpack_require__(37);
+
+	ExerciseIdentifierLink = __webpack_require__(14);
 
 	ChapterSectionMixin = __webpack_require__(13);
 
-	GetPositionMixin = __webpack_require__(34);
+	GetPositionMixin = __webpack_require__(35);
 
-	ResizeListenerMixin = __webpack_require__(33);
+	ResizeListenerMixin = __webpack_require__(34);
 
-	KeysHelper = __webpack_require__(25);
+	KeysHelper = __webpack_require__(26);
 
 	module.exports = {
 	  Exercise: Exercise,
@@ -1023,6 +1025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  GetPositionMixin: GetPositionMixin,
 	  ResizeListenerMixin: ResizeListenerMixin,
 	  SpyMode: SpyMode,
+	  ExerciseIdentifierLink: ExerciseIdentifierLink,
 	  KeysHelper: KeysHelper
 	};
 
@@ -1041,7 +1044,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ExerciseStepCard = __webpack_require__(9);
 
-	propTypes = __webpack_require__(19).propTypes;
+	propTypes = __webpack_require__(20).propTypes;
 
 	step = propTypes.ExerciseStepCard.step;
 
@@ -1228,13 +1231,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ExerciseGroup = __webpack_require__(12);
 
-	CardBody = __webpack_require__(14).CardBody;
+	CardBody = __webpack_require__(15).CardBody;
 
-	ref = __webpack_require__(15), ExContinueButton = ref.ExContinueButton, ExReviewControls = ref.ExReviewControls;
+	ref = __webpack_require__(16), ExContinueButton = ref.ExContinueButton, ExReviewControls = ref.ExReviewControls;
 
-	ExMode = __webpack_require__(20).ExMode;
+	ExMode = __webpack_require__(21).ExMode;
 
-	ref1 = __webpack_require__(19), propTypes = ref1.propTypes, props = ref1.props;
+	ref1 = __webpack_require__(20), propTypes = ref1.propTypes, props = ref1.props;
 
 	CONTROLS = {
 	  'free-response': ExContinueButton,
@@ -1717,7 +1720,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ChapterSectionMixin, DEFAULT_GROUP, ExerciseGroup, RULES, React, _, camelCase;
+	var ChapterSectionMixin, DEFAULT_GROUP, ExerciseGroup, ExerciseIdentifierLink, RULES, React, _, camelCase;
 
 	React = __webpack_require__(2);
 
@@ -1727,6 +1730,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(13);
 
+	ExerciseIdentifierLink = __webpack_require__(14);
+
 	DEFAULT_GROUP = {
 	  show: false
 	};
@@ -1734,6 +1739,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	RULES = {
 	  "default": DEFAULT_GROUP,
 	  core: DEFAULT_GROUP,
+	  recovery: DEFAULT_GROUP,
 	  personalized: {
 	    show: true,
 	    label: 'Personalized'
@@ -1777,7 +1783,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return labels;
 	  },
 	  render: function() {
-	    var className, exerciseUid, exercise_uid, group, groupDOM, labels, ref, related_content;
+	    var className, exercise_uid, group, groupDOM, labels, ref, related_content;
 	    ref = this.props, group = ref.group, related_content = ref.related_content, exercise_uid = ref.exercise_uid;
 	    groupDOM = [];
 	    if (RULES[group].show) {
@@ -1794,11 +1800,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      ];
 	    }
 	    if (exercise_uid) {
-	      exerciseUid = React.createElement("span", {
-	        "className": 'exercise-uid',
-	        "key": 'exercise-uid'
-	      }, exercise_uid);
-	      groupDOM.push(exerciseUid);
+	      groupDOM.push(React.createElement(ExerciseIdentifierLink, {
+	        "key": 'exercise-uid',
+	        "exerciseId": exercise_uid
+	      }));
 	    }
 	    return React.createElement("div", {
 	      "className": 'openstax-step-group'
@@ -1849,6 +1854,55 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 14 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var BOOK_UID_XREF, ExerciseIdentifierLink, React;
+
+	React = __webpack_require__(2);
+
+	BOOK_UID_XREF = {
+	  '27275f49-f212-4506-b3b1-a4d5e3598b99': 'Tutor Physics',
+	  'd52e93f4-8653-4273-86da-3850001c0786': 'Tutor Biology',
+	  '947a1417-5fd5-4b3c-ac8f-bd9d1aedf2d2': 'Macroeconomics with Concept Coach',
+	  'bf96bfc5-e723-46c2-9fa2-5a4c9294fa26': 'Concepts of Biology with Concept Coach',
+	  '08df2bee-3db4-4243-bd76-ee032da173e8': 'Microeconomics with Concept Coach',
+	  '4f86c023-a135-412a-9d96-dcbd1ca61e7d': 'Introduction to Sociology 2e with Concept Coach',
+	  'd2fbadca-e4f3-4432-a074-2438c216b62a': 'Principles of Economics with Concept Coach',
+	  '99e127f8-f722-4907-a6b3-2d62fca135d6': 'Anatomy & Physiology with Concept Coach'
+	};
+
+	ExerciseIdentifierLink = React.createClass({displayName: "ExerciseIdentifierLink",
+	  propTypes: {
+	    bookUUID: React.PropTypes.string,
+	    exerciseId: React.PropTypes.string.isRequired,
+	    project: React.PropTypes.oneOf(['concept-coach', 'tutor'])
+	  },
+	  formUrl: function() {
+	    var url;
+	    url = 'https://docs.google.com/a/rice.edu/forms/d/' + '1AmwbFIRvZJ6F91PQp1I6jQgqM9Kc3qNMrHdLdqhj8FE/viewform' + ("?entry.649352110=" + this.props.exerciseId);
+	    if (this.props.project) {
+	      url += "&entry.1655668181=" + (this.props.project === 'concept-coach' ? 'Yes' : 'No');
+	    }
+	    if (this.props.bookUUID && BOOK_UID_XREF[this.props.bookUUID]) {
+	      url += "&entry.1091629000=" + BOOK_UID_XREF[this.props.bookUUID];
+	    }
+	    return url;
+	  },
+	  render: function() {
+	    return React.createElement("span", {
+	      "className": 'exercise-identifier-link'
+	    }, "ID# ", this.props.exerciseId, " | ", React.createElement("a", {
+	      "target": "_blank",
+	      "href": this.formUrl()
+	    }, "Report an error"));
+	  }
+	});
+
+	module.exports = ExerciseIdentifierLink;
+
+
+/***/ },
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CardBody, PinnableFooter, PinnedHeader, React;
@@ -1937,20 +1991,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, ExContinueButton, ExReviewControls, React, _, propTypes, props, ref;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	_ = __webpack_require__(3);
 
-	AsyncButton = __webpack_require__(17);
+	AsyncButton = __webpack_require__(18);
 
-	ref = __webpack_require__(19), propTypes = ref.propTypes, props = ref.props;
+	ref = __webpack_require__(20), propTypes = ref.propTypes, props = ref.props;
 
 	ExContinueButton = React.createClass({
 	  displayName: 'ExContinueButton',
@@ -2035,24 +2089,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_16__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_17__;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, React, RefreshButton, _;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	_ = __webpack_require__(3);
 
-	RefreshButton = __webpack_require__(18);
+	RefreshButton = __webpack_require__(19);
 
 	module.exports = React.createClass({
 	  displayName: 'AsyncButton',
@@ -2137,7 +2191,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React;
@@ -2172,7 +2226,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CONTINUE_PROP_TYPES, CONTROL_PROPS, EXERCISE_STEP_CARD_PROP_TYPES, FOOTER_PROPS, FREE_RESPONSE_PROP_TYPES, MULTIPLE_CHOICE_PROP_TYPES, NOT_PANEL_PROPS, REVIEW_CONTROL_PROP_TYPES, React, STEP_PROP_TYPES, _, extendPropTypes, propTypes, props,
@@ -2277,7 +2331,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ArbitraryHtmlAndMath, ExMode, FreeResponse, Question, React, _, modeProps, modeType, propTypes, props, ref;
@@ -2286,13 +2340,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	ArbitraryHtmlAndMath = __webpack_require__(21);
+	ArbitraryHtmlAndMath = __webpack_require__(22);
 
-	Question = __webpack_require__(23);
+	Question = __webpack_require__(24);
 
-	FreeResponse = __webpack_require__(28);
+	FreeResponse = __webpack_require__(29);
 
-	ref = __webpack_require__(19), propTypes = ref.propTypes, props = ref.props;
+	ref = __webpack_require__(20), propTypes = ref.propTypes, props = ref.props;
 
 	modeType = propTypes.ExerciseStepCard.panel;
 
@@ -2436,7 +2490,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, _, classnames, typesetMath;
@@ -2447,7 +2501,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	typesetMath = __webpack_require__(22).typesetMath;
+	typesetMath = __webpack_require__(23).typesetMath;
 
 	module.exports = React.createClass({
 	  displayName: 'ArbitraryHtmlAndMath',
@@ -2520,7 +2574,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var COMBINED_MATH_SELECTOR, MATH_DATA_SELECTOR, MATH_MARKER_BLOCK, MATH_MARKER_INLINE, MATH_ML_SELECTOR, MATH_RENDERED_CLASS, _, setAsRendered, startMathJax, typesetDocument, typesetMath;
@@ -2624,7 +2678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Answer, AnswersTable, ArbitraryHtmlAndMath, Feedback, Question, QuestionHtml, React, _, classnames;
@@ -2635,13 +2689,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	AnswersTable = __webpack_require__(24).AnswersTable;
+	AnswersTable = __webpack_require__(25).AnswersTable;
 
-	Answer = __webpack_require__(26).Answer;
+	Answer = __webpack_require__(27).Answer;
 
-	Feedback = __webpack_require__(27).Feedback;
+	Feedback = __webpack_require__(28).Feedback;
 
-	ArbitraryHtmlAndMath = __webpack_require__(21);
+	ArbitraryHtmlAndMath = __webpack_require__(22);
 
 	QuestionHtml = React.createClass({
 	  displayName: 'QuestionHtml',
@@ -2714,7 +2768,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Answer, AnswersTable, ArbitraryHtmlAndMath, Feedback, KEYS, KEYSETS_PROPS, React, _, idCounter, isAnswerChecked, keysHelper,
@@ -2724,7 +2778,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	keysHelper = __webpack_require__(25);
+	keysHelper = __webpack_require__(26);
 
 	KEYS = {
 	  'multiple-choice-numbers': _.range(1, 10)
@@ -2738,11 +2792,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	KEYSETS_PROPS.push(null);
 
-	ArbitraryHtmlAndMath = __webpack_require__(21);
+	ArbitraryHtmlAndMath = __webpack_require__(22);
 
-	Answer = __webpack_require__(26).Answer;
+	Answer = __webpack_require__(27).Answer;
 
-	Feedback = __webpack_require__(27).Feedback;
+	Feedback = __webpack_require__(28).Feedback;
 
 	idCounter = 0;
 
@@ -2846,7 +2900,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _, handleKeys, keymaster, keysHelper,
@@ -2888,7 +2942,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Answer, ArbitraryHtmlAndMath, React, _, classnames, idCounter, isAnswerChecked, isAnswerCorrect, keymaster, keysHelper,
@@ -2902,9 +2956,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	keymaster = __webpack_require__(11);
 
-	keysHelper = __webpack_require__(25);
+	keysHelper = __webpack_require__(26);
 
-	ArbitraryHtmlAndMath = __webpack_require__(21);
+	ArbitraryHtmlAndMath = __webpack_require__(22);
 
 	idCounter = 0;
 
@@ -3048,7 +3102,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ArbitraryHtmlAndMath, Feedback, React, _, classnames;
@@ -3059,7 +3113,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	ArbitraryHtmlAndMath = __webpack_require__(21);
+	ArbitraryHtmlAndMath = __webpack_require__(22);
 
 	Feedback = React.createClass({
 	  displayName: 'Feedback',
@@ -3097,7 +3151,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var FreeResponse, React;
@@ -3135,7 +3189,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Breadcrumb, React, _, classnames;
@@ -3253,7 +3307,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, SpyModeContent, SpyModeWrapper, classnames;
@@ -3308,7 +3362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CardBody, GetPositionMixin, PinnableFooter, PinnedHeader, React, ResizeListenerMixin, ScrollListenerMixin, _, ref;
@@ -3317,13 +3371,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	ScrollListenerMixin = __webpack_require__(32).ScrollListenerMixin;
+	ScrollListenerMixin = __webpack_require__(33).ScrollListenerMixin;
 
-	ResizeListenerMixin = __webpack_require__(33);
+	ResizeListenerMixin = __webpack_require__(34);
 
-	GetPositionMixin = __webpack_require__(34);
+	GetPositionMixin = __webpack_require__(35);
 
-	ref = __webpack_require__(14), PinnedHeader = ref.PinnedHeader, CardBody = ref.CardBody, PinnableFooter = ref.PinnableFooter;
+	ref = __webpack_require__(15), PinnedHeader = ref.PinnedHeader, CardBody = ref.CardBody, PinnableFooter = ref.PinnableFooter;
 
 	module.exports = React.createClass({
 	  displayName: 'PinnedHeaderFooterCard',
@@ -3519,13 +3573,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_32__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_33__;
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, _;
@@ -3615,7 +3669,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports) {
 
 	module.exports = {
@@ -3626,7 +3680,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, ResizeListenerMixin, SmartOverflow, _, classnames;
@@ -3637,7 +3691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	ResizeListenerMixin = __webpack_require__(33);
+	ResizeListenerMixin = __webpack_require__(34);
 
 	SmartOverflow = React.createClass({displayName: "SmartOverflow",
 	  propTypes: {
@@ -3711,7 +3765,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, classnames;
@@ -3733,7 +3787,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Breadcrumbs, EventEmitter2, ExerciseStep, NoExercises, React, Reactive, SpyMode, Task, TaskBase, TaskReview, TaskTitle, _, api, apiChannelName, breadcrumbs, channel, classnames, exercises, ref, ref1, tasks;
@@ -3748,23 +3802,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	SpyMode = __webpack_require__(6).SpyMode;
 
-	channel = (tasks = __webpack_require__(38)).channel;
+	channel = (tasks = __webpack_require__(39)).channel;
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
-	Reactive = __webpack_require__(80).Reactive;
+	Reactive = __webpack_require__(81).Reactive;
 
 	apiChannelName = 'task';
 
-	exercises = (ref = __webpack_require__(81), ExerciseStep = ref.ExerciseStep, ref);
+	exercises = (ref = __webpack_require__(82), ExerciseStep = ref.ExerciseStep, ref);
 
-	breadcrumbs = (ref1 = __webpack_require__(82), Breadcrumbs = ref1.Breadcrumbs, ref1);
+	breadcrumbs = (ref1 = __webpack_require__(83), Breadcrumbs = ref1.Breadcrumbs, ref1);
 
-	TaskReview = __webpack_require__(83).TaskReview;
+	TaskReview = __webpack_require__(84).TaskReview;
 
-	TaskTitle = __webpack_require__(85).TaskTitle;
+	TaskTitle = __webpack_require__(86).TaskTitle;
 
-	NoExercises = __webpack_require__(86).NoExercises;
+	NoExercises = __webpack_require__(87).NoExercises;
 
 	TaskBase = React.createClass({
 	  displayName: 'TaskBase',
@@ -3942,24 +3996,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ERRORS_TO_SILENCE, EventEmitter2, _, api, channel, checkFailure, exercises, fetch, fetchByModule, get, getAsPage, getCompleteSteps, getFirstIncompleteIndex, getIncompleteSteps, getModuleInfo, getStepIndex, getUnhandledErrors, handledAllErrors, init, interpolate, load, tasks, update, user;
 
 	EventEmitter2 = __webpack_require__(5);
 
-	interpolate = __webpack_require__(39);
+	interpolate = __webpack_require__(40);
 
 	_ = __webpack_require__(3);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
-	exercises = __webpack_require__(77);
+	exercises = __webpack_require__(78);
 
 	tasks = {};
 
-	user = __webpack_require__(78);
+	user = __webpack_require__(79);
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -4127,7 +4181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports) {
 
 	
@@ -4198,16 +4252,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, IS_INITIALIZED, channel, destroy, initialize, isPending, loader, ref, settings;
 
 	EventEmitter2 = __webpack_require__(5);
 
-	ref = __webpack_require__(41), loader = ref.loader, isPending = ref.isPending;
+	ref = __webpack_require__(42), loader = ref.loader, isPending = ref.isPending;
 
-	settings = __webpack_require__(76);
+	settings = __webpack_require__(77);
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -4241,18 +4295,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $, API_ACCESS_TOKEN, LOADING, METHODS_WITH_DATA, _, deepMerge, defaultFail, getAjaxSettingsByEnv, getResponseDataByEnv, handleAPIEvent, interpolate, isPending, loader;
 
 	_ = __webpack_require__(3);
 
-	deepMerge = __webpack_require__(42);
+	deepMerge = __webpack_require__(43);
 
-	$ = __webpack_require__(75);
+	$ = __webpack_require__(76);
 
-	interpolate = __webpack_require__(39);
+	interpolate = __webpack_require__(40);
 
 	METHODS_WITH_DATA = ['PUT', 'PATCH', 'POST'];
 
@@ -4389,11 +4443,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseMerge = __webpack_require__(43),
-	    createAssigner = __webpack_require__(70);
+	var baseMerge = __webpack_require__(44),
+	    createAssigner = __webpack_require__(71);
 
 	/**
 	 * Recursively merges own enumerable properties of the source object(s), that
@@ -4449,17 +4503,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var arrayEach = __webpack_require__(44),
-	    baseMergeDeep = __webpack_require__(45),
-	    isArray = __webpack_require__(53),
-	    isArrayLike = __webpack_require__(48),
-	    isObject = __webpack_require__(57),
-	    isObjectLike = __webpack_require__(52),
-	    isTypedArray = __webpack_require__(65),
-	    keys = __webpack_require__(68);
+	var arrayEach = __webpack_require__(45),
+	    baseMergeDeep = __webpack_require__(46),
+	    isArray = __webpack_require__(54),
+	    isArrayLike = __webpack_require__(49),
+	    isObject = __webpack_require__(58),
+	    isObjectLike = __webpack_require__(53),
+	    isTypedArray = __webpack_require__(66),
+	    keys = __webpack_require__(69);
 
 	/**
 	 * The base implementation of `_.merge` without support for argument juggling,
@@ -4511,7 +4565,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports) {
 
 	/**
@@ -4539,16 +4593,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var arrayCopy = __webpack_require__(46),
-	    isArguments = __webpack_require__(47),
-	    isArray = __webpack_require__(53),
-	    isArrayLike = __webpack_require__(48),
-	    isPlainObject = __webpack_require__(58),
-	    isTypedArray = __webpack_require__(65),
-	    toPlainObject = __webpack_require__(66);
+	var arrayCopy = __webpack_require__(47),
+	    isArguments = __webpack_require__(48),
+	    isArray = __webpack_require__(54),
+	    isArrayLike = __webpack_require__(49),
+	    isPlainObject = __webpack_require__(59),
+	    isTypedArray = __webpack_require__(66),
+	    toPlainObject = __webpack_require__(67);
 
 	/**
 	 * A specialized version of `baseMerge` for arrays and objects which performs
@@ -4612,7 +4666,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports) {
 
 	/**
@@ -4638,11 +4692,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArrayLike = __webpack_require__(48),
-	    isObjectLike = __webpack_require__(52);
+	var isArrayLike = __webpack_require__(49),
+	    isObjectLike = __webpack_require__(53);
 
 	/** Used for native method references. */
 	var objectProto = Object.prototype;
@@ -4678,11 +4732,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var getLength = __webpack_require__(49),
-	    isLength = __webpack_require__(51);
+	var getLength = __webpack_require__(50),
+	    isLength = __webpack_require__(52);
 
 	/**
 	 * Checks if `value` is array-like.
@@ -4699,10 +4753,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseProperty = __webpack_require__(50);
+	var baseProperty = __webpack_require__(51);
 
 	/**
 	 * Gets the "length" property value of `object`.
@@ -4720,7 +4774,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports) {
 
 	/**
@@ -4740,7 +4794,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports) {
 
 	/**
@@ -4766,7 +4820,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports) {
 
 	/**
@@ -4784,12 +4838,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var getNative = __webpack_require__(54),
-	    isLength = __webpack_require__(51),
-	    isObjectLike = __webpack_require__(52);
+	var getNative = __webpack_require__(55),
+	    isLength = __webpack_require__(52),
+	    isObjectLike = __webpack_require__(53);
 
 	/** `Object#toString` result references. */
 	var arrayTag = '[object Array]';
@@ -4830,10 +4884,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isNative = __webpack_require__(55);
+	var isNative = __webpack_require__(56);
 
 	/**
 	 * Gets the native function at `key` of `object`.
@@ -4852,11 +4906,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isFunction = __webpack_require__(56),
-	    isObjectLike = __webpack_require__(52);
+	var isFunction = __webpack_require__(57),
+	    isObjectLike = __webpack_require__(53);
 
 	/** Used to detect host constructors (Safari > 5). */
 	var reIsHostCtor = /^\[object .+?Constructor\]$/;
@@ -4906,10 +4960,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isObject = __webpack_require__(57);
+	var isObject = __webpack_require__(58);
 
 	/** `Object#toString` result references. */
 	var funcTag = '[object Function]';
@@ -4950,7 +5004,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports) {
 
 	/**
@@ -4984,12 +5038,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseForIn = __webpack_require__(59),
-	    isArguments = __webpack_require__(47),
-	    isObjectLike = __webpack_require__(52);
+	var baseForIn = __webpack_require__(60),
+	    isArguments = __webpack_require__(48),
+	    isObjectLike = __webpack_require__(53);
 
 	/** `Object#toString` result references. */
 	var objectTag = '[object Object]';
@@ -5061,11 +5115,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseFor = __webpack_require__(60),
-	    keysIn = __webpack_require__(63);
+	var baseFor = __webpack_require__(61),
+	    keysIn = __webpack_require__(64);
 
 	/**
 	 * The base implementation of `_.forIn` without support for callback
@@ -5084,10 +5138,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var createBaseFor = __webpack_require__(61);
+	var createBaseFor = __webpack_require__(62);
 
 	/**
 	 * The base implementation of `baseForIn` and `baseForOwn` which iterates
@@ -5107,10 +5161,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var toObject = __webpack_require__(62);
+	var toObject = __webpack_require__(63);
 
 	/**
 	 * Creates a base function for `_.forIn` or `_.forInRight`.
@@ -5140,10 +5194,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isObject = __webpack_require__(57);
+	var isObject = __webpack_require__(58);
 
 	/**
 	 * Converts `value` to an object if it's not one.
@@ -5160,14 +5214,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArguments = __webpack_require__(47),
-	    isArray = __webpack_require__(53),
-	    isIndex = __webpack_require__(64),
-	    isLength = __webpack_require__(51),
-	    isObject = __webpack_require__(57);
+	var isArguments = __webpack_require__(48),
+	    isArray = __webpack_require__(54),
+	    isIndex = __webpack_require__(65),
+	    isLength = __webpack_require__(52),
+	    isObject = __webpack_require__(58);
 
 	/** Used for native method references. */
 	var objectProto = Object.prototype;
@@ -5230,7 +5284,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports) {
 
 	/** Used to detect unsigned integer values. */
@@ -5260,11 +5314,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isLength = __webpack_require__(51),
-	    isObjectLike = __webpack_require__(52);
+	var isLength = __webpack_require__(52),
+	    isObjectLike = __webpack_require__(53);
 
 	/** `Object#toString` result references. */
 	var argsTag = '[object Arguments]',
@@ -5340,11 +5394,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseCopy = __webpack_require__(67),
-	    keysIn = __webpack_require__(63);
+	var baseCopy = __webpack_require__(68),
+	    keysIn = __webpack_require__(64);
 
 	/**
 	 * Converts `value` to a plain object flattening inherited enumerable
@@ -5377,7 +5431,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports) {
 
 	/**
@@ -5406,13 +5460,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var getNative = __webpack_require__(54),
-	    isArrayLike = __webpack_require__(48),
-	    isObject = __webpack_require__(57),
-	    shimKeys = __webpack_require__(69);
+	var getNative = __webpack_require__(55),
+	    isArrayLike = __webpack_require__(49),
+	    isObject = __webpack_require__(58),
+	    shimKeys = __webpack_require__(70);
 
 	/* Native method references for those with the same name as other `lodash` methods. */
 	var nativeKeys = getNative(Object, 'keys');
@@ -5457,14 +5511,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArguments = __webpack_require__(47),
-	    isArray = __webpack_require__(53),
-	    isIndex = __webpack_require__(64),
-	    isLength = __webpack_require__(51),
-	    keysIn = __webpack_require__(63);
+	var isArguments = __webpack_require__(48),
+	    isArray = __webpack_require__(54),
+	    isIndex = __webpack_require__(65),
+	    isLength = __webpack_require__(52),
+	    keysIn = __webpack_require__(64);
 
 	/** Used for native method references. */
 	var objectProto = Object.prototype;
@@ -5504,12 +5558,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var bindCallback = __webpack_require__(71),
-	    isIterateeCall = __webpack_require__(73),
-	    restParam = __webpack_require__(74);
+	var bindCallback = __webpack_require__(72),
+	    isIterateeCall = __webpack_require__(74),
+	    restParam = __webpack_require__(75);
 
 	/**
 	 * Creates a `_.assign`, `_.defaults`, or `_.merge` function.
@@ -5551,10 +5605,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var identity = __webpack_require__(72);
+	var identity = __webpack_require__(73);
 
 	/**
 	 * A specialized version of `baseCallback` which only supports `this` binding
@@ -5596,7 +5650,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports) {
 
 	/**
@@ -5622,12 +5676,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var isArrayLike = __webpack_require__(48),
-	    isIndex = __webpack_require__(64),
-	    isObject = __webpack_require__(57);
+	var isArrayLike = __webpack_require__(49),
+	    isIndex = __webpack_require__(65),
+	    isObject = __webpack_require__(58);
 
 	/**
 	 * Checks if the provided arguments are from an iteratee call.
@@ -5656,7 +5710,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports) {
 
 	/** Used as the `TypeError` message for "Functions" methods. */
@@ -5720,7 +5774,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -14936,7 +14990,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports) {
 
 	var settings;
@@ -15012,7 +15066,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, STEP_TYPES, _, api, channel, fetch, get, getCurrentPanel, init, load, quickLoad, steps, update, user,
@@ -15020,13 +15074,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	EventEmitter2 = __webpack_require__(5);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
 	steps = {};
 
 	_ = __webpack_require__(3);
 
-	user = __webpack_require__(78);
+	user = __webpack_require__(79);
 
 	channel = new EventEmitter2({
 	  wildcard: true
@@ -15120,7 +15174,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BLANK_USER, Course, EventEmitter2, React, User, _, api;
@@ -15131,9 +15185,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	EventEmitter2 = __webpack_require__(5);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
 	BLANK_USER = {
 	  is_admin: false,
@@ -15271,7 +15325,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, ERROR_MAP, EventEmitter2, React, _, api;
@@ -15282,7 +15336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	EventEmitter2 = __webpack_require__(5);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
 	ERROR_MAP = {
 	  invalid_enrollment_code: 'This is not a valid enrollment code for this book. Please try again. Contact your instructor to verify your enrollment code.',
@@ -15509,7 +15563,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, Reactive, _, api, classnames, interpolate;
@@ -15518,11 +15572,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
 	_ = __webpack_require__(3);
 
-	interpolate = __webpack_require__(39);
+	interpolate = __webpack_require__(40);
 
 	Reactive = React.createClass({
 	  displayName: 'Reactive',
@@ -15665,7 +15719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Exercise, ExerciseBase, ExerciseStep, React, Reactive, _, api, apiChannelName, channel, exercises, getCurrentPanel, ref, tasks;
@@ -15676,13 +15730,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	Exercise = __webpack_require__(6).Exercise;
 
-	ref = exercises = __webpack_require__(77), channel = ref.channel, getCurrentPanel = ref.getCurrentPanel;
+	ref = exercises = __webpack_require__(78), channel = ref.channel, getCurrentPanel = ref.getCurrentPanel;
 
-	tasks = __webpack_require__(38);
+	tasks = __webpack_require__(39);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
-	Reactive = __webpack_require__(80).Reactive;
+	Reactive = __webpack_require__(81).Reactive;
 
 	apiChannelName = 'exercise';
 
@@ -15802,7 +15856,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Breadcrumb, BreadcrumbDynamic, Breadcrumbs, React, _, classnames, exercises, tasks;
@@ -15815,9 +15869,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	tasks = __webpack_require__(38);
+	tasks = __webpack_require__(39);
 
-	exercises = __webpack_require__(77);
+	exercises = __webpack_require__(78);
 
 	BreadcrumbDynamic = React.createClass({
 	  displayName: 'BreadcrumbDynamic',
@@ -15940,24 +15994,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, ChapterSectionMixin, ContinueToBookButton, ExerciseButton, ExerciseStep, React, ReturnToBookButton, ReviewControls, TaskReview, _, ref, tasks;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	_ = __webpack_require__(3);
 
-	tasks = __webpack_require__(38);
+	tasks = __webpack_require__(39);
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	ExerciseStep = __webpack_require__(81).ExerciseStep;
+	ExerciseStep = __webpack_require__(82).ExerciseStep;
 
-	ref = __webpack_require__(84), ExerciseButton = ref.ExerciseButton, ContinueToBookButton = ref.ContinueToBookButton, ReturnToBookButton = ref.ReturnToBookButton;
+	ref = __webpack_require__(85), ExerciseButton = ref.ExerciseButton, ContinueToBookButton = ref.ContinueToBookButton, ReturnToBookButton = ref.ReturnToBookButton;
 
 	ReviewControls = React.createClass({
 	  displayName: 'ReviewControls',
@@ -16066,14 +16120,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, BookButton, BookLink, BookLinkBase, ContinueToBookButton, EventEmitter2, ExerciseButton, GoToBookLink, React, ReturnToBookButton, _, classnames;
 
 	React = __webpack_require__(10);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	_ = __webpack_require__(3);
 
@@ -16292,7 +16346,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterSectionMixin, GoToBookLink, React, TaskTitle, _, classnames, tasks;
@@ -16303,11 +16357,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	tasks = __webpack_require__(38);
+	tasks = __webpack_require__(39);
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	GoToBookLink = __webpack_require__(84).GoToBookLink;
+	GoToBookLink = __webpack_require__(85).GoToBookLink;
 
 	TaskTitle = React.createClass({
 	  displayName: 'TaskTitle',
@@ -16356,7 +16410,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var NoExercises, React;
@@ -16378,28 +16432,28 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CloseButton, Course, CourseNameBase, Navigation, React, UserMenu, api, channel, user;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	CloseButton = __webpack_require__(6).CloseButton;
 
-	CourseNameBase = __webpack_require__(88).CourseNameBase;
+	CourseNameBase = __webpack_require__(89).CourseNameBase;
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	user = __webpack_require__(78);
+	user = __webpack_require__(79);
 
-	channel = __webpack_require__(89).channel;
+	channel = __webpack_require__(90).channel;
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
-	UserMenu = __webpack_require__(92);
+	UserMenu = __webpack_require__(93);
 
 	Navigation = React.createClass({
 	  displayName: 'Navigation',
@@ -16488,7 +16542,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CourseNameBase, React, _, classnames;
@@ -16522,7 +16576,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, _, channel, getDataByView, getViewByRoute, initialize, loader, navigation, settings;
@@ -16531,9 +16585,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	EventEmitter2 = __webpack_require__(5);
 
-	settings = __webpack_require__(90);
+	settings = __webpack_require__(91);
 
-	loader = __webpack_require__(91).loader;
+	loader = __webpack_require__(92).loader;
 
 	navigation = {};
 
@@ -16573,7 +16627,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports) {
 
 	var DEFAULT_PATTERN, settings;
@@ -16601,14 +16655,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var _, interpolate, loader, makeViewSettings;
 
 	_ = __webpack_require__(3);
 
-	interpolate = __webpack_require__(39);
+	interpolate = __webpack_require__(40);
 
 	makeViewSettings = function(viewOptions, routePattern, view) {
 	  var route;
@@ -16636,24 +16690,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CloseButton, Course, EventEmitter2, React, Status, UserMenu, api, getWaitingText;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	EventEmitter2 = __webpack_require__(5);
 
 	CloseButton = __webpack_require__(6).CloseButton;
 
-	Status = __webpack_require__(93);
+	Status = __webpack_require__(94);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
 	getWaitingText = function(status) {
 	  return status + "…";
@@ -16747,12 +16801,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var User, UserStatusMixin;
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
 	UserStatusMixin = {
 	  componentDidMount: function() {
@@ -16775,22 +16829,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, CourseRegistration, EnrollOrLogin, ModifyCourseRegistration, NewCourseRegistration, React, UserStatus;
 
 	React = __webpack_require__(2);
 
-	NewCourseRegistration = __webpack_require__(95);
+	NewCourseRegistration = __webpack_require__(96);
 
-	ModifyCourseRegistration = __webpack_require__(102);
+	ModifyCourseRegistration = __webpack_require__(103);
 
-	EnrollOrLogin = __webpack_require__(103);
+	EnrollOrLogin = __webpack_require__(104);
 
-	UserStatus = __webpack_require__(93);
+	UserStatus = __webpack_require__(94);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
 	CourseRegistration = React.createClass({displayName: "CourseRegistration",
 	  propTypes: {
@@ -16814,7 +16868,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ConfirmJoin, Course, ENTER, InviteCodeInput, Navigation, NewCourseRegistration, React, User, _;
@@ -16823,19 +16877,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
 	ENTER = 'Enter';
 
-	InviteCodeInput = __webpack_require__(96);
+	InviteCodeInput = __webpack_require__(97);
 
-	ConfirmJoin = __webpack_require__(100);
+	ConfirmJoin = __webpack_require__(101);
 
-	Navigation = __webpack_require__(89);
+	Navigation = __webpack_require__(90);
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
 	NewCourseRegistration = React.createClass({displayName: "NewCourseRegistration",
 	  propTypes: {
@@ -16928,26 +16982,26 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, Course, CourseListing, ENTER, ErrorList, InviteCodeInput, React, User;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	ENTER = 'Enter';
 
-	CourseListing = __webpack_require__(97).CourseListing;
+	CourseListing = __webpack_require__(98).CourseListing;
 
-	ErrorList = __webpack_require__(99);
+	ErrorList = __webpack_require__(100);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
 	AsyncButton = __webpack_require__(6).AsyncButton;
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
 	InviteCodeInput = React.createClass({displayName: "InviteCodeInput",
 	  propTypes: {
@@ -17004,18 +17058,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, CourseItem, CourseListing, React, _;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	_ = __webpack_require__(3);
 
-	CourseItem = __webpack_require__(98).CourseItem;
+	CourseItem = __webpack_require__(99).CourseItem;
 
 	CourseListing = React.createClass({
 	  displayName: 'CourseListing',
@@ -17045,24 +17099,24 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, BookLinkBase, CourseItem, EventEmitter2, React, _, interpolate, navigation;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	EventEmitter2 = __webpack_require__(5);
 
-	interpolate = __webpack_require__(39);
+	interpolate = __webpack_require__(40);
 
 	_ = __webpack_require__(3);
 
-	BookLinkBase = __webpack_require__(84).BookLinkBase;
+	BookLinkBase = __webpack_require__(85).BookLinkBase;
 
-	navigation = __webpack_require__(89);
+	navigation = __webpack_require__(90);
 
 	CourseItem = React.createClass({
 	  displayName: 'CourseItem',
@@ -17110,14 +17164,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, ErrorList, React;
 
 	React = __webpack_require__(2);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
 	ErrorList = React.createClass({displayName: "ErrorList",
 	  propTypes: {
@@ -17151,22 +17205,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, ConfirmJoin, Course, ENTER, ErrorList, React, RequestStudentId;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	ENTER = 'Enter';
 
-	RequestStudentId = __webpack_require__(101);
+	RequestStudentId = __webpack_require__(102);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	ErrorList = __webpack_require__(99);
+	ErrorList = __webpack_require__(100);
 
 	AsyncButton = __webpack_require__(6).AsyncButton;
 
@@ -17199,20 +17253,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, Course, ENTER, ErrorList, React, RequestStudentId;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	ENTER = 'Enter';
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	ErrorList = __webpack_require__(99);
+	ErrorList = __webpack_require__(100);
 
 	AsyncButton = __webpack_require__(6).AsyncButton;
 
@@ -17275,7 +17329,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ConfirmJoin, Course, InviteCodeInput, ModifyCourseRegistration, Navigation, React, RequestStudentId, User, _;
@@ -17284,17 +17338,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	InviteCodeInput = __webpack_require__(96);
+	InviteCodeInput = __webpack_require__(97);
 
-	RequestStudentId = __webpack_require__(101);
+	RequestStudentId = __webpack_require__(102);
 
-	ConfirmJoin = __webpack_require__(100);
+	ConfirmJoin = __webpack_require__(101);
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	Navigation = __webpack_require__(89);
+	Navigation = __webpack_require__(90);
 
 	ModifyCourseRegistration = React.createClass({displayName: "ModifyCourseRegistration",
 	  propTypes: {
@@ -17364,18 +17418,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var Course, EnrollOrLogin, LoginGateway, NewCourseRegistration, React;
 
 	React = __webpack_require__(2);
 
-	NewCourseRegistration = __webpack_require__(95);
+	NewCourseRegistration = __webpack_require__(96);
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	LoginGateway = __webpack_require__(104);
+	LoginGateway = __webpack_require__(105);
 
 	EnrollOrLogin = React.createClass({displayName: "EnrollOrLogin",
 	  propTypes: {
@@ -17396,7 +17450,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var LoginGateway, React, SECOND, User, _, api;
@@ -17405,9 +17459,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
 	SECOND = 1000;
 
@@ -17505,18 +17559,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, ErrorNotification, React, _, api;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	_ = __webpack_require__(3);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
 	ErrorNotification = React.createClass({displayName: "ErrorNotification",
 	  getInitialState: function() {
@@ -17619,7 +17673,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 106 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AccountsIframe, React, User, api, classnames;
@@ -17628,9 +17682,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
 	AccountsIframe = React.createClass({displayName: "AccountsIframe",
 	  propTypes: {
@@ -17760,7 +17814,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 107 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var AsyncButton, BS, Course, ENTER, ErrorList, Navigation, React, RequestStudentId, UpdateStudentIdentifer, _;
@@ -17769,19 +17823,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	AsyncButton = __webpack_require__(6).AsyncButton;
 
 	ENTER = 'Enter';
 
-	Course = __webpack_require__(79);
+	Course = __webpack_require__(80);
 
-	ErrorList = __webpack_require__(99);
+	ErrorList = __webpack_require__(100);
 
-	RequestStudentId = __webpack_require__(101);
+	RequestStudentId = __webpack_require__(102);
 
-	Navigation = __webpack_require__(89);
+	Navigation = __webpack_require__(90);
 
 	UpdateStudentIdentifer = React.createClass({displayName: "UpdateStudentIdentifer",
 	  componentWillMount: function() {
@@ -17860,7 +17914,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 108 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CourseListing, Dashboard, DashboardBase, React, Reactive, User, _, apiChannelName, classnames;
@@ -17871,11 +17925,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	Reactive = __webpack_require__(80).Reactive;
+	Reactive = __webpack_require__(81).Reactive;
 
-	CourseListing = __webpack_require__(97).CourseListing;
+	CourseListing = __webpack_require__(98).CourseListing;
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
 	apiChannelName = 'user';
 
@@ -17919,7 +17973,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 109 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, ChapterSectionMixin, CurrentProgress, ExerciseButton, Progress, ProgressBase, React, Reactive, SectionProgress, _, apiChannelName, channel, classnames, progresses, tasks;
@@ -17932,19 +17986,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	Reactive = __webpack_require__(80).Reactive;
+	Reactive = __webpack_require__(81).Reactive;
 
-	ExerciseButton = __webpack_require__(84).ExerciseButton;
+	ExerciseButton = __webpack_require__(85).ExerciseButton;
 
-	SectionProgress = __webpack_require__(110).SectionProgress;
+	SectionProgress = __webpack_require__(111).SectionProgress;
 
-	ChapterProgress = __webpack_require__(111).ChapterProgress;
+	ChapterProgress = __webpack_require__(112).ChapterProgress;
 
-	CurrentProgress = __webpack_require__(115).CurrentProgress;
+	CurrentProgress = __webpack_require__(116).CurrentProgress;
 
-	channel = (progresses = __webpack_require__(116)).channel;
+	channel = (progresses = __webpack_require__(117)).channel;
 
-	tasks = __webpack_require__(38);
+	tasks = __webpack_require__(39);
 
 	apiChannelName = 'courseDashboard';
 
@@ -18015,7 +18069,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 110 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, SectionProgress, _, classnames;
@@ -18056,7 +18110,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 111 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, ChapterSectionMixin, PageProgress, React, _, classnames;
@@ -18069,7 +18123,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ChapterSectionMixin = __webpack_require__(6).ChapterSectionMixin;
 
-	PageProgress = __webpack_require__(112).PageProgress;
+	PageProgress = __webpack_require__(113).PageProgress;
 
 	ChapterProgress = React.createClass({
 	  displayName: 'ChapterProgress',
@@ -18125,7 +18179,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 112 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterSectionMixin, EventEmitter2, ExerciseProgress, PageProgress, React, ResizeListenerMixin, _, classnames, dateFormat, ref;
@@ -18134,7 +18188,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	dateFormat = __webpack_require__(113);
+	dateFormat = __webpack_require__(114);
 
 	classnames = __webpack_require__(4);
 
@@ -18142,7 +18196,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(6), ChapterSectionMixin = ref.ChapterSectionMixin, ResizeListenerMixin = ref.ResizeListenerMixin;
 
-	ExerciseProgress = __webpack_require__(114).ExerciseProgress;
+	ExerciseProgress = __webpack_require__(115).ExerciseProgress;
 
 	PageProgress = React.createClass({
 	  displayName: 'PageProgress',
@@ -18215,7 +18269,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 113 */
+/* 114 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -18447,7 +18501,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 114 */
+/* 115 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ExerciseProgress, React, classnames;
@@ -18489,7 +18543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 115 */
+/* 116 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ChapterProgress, CurrentProgress, CurrentProgressBase, React, Reactive, _, apiChannelName, channel, classnames, tasks;
@@ -18500,13 +18554,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	classnames = __webpack_require__(4);
 
-	channel = (tasks = __webpack_require__(38)).channel;
+	channel = (tasks = __webpack_require__(39)).channel;
 
-	Reactive = __webpack_require__(80).Reactive;
+	Reactive = __webpack_require__(81).Reactive;
 
 	apiChannelName = 'task';
 
-	ChapterProgress = __webpack_require__(111).ChapterProgress;
+	ChapterProgress = __webpack_require__(112).ChapterProgress;
 
 	CurrentProgressBase = React.createClass({
 	  displayName: 'CurrentProgressBase',
@@ -18567,7 +18621,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 116 */
+/* 117 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, _, api, apiChannelName, channel, fetch, get, getFilteredChapters, init, load, local, update;
@@ -18576,7 +18630,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
 	local = {};
 
@@ -18650,7 +18704,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 117 */
+/* 118 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var EventEmitter2, _, coach;
@@ -18672,7 +18726,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 118 */
+/* 119 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var $, Coach, ConceptCoachAPI, EventEmitter2, PROPS, User, WRAPPER_CLASSNAME, _, coachWrapped, componentModel, deleteProperties, exercise, helpers, initializeModels, listenAndBroadcast, navigation, progress, restAPI, setupAPIListeners, stopModelChannels, task,
@@ -18681,27 +18735,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	$ = __webpack_require__(75);
+	$ = __webpack_require__(76);
 
 	EventEmitter2 = __webpack_require__(5);
 
-	helpers = __webpack_require__(119);
+	helpers = __webpack_require__(120);
 
-	restAPI = __webpack_require__(40);
+	restAPI = __webpack_require__(41);
 
-	componentModel = __webpack_require__(117);
+	componentModel = __webpack_require__(118);
 
-	navigation = __webpack_require__(89);
+	navigation = __webpack_require__(90);
 
-	User = __webpack_require__(78);
+	User = __webpack_require__(79);
 
-	exercise = __webpack_require__(77);
+	exercise = __webpack_require__(78);
 
-	progress = __webpack_require__(116);
+	progress = __webpack_require__(117);
 
-	task = __webpack_require__(38);
+	task = __webpack_require__(39);
 
-	Coach = __webpack_require__(120).Coach;
+	Coach = __webpack_require__(121).Coach;
 
 	coachWrapped = helpers.wrapComponent(Coach);
 
@@ -18941,7 +18995,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 119 */
+/* 120 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var React, _, helpers;
@@ -18968,7 +19022,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 120 */
+/* 121 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CCModal, Coach, ConceptCoach, Launcher, React, _, channel, ref;
@@ -18979,9 +19033,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ref = __webpack_require__(1), ConceptCoach = ref.ConceptCoach, channel = ref.channel;
 
-	CCModal = __webpack_require__(121).CCModal;
+	CCModal = __webpack_require__(122).CCModal;
 
-	Launcher = __webpack_require__(122).Launcher;
+	Launcher = __webpack_require__(123).Launcher;
 
 	Coach = React.createClass({
 	  displayName: 'Coach',
@@ -18993,15 +19047,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  propTypes: {
 	    open: React.PropTypes.bool,
-	    displayLauncher: React.PropTypes.bool
+	    displayLauncher: React.PropTypes.bool,
+	    filterClick: React.PropTypes.func
 	  },
 	  render: function() {
-	    var coachProps, displayLauncher, launcher, modal, open;
-	    open = this.props.open;
-	    displayLauncher = this.props.displayLauncher;
+	    var coachProps, displayLauncher, filterClick, launcher, modal, open, ref1;
+	    ref1 = this.props, open = ref1.open, displayLauncher = ref1.displayLauncher, filterClick = ref1.filterClick;
 	    coachProps = _.omit(this.props, 'open');
 	    if (open) {
-	      modal = React.createElement(CCModal, null, React.createElement(ConceptCoach, React.__spread({}, coachProps)));
+	      modal = React.createElement(CCModal, {
+	        "filterClick": filterClick
+	      }, React.createElement(ConceptCoach, React.__spread({}, coachProps)));
 	    }
 	    if (displayLauncher) {
 	      launcher = React.createElement(Launcher, {
@@ -19021,7 +19077,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 121 */
+/* 122 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var CCModal, React, _, api, channel, classnames, navigation;
@@ -19032,11 +19088,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	_ = __webpack_require__(3);
 
-	channel = __webpack_require__(117).channel;
+	channel = __webpack_require__(118).channel;
 
-	api = __webpack_require__(40);
+	api = __webpack_require__(41);
 
-	navigation = __webpack_require__(89);
+	navigation = __webpack_require__(90);
 
 	CCModal = React.createClass({
 	  displayName: 'CCModal',
@@ -19076,9 +19132,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return modal.scrollTop = 0;
 	  },
 	  checkAllowed: function(focusEvent) {
-	    var modal;
+	    var base, modal;
 	    modal = this.getDOMNode();
-	    if (!modal.contains(focusEvent.target)) {
+	    if (!(modal.contains(focusEvent.target) || (typeof (base = this.props).filterClick === "function" ? base.filterClick(focusEvent) : void 0))) {
 	      focusEvent.preventDefault();
 	      focusEvent.stopImmediatePropagation();
 	      return modal.focus();
@@ -19116,22 +19172,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 122 */
+/* 123 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BS, BackgroundAndDesk, LaptopAndMug, Launcher, React, _, channel, classnames, ref;
 
 	React = __webpack_require__(2);
 
-	BS = __webpack_require__(16);
+	BS = __webpack_require__(17);
 
 	_ = __webpack_require__(3);
 
 	classnames = __webpack_require__(4);
 
-	ref = __webpack_require__(123), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
+	ref = __webpack_require__(124), BackgroundAndDesk = ref.BackgroundAndDesk, LaptopAndMug = ref.LaptopAndMug;
 
-	channel = __webpack_require__(117).channel;
+	channel = __webpack_require__(118).channel;
 
 	Launcher = React.createClass({
 	  displayName: 'Launcher',
@@ -19202,7 +19258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 123 */
+/* 124 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var BackgroundAndDesk, LaptopAndMug, React;
