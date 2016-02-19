@@ -2,46 +2,13 @@ EventEmitter2 = require 'eventemitter2'
 interpolate = require 'interpolate'
 _ = require 'underscore'
 assign = require 'lodash/object/assign'
-cloneDeep = require 'lodash/lang/cloneDeep'
 
-UPDATE_DEFAULTS =
-  collection:
-    _initData: (data) ->
-      @_initialData = data if data?
-      @_items = @_initialData or {}
-    _getData: (topic) ->
-      @_items[topic]
-    _setData: (topic, data) ->
-      @_items[topic] = data
-    _resetData: ->
-      UPDATE_DEFAULTS.collection._initData.call(@)
+{CachedCollection, CachedItem} = require './cache'
 
-  model:
-    _initData: (data) ->
-      @_initialData = data if data?
-      @_dataKeys = []
-      UPDATE_DEFAULTS.model._setData.call(@, @_initialData)
 
-    _getData: ->
-      _.pick(@, @_dataKeys)
-
-    _setData: (data) ->
-      safeData = _.omit(data, @_protectedKeys)
-      additionalDataKeys = _.keys(safeData)
-
-      @_dataKeys = _.chain(@_dataKeys)
-        .union(additionalDataKeys)
-        .uniq()
-        .value()
-
-      _.extend(@, safeData)
-
-    _resetData: ->
-      _.each(@_dataKeys, (key) =>
-        delete @[key]
-      )
-      UPDATE_DEFAULTS.model._initData.call(@)
-
+CACHE_TYPES =
+  collection: CachedCollection
+  model: CachedItem
 
 OPTION_TYPES =
   apiChannel: (option) ->
@@ -56,7 +23,7 @@ ACTIONS_CHECK =
 
 TYPE_CHECK =
   type: (type) ->
-    type in _.keys(UPDATE_DEFAULTS)
+    type in _.keys(CACHE_TYPES)
 
 # private utils
 isErrorSilent = (error, silencers = []) ->
@@ -71,8 +38,8 @@ getUnhandledErrors = (errors, {silencers, map}) ->
 
   errors = _.chain(errors)
     .map((error) ->
-      return null if isErrorSilent(error, silencers)
       error.message = getErrorMessage(error, map)
+      return null if isErrorSilent(error, silencers) or error.message
       error
     )
     .compact()
@@ -145,7 +112,7 @@ class ApiLink extends EventEmitter2
     @_errors = errors
     @_type = type
 
-    UPDATE_DEFAULTS[@_type]._initData.call(@, initialData)
+    @_data = new CACHE_TYPES[@_type](initialData)
 
     @_protectedKeys = _.union ['apiNameSpace', 'errors', 'apiChannel'], _.keys(EventEmitter2.prototype)
 
@@ -166,15 +133,22 @@ class ApiLink extends EventEmitter2
 
     @[key] = hook.bind(@)
 
-  init: ->
+
+  init: =>
     # update on completed response from the api, both successes and failures
-    @apiChannel.on("#{@apiNameSpace}.*.*.*", @update.bind(@))
+    @apiChannel.on("#{@apiNameSpace}.*.*.*", @update)
     # filter the failures for error messages and errors that are otherwise handled
-    @apiChannel.on("#{@apiNameSpace}.*.*.failure", _.partial(checkFailure, _, @_errors))
+    @apiChannel.on("#{@apiNameSpace}.*.*.failure", @handleFailure)
+
+  handleFailure: (response) =>
+    checkFailure(response, @_errors)
+
+  silenceFailure: (response) =>
+    response.stopErrorDisplay = true
 
   # Only update if the api channel has response event data.  The data should include the original
   # query/topic so that the data can be loaded appropriately on topic.
-  update: (eventData) ->
+  update: (eventData) =>
     return unless eventData?
     {data, query} = eventData
     @load(query, data)
@@ -183,29 +157,38 @@ class ApiLink extends EventEmitter2
   # syncing with data returned from the api
   # The fact that the topic has been updated is broadcasted out,
   # along with the latest data and the status of the data.
-  load: (topic, data) ->
-    UPDATE_DEFAULTS[@_type]._setData.call(@, topic, data)
+  load: (topic, data) =>
+    @_data.set(topic, data)
 
     status = if not data or data.errors? then 'failed' else 'loaded'
     @emit("load.#{topic}", {data, status})
 
   # For getting the latest data on `topic`.
-  get: (topic) ->
+  get: (topic) =>
     # Only allow access to cloned copy; mutating this link's synced data is discouraged.
     # If the data needs to be manipulated, the copy with be manipulated, submitted to
     # the api, and then the response can update this link's data.
-    cloneDeep(UPDATE_DEFAULTS[@_type]._getData.call(@, topic))
+    @_data.get(topic)
 
   # Sends out the call to the api for fetching data.
-  fetch: (topic, payload) ->
+  fetch: (topic, payload) =>
     payload ?= {id: topic}
     eventData = {data: payload, status: 'loading'}
     sender.call(@, topic, eventData, 'fetch')
 
-  reset: ->
-    UPDATE_DEFAULTS[@_type]._resetData.call(@)
+  change: (topic, change) =>
+    @_data.change(topic, change)
+    data = @_data.get(topic)
 
-  destroy: ->
+    @emit("change.#{topic}", {data, change})
+
+  reset: =>
+    @_data.reset()
+
+  unset: (key) =>
+    @_data.unset(key)
+
+  destroy: =>
     @removeAllListeners()
     @reset()
 

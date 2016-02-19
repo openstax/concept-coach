@@ -1,5 +1,6 @@
 api = require '../api'
 {ApiLink} = require '../helpers/api-link'
+{CachedCollection} = require '../helpers/cache'
 
 _ = require 'underscore'
 
@@ -16,21 +17,12 @@ EXERCISE_OPTIONS =
 class ExerciseApi extends ApiLink
   init: ->
     user.on 'logout.received', @reset.bind(@)
-    @_freeResponseCache = {}
+    @_freeResponseCache = new CachedCollection()
     super()
 
   quickLoad: (topic, data) ->
-    @_items[topic] = data
+    @_data.set(topic, data)
     @emit("quickLoad.#{topic}", {data})
-
-  cacheFreeResponse: (topic, freeResponse) ->
-    @_freeResponseCache[topic] = freeResponse
-
-  clearCachedFreeResponse: (topic) ->
-    @_freeResponseCache[topic] = null
-
-  getCachedFreeResponse: (topic) ->
-    @_freeResponseCache[topic]
 
   load: (topic, data) ->
     {temp_free_response} = data
@@ -39,10 +31,10 @@ class ExerciseApi extends ApiLink
 
     # If free response has been saved, clear cached free response.
     if step.free_response?.length
-      @clearCachedFreeResponse(topic)
+      @_freeResponseCache.unset(topic)
     # Otherwise, if there is a temporary free response being loaded, cache it.
     else if temp_free_response?.length
-      @cacheFreeResponse(topic, temp_free_response)
+      @_freeResponseCache.set(topic, temp_free_response)
 
     super(topic, step)
 
@@ -52,7 +44,7 @@ class ExerciseApi extends ApiLink
     # If there is not already a saved free-response,
     # check for a cached free response.
     unless data.free_response?.length
-      tempFreeResponse = @getCachedFreeResponse(topic)
+      tempFreeResponse = @_freeResponseCache.get(topic)
       if tempFreeResponse?.length
         data.temp_free_response = tempFreeResponse
 
