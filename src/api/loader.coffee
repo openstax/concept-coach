@@ -5,15 +5,14 @@ interpolate = require 'interpolate'
 
 status = require './status'
 
-isLocal = window.__karma__ # or some other ENV setting
-
-if isLocal
-  {modifyApiSettingForEnv, modifyResponseDataForEnv} = require './helpers.local'
-else
-  {modifyApiSettingForEnv, modifyResponseDataForEnv} = require './helpers.public'
-
 METHODS_WITH_DATA = ['PUT', 'PATCH', 'POST']
 API_ACCESS_TOKEN = false
+IS_LOCAL = window.__karma__ # or some other ENV setting
+
+if IS_LOCAL
+  {modifyApiSetting, modifyResponseData, delay} = require './helpers.local'
+else
+  {modifyApiSetting, modifyResponseData, delay} = require './helpers.public'
 
 defaultFail = (response) ->
   console.info(response) unless window.__karma__
@@ -27,14 +26,15 @@ getAjaxSettingsByEnv = (baseUrl, setting, eventData) ->
   if _.includes(METHODS_WITH_DATA, apiSetting.method)
     apiSetting.data = JSON.stringify(change or data)
 
-  modifyApiSettingForEnv(baseUrl, apiSetting, setting, data, API_ACCESS_TOKEN)
+  modifyApiSetting(baseUrl, apiSetting, setting, data, API_ACCESS_TOKEN)
   apiSetting
 
 getResponseDataByEnv = (requestEvent, requestName, data) ->
   query = getRequestQuery(requestEvent, data)
 
-  datasToMerge = [{}, {data, query, requestName}]
-  modifyResponseDataForEnv(requestEvent, datasToMerge)
+  datasToMerge = []
+  modifyResponseData(requestEvent, datasToMerge)
+  datasToMerge.push({data, query, requestName})
 
   deepMerge.apply {}, datasToMerge
 
@@ -43,42 +43,44 @@ getRequestQuery = (requestEvent, data) ->
   query ?= data?.id or requestEvent.data?.id
 
 handleAPIEvent = (apiEventChannel, baseUrl, setting, requestEvent = {}) ->
-  # simulate server delay
-  delay = if isLocal then 20 else 0
-
   requestName = setting.base or setting.eventName
-
   apiSetting = getAjaxSettingsByEnv(baseUrl, setting, requestEvent)
-
   query = getRequestQuery(requestEvent)
+
   return if status.isPending(setting.eventName, query)
 
   status.setPending(setting.eventName, query)
 
   _.delay ->
     $.ajax(apiSetting)
-      .done((responseData) ->
+      .done((response) ->
         status.unsetPending(setting.eventName, query)
-
-        try
-          completedEvent = interpolate("#{requestName}.success", requestEvent.data)
-          completedData = getResponseDataByEnv(requestEvent, requestName, responseData)
-          apiEventChannel.emit(completedEvent, completedData)
-        catch error
-          apiEventChannel.emit('error', {apiSetting, response: responseData, failedData: completedData, exception: error})
+        handleSuccess(response, apiEventChannel, apiSetting, requestName, requestEvent)
       ).fail((response) ->
         status.unsetPending(setting.eventName, query)
-
-        {responseJSON} = response
-
-        failedData = getResponseDataByEnv(requestEvent, requestName, responseJSON)
-        failedEvent = interpolate("#{requestName}.failure", requestEvent.data)
-        apiEventChannel.emit(failedEvent, failedData)
-
-        defaultFail(response)
-        apiEventChannel.emit('error', {response, apiSetting, failedData})
+        handleFail(response, apiEventChannel, apiSetting, requestName, requestEvent)
       )
   , delay
+
+handleSuccess = (response, apiEventChannel, apiSetting, requestName, requestEvent) ->
+  try
+    completedEvent = interpolate("#{requestName}.success", requestEvent.data)
+    completedData = getResponseDataByEnv(requestEvent, requestName, response)
+    apiEventChannel.emit(completedEvent, completedData)
+  catch error
+    apiEventChannel.emit('error', {apiSetting, response, failedData: completedData, exception: error})
+
+
+handleFail = (response, apiEventChannel, apiSetting, requestName, requestEvent) ->
+  {responseJSON} = response
+
+  failedData = getResponseDataByEnv(requestEvent, requestName, responseJSON)
+  failedEvent = interpolate("#{requestName}.failure", requestEvent.data)
+  apiEventChannel.emit(failedEvent, failedData)
+
+  defaultFail(response)
+  apiEventChannel.emit('error', {response, apiSetting, failedData})
+
 
 loader = (apiEventChannel, settings) ->
   apiEventChannel.on 'set.access_token', (token) ->
@@ -87,6 +89,5 @@ loader = (apiEventChannel, settings) ->
   _.each settings.endpoints, (setting, eventName) ->
     setting.eventName = eventName
     apiEventChannel.on eventName, _.partial(handleAPIEvent, apiEventChannel, setting.baseUrl or settings.baseUrl, setting)
-
 
 module.exports = {loader, isPending: status.isPending}

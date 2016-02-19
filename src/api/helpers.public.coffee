@@ -1,6 +1,6 @@
 interpolate = require 'interpolate'
 
-modifyApiSettingForEnv = (baseUrl, apiSetting, setting, data, token = false) ->
+modifyApiSetting = (baseUrl, apiSetting, setting, data, token = false) ->
   if setting.useCredentials
     apiSetting.xhrFields =
       withCredentials: true
@@ -11,9 +11,15 @@ modifyApiSettingForEnv = (baseUrl, apiSetting, setting, data, token = false) ->
 
   apiSetting
 
-modifyResponseDataForEnv = (requestEvent, datasToMerge) ->
+modifyResponseData = (requestEvent, datasToMerge) ->
   datasToMerge.push(requestEvent)
 
   datasToMerge
 
-module.exports = {modifyApiSettingForEnv, modifyResponseDataForEnv}
+delay = 0
+
+module.exports = {
+  modifyApiSetting
+  modifyResponseData
+  delay
+}
