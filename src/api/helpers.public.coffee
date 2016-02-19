@@ -11,15 +11,13 @@ modifyApiSetting = (baseUrl, apiSetting, setting, data, token = false) ->
 
   apiSetting
 
-modifyResponseData = (requestEvent, datasToMerge) ->
-  datasToMerge.push(requestEvent)
-
-  datasToMerge
+getBaseResponseData = (requestEvent) ->
+  requestEvent
 
 delay = 0
 
 module.exports = {
   modifyApiSetting
-  modifyResponseData
+  getBaseResponseData
   delay
 }

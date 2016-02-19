@@ -10,9 +10,9 @@ API_ACCESS_TOKEN = false
 IS_LOCAL = window.__karma__ # or some other ENV setting
 
 if IS_LOCAL
-  {modifyApiSetting, modifyResponseData, delay} = require './helpers.local'
+  {modifyApiSetting, getBaseResponseData, delay} = require './helpers.local'
 else
-  {modifyApiSetting, modifyResponseData, delay} = require './helpers.public'
+  {modifyApiSetting, getBaseResponseData, delay} = require './helpers.public'
 
 defaultFail = (response) ->
   console.info(response) unless window.__karma__
@@ -31,12 +31,9 @@ getAjaxSettingsByEnv = (baseUrl, setting, eventData) ->
 
 getResponseDataByEnv = (requestEvent, requestName, data) ->
   query = getRequestQuery(requestEvent, data)
+  baseResponseData = getBaseResponseData(requestEvent)
 
-  datasToMerge = []
-  modifyResponseData(requestEvent, datasToMerge)
-  datasToMerge.push({data, query, requestName})
-
-  deepMerge.apply {}, datasToMerge
+  deepMerge.apply {}, baseResponseData, {data, query, requestName}
 
 getRequestQuery = (requestEvent, data) ->
   {query} = requestEvent
