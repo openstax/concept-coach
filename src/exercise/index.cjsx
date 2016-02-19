@@ -54,7 +54,7 @@ ExerciseBase = React.createClass
 
       onFreeResponseChange: (freeResponse) ->
         step.temp_free_response = freeResponse
-        exercises.load(step.id, step)
+        exercises.quickLoad(step.id, step)
 
       onContinue: ->
         step.is_completed = true

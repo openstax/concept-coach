@@ -20,23 +20,28 @@ class ExerciseApi extends ApiLink
     @_freeResponseCache = new CachedCollection()
     super()
 
-  quickLoad: (topic, data) ->
-    @_data.set(topic, data)
-    @emit("quickLoad.#{topic}", {data})
-
-  load: (topic, data) ->
+  filterForTempFreeResponse: (topic, data) ->
     {temp_free_response} = data
     # Keep temp free response separate from main exercise data.
-    step = _.omit(data, 'temp_free_response')
+    data = _.omit(data, 'temp_free_response')
 
     # If free response has been saved, clear cached free response.
-    if step.free_response?.length
+    if data.free_response?.length
       @_freeResponseCache.unset(topic)
     # Otherwise, if there is a temporary free response being loaded, cache it.
     else if temp_free_response?.length
       @_freeResponseCache.set(topic, temp_free_response)
 
-    super(topic, step)
+    data
+
+  quickLoad: (topic, data) ->
+    data = @filterForTempFreeResponse(topic, data)
+    @_data.set(topic, data)
+    @emit("quickLoad.#{topic}", {data})
+
+  load: (topic, data) ->
+    data = @filterForTempFreeResponse(topic, data)
+    super(topic, data)
 
   get: (topic) ->
     data = super(topic)
