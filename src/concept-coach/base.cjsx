@@ -88,14 +88,14 @@ ConceptCoach = React.createClass
     mountData = @getMountData('mount')
     channel.emit('coach.mount.success', mountData)
 
-    User.on('change', @updateUser)
+    User.on('load.status', @updateUser)
     navigator.on('show.*', @updateView)
 
   componentWillUnmount: ->
     mountData = @getMountData('ummount')
     channel.emit('coach.unmount.success', mountData)
 
-    User.off('change', @updateUser)
+    User.off('load.status', @updateUser)
     navigator.off('show.*', @updateView)
 
   getAllowedView: (userInfo) ->

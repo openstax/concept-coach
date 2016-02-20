@@ -61,7 +61,7 @@ LoginGateway = React.createClass
     </p>
 
   urlForLogin: ->
-    User.endpoints.login + '?parent=' + encodeURIComponent(window.location.href)
+    User.get('endpoints').login + '?parent=' + encodeURIComponent(window.location.href)
 
   loginLink: (msg) ->
     <a data-bypass className='login' onClick={@openLogin} href={@urlForLogin()}>

@@ -32,8 +32,7 @@ getAjaxSettingsByEnv = (baseUrl, setting, eventData) ->
 getResponseDataByEnv = (requestEvent, requestName, data) ->
   query = getRequestQuery(requestEvent, data)
   baseResponseData = getBaseResponseData(requestEvent)
-
-  deepMerge.apply {}, baseResponseData, {data, query, requestName}
+  deepMerge {}, baseResponseData, {data, query, requestName}
 
 getRequestQuery = (requestEvent, data) ->
   {query} = requestEvent

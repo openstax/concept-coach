@@ -10,10 +10,14 @@ class CachedCollection
     @_items = @_initialData or {}
 
   get: (topic) ->
-    if topic?
-      cloneDeep(@_items[topic])
+    if _.isString(topic)
+      result = @_items[topic]
+    else if _.isObject(topic)
+      result = _.findWhere(@_items, topic)
     else
-      cloneDeep(@_items)
+      result = @_items
+
+    cloneDeep(result)
 
   set: (topic, data) ->
     @_items[topic] = data
@@ -38,9 +42,12 @@ class CachedItem
     @set(@_initialData)
 
   get: (keys = @_dataKeys) ->
-    _.pick(@, keys)
+    if _.isString(keys)
+      _.property(keys)(@)
+    else
+      _.pick(@, keys)
 
-  set: (data) ->
+  set: (topic, data) ->
     safeData = _.omit(data, @_protectedKeys)
     additionalDataKeys = _.keys(safeData)
 

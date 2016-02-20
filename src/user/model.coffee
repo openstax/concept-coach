@@ -19,16 +19,20 @@ isCourseRole = (course, type) ->
 
 class UserApi extends ApiLink
   isLoggedIn: ->
-    !!@profile_url
+    !!@_data.get('profile_url')
 
-  getCourse: (collectionUUID) ->
-    _.findWhere( @courses, ecosystem_book_uuid: collectionUUID )
+  isLoggingOut: ->
+    @_data.get('isLoggingOut')
 
-  registeredCourses: ->
-    _.filter @courses, (course) -> course.isRegistered()
+  getCourse: (collectionUUID) =>
+    _.findWhere( @_data.get('courses'), ecosystem_book_uuid: collectionUUID )
 
-  validatedPendingCourses: ->
-    _.filter @courses, (course) -> course.isValidated()
+  registeredCourses: =>
+    _.filter @_data.get('courses'), (course) ->
+      course.isRegistered()
+
+  validatedPendingCourses: =>
+    _.filter @_data.get('courses'), (course) -> course.isValidated()
 
   isTeacherForCourse: (collectionUUID) ->
     course = _.findWhere @_course_data, ecosystem_book_uuid: collectionUUID
@@ -37,14 +41,17 @@ class UserApi extends ApiLink
   status: (collectionUUID) ->
     course = @getCourse(collectionUUID)
     isLoggedIn: @isLoggedIn()
-    isLoaded:   @isLoaded
+    isLoaded:   @_data.get('isLoaded')
     isRegistered: !!course?.isRegistered()
     preValidate: (not @isLoggedIn()) and (not course?.isValidated())
 
   findOrCreateCourse: (collectionUUID) ->
     @getCourse(collectionUUID) or (
       course = new Course(ecosystem_book_uuid: collectionUUID)
-      @courses.push(course)
+      courses = @_data.get('courses')
+      courses.push(course)
+
+      @_data.set('courses', {courses})
       course
     )
 
@@ -56,41 +63,43 @@ class UserApi extends ApiLink
   ensureStatusLoaded: ->
     @fetch() unless @isLoggedIn()
 
-  get: ->
-    @
+  filterForUser: (data) ->
+    _.property('user')(data)
 
-  loadUser: (user) ->
-    _.extend(@, user)
-
-  loadCourses: (courses) ->
+  filterForCourses: (data) ->
+    courses = _.property('courses')(data)
     @_course_data = courses
 
     pending = @validatedPendingCourses()
-    @courses = _.chain(courses)
+    coursesToLoad = _.chain(courses)
       .map (course) ->
         new Course(course) if course.is_concept_coach and isCourseRole(course, 'student')
       .compact()
       .value()
 
     _.each pending, (course) =>
-      @courses.push(course)
+      coursesToLoad.push(course)
       course.register(course.enrollment_code, @)
 
+    coursesToLoad or []
+
   load: (topic, data) ->
-    @isLoaded = true
-    @endpoints = data.endpoints
+    dataToLoad = _.pick(data, 'endpoints')
+    dataToLoad.isLoaded = true
 
     if data.access_token
       @apiChannel.emit('set.access_token', data.access_token)
 
     if data.user
-      @loadUser(data.user)
-      @loadCourses(data.courses)
+      user = @filterForUser(data)
+      courses = @filterForCourses(data)
     else
       @reset()
 
-    status = if data.errors? then 'failed' else 'loaded'
-    @emit('change', {data, status})
+    dataToLoad.courses = courses
+    _.extend(dataToLoad, user)
+
+    super('status', dataToLoad)
 
   fetch: ->
     super('status', {})
