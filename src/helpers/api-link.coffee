@@ -146,6 +146,14 @@ class ApiLink extends EventEmitter2
   silenceFailure: (response) =>
     response.stopErrorDisplay = true
 
+  # For broadcasting an update out where data only the current data stored for topic
+  emitUpdate: (topic, eventName, params = {}) =>
+    data = @get(topic)
+    status = if not data or data.errors? then 'failed' else 'loaded'
+    eventData = _.extend({data, status}, params)
+
+    @emit("#{eventName}.#{topic}", eventData)
+
   # Only update if the api channel has response event data.  The data should include the original
   # query/topic so that the data can be loaded appropriately on topic.
   update: (eventData) =>

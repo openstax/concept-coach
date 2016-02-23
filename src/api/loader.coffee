@@ -64,6 +64,7 @@ handleSuccess = (response, apiEventChannel, apiSetting, requestName, requestEven
     completedData = getResponseDataByEnv(requestEvent, requestName, response)
     apiEventChannel.emit(completedEvent, completedData)
   catch error
+    defaultFail(error)
     apiEventChannel.emit('error', {apiSetting, response, failedData: completedData, exception: error})
 
 

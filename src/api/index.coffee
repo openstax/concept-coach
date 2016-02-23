@@ -4,6 +4,7 @@ EventEmitter2 = require 'eventemitter2'
 settings = require './settings'
 
 channel = new EventEmitter2 wildcard: true
+channel.isPending = isPending
 
 # HACK - WORKAROUND
 # MediaBodyView.prototype.initializeConceptCoach calls this multiple times

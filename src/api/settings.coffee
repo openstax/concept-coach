@@ -48,10 +48,12 @@ settings =
     'course.*.prevalidation':
       url: 'api/enrollment_changes/prevalidate'
       method: 'POST'
+      base: 'course.{book_uuid}.prevalidation'
 
     'course.*.registration':
       url: 'api/enrollment_changes'
       method: 'POST'
+      base: 'course.{book_uuid}.registration'
 
     'course.*.confirmation':
       url: 'api/enrollment_changes/{id}/approve'
@@ -61,6 +63,6 @@ settings =
     'course.*.studentUpdate':
       url: 'api/user/courses/{id}/student'
       method: 'PATCH'
-      base: 'course.{id}.student'
+      base: 'course.{id}.studentUpdate'
 
 module.exports = settings
