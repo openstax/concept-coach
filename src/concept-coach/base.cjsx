@@ -14,6 +14,7 @@ AccountsIframe = require '../user/accounts-iframe'
 UpdateStudentIdentifier = require '../course/update-student-identifier'
 LoginGateway = require '../user/login-gateway'
 User = require '../user/model'
+courses = require '../course/collection'
 
 {ExerciseStep} = require '../exercise'
 {Dashboard} = require '../dashboard'
@@ -42,10 +43,7 @@ ConceptCoach = React.createClass
     defaultView: _.chain(VIEWS).last().first().value()
 
   getInitialState: ->
-    userState = User.status(@props.collectionUUID)
-    view = @getAllowedView(userState)
-    userState.view = view
-    userState
+    @getUserState()
 
   childContextTypes:
     moduleUUID:     React.PropTypes.string
@@ -88,15 +86,21 @@ ConceptCoach = React.createClass
     mountData = @getMountData('mount')
     channel.emit('coach.mount.success', mountData)
 
-    User.channel.on('change', @updateUser)
+    User.on('load.status', @updateUser)
     navigator.on('show.*', @updateView)
 
   componentWillUnmount: ->
     mountData = @getMountData('ummount')
     channel.emit('coach.unmount.success', mountData)
 
-    User.channel.off('change', @updateUser)
+    User.off('load.status', @updateUser)
     navigator.off('show.*', @updateView)
+
+  getUserState: ->
+    userState = courses.getStatus(@props.collectionUUID)
+    view = @getAllowedView(userState)
+    userState.view = view
+    userState
 
   getAllowedView: (userInfo) ->
     {defaultView} = @props
@@ -140,8 +144,8 @@ ConceptCoach = React.createClass
     @updateView(view: 'task')
 
   updateUser: ->
-    userState = User.status(@props.collectionUUID)
-    view = @getAllowedView(userState)
+    userState = @getUserState()
+    {view} = userState
 
     # tell nav to update view if the next view isn't the current view
     navigator.emit("show.#{view}", view: view) if view isnt @state.view
@@ -167,8 +171,6 @@ ConceptCoach = React.createClass
         <Dashboard cnxUrl={@props.cnxUrl}/>
       when 'profile'
         <AccountsIframe type='profile' onComplete={@updateUser} />
-      when 'registration'
-        <CourseRegistration {...@props} />
       when 'student_id'
         <UpdateStudentIdentifier {...@props} course={course} />
       else
@@ -176,7 +178,7 @@ ConceptCoach = React.createClass
 
   render: ->
     {isLoaded, isLoggedIn, view} = @state
-    course = User.getCourse(@props.collectionUUID)
+    course = courses.get(@props.collectionUUID)
 
     className = classnames 'concept-coach-view', "concept-coach-view-#{view}",
       loading: not (isLoggedIn or isLoaded)

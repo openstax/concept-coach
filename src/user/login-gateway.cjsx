@@ -39,7 +39,7 @@ LoginGateway = React.createClass
     try
       data = JSON.parse(msg.data)
       if data.user
-        api.channel.emit 'user.status.receive.fetch', data: data
+        api.channel.emit 'user.status.fetch.success', data: data
       @setState(loginWindow: false) # cancel checking for close
     catch error
       console.warn(error)
@@ -51,7 +51,7 @@ LoginGateway = React.createClass
   windowClosedCheck: ->
     return unless @isMounted()
     if @state.loginWindow and @state.loginWindow.closed
-      User.ensureStatusLoaded(true)
+      User.fetch()
     else
       _.delay( @windowClosedCheck, SECOND)
 
@@ -61,7 +61,7 @@ LoginGateway = React.createClass
     </p>
 
   urlForLogin: ->
-    User.endpoints.login + '?parent=' + encodeURIComponent(window.location.href)
+    User.get('endpoints').login + '?parent=' + encodeURIComponent(window.location.href)
 
   loginLink: (msg) ->
     <a data-bypass className='login' onClick={@openLogin} href={@urlForLogin()}>

@@ -7,6 +7,7 @@ restAPI = require '../api'
 componentModel = require './model'
 navigation = require '../navigation/model'
 User = require '../user/model'
+course = require '../course/collection'
 exercise = require '../exercise/collection'
 progress = require '../progress/collection'
 task = require '../task/collection'
@@ -22,7 +23,7 @@ listenAndBroadcast = (componentAPI) ->
   restAPI.channel.on 'error', (response) ->
     componentAPI.emit('api.error', response)
 
-  restAPI.channel.on 'user.status.receive.fetch', (response) ->
+  restAPI.channel.on 'user.status.fetch.success', (response) ->
     componentAPI.emit('user.change', response)
 
   componentModel.channel.on 'coach.mount.success', (eventData) ->
@@ -49,7 +50,7 @@ listenAndBroadcast = (componentAPI) ->
   navigation.channel.on 'close.for.book', (eventData) ->
     componentAPI.emit('book.update', eventData)
 
-  exercise.channel.on 'component.*', (eventData) ->
+  exercise.on 'component.*', (eventData) ->
     componentAPI.emit("exercise.component.#{eventData.status}", eventData)
 
 setupAPIListeners = (componentAPI) ->
@@ -83,12 +84,12 @@ class ConceptCoachAPI extends EventEmitter2
     restAPI.init = _.partial restAPI.initialize, baseUrl
     navigation.init = _.partial navigation.initialize, navOptions
 
-    @models = [restAPI, navigation, User, exercise, progress, task, componentModel]
+    @models = [restAPI, navigation, User, course, exercise, progress, task, componentModel]
     initializeModels(@models)
 
     listenAndBroadcast(@)
     setupAPIListeners(@)
-    User.ensureStatusLoaded(true)
+    User.fetch()
 
   destroy: ->
     @close?()
@@ -127,7 +128,7 @@ class ConceptCoachAPI extends EventEmitter2
 
   open: (props) ->
     # wait until our logout request has been received and the close
-    User.channel.once 'logout.received', =>
+    User.once 'logout.received', =>
       @close()
 
     openProps = _.extend({}, props, open: true)

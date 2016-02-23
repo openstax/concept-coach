@@ -64,7 +64,7 @@ Progress = React.createClass
 
     <Reactive
       topic={id}
-      getter={_.partial(progresses.getFilteredChapters, _, [moduleUUID])}
+      getter={_.partial(progresses.getFilteredChapters.bind(progresses), _, [moduleUUID])}
       store={progresses}
       apiChannelName={apiChannelName}>
       <ProgressBase/>

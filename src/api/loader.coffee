@@ -3,15 +3,21 @@ deepMerge = require 'lodash/object/merge'
 $ = require 'jquery'
 interpolate = require 'interpolate'
 
+status = require './status'
+
 METHODS_WITH_DATA = ['PUT', 'PATCH', 'POST']
-LOADING = {}
 API_ACCESS_TOKEN = false
+IS_LOCAL = window.__karma__ # or some other ENV setting
+
+if IS_LOCAL
+  {modifyApiSetting, getBaseResponseData, delay} = require './helpers.local'
+else
+  {modifyApiSetting, getBaseResponseData, delay} = require './helpers.public'
 
 defaultFail = (response) ->
   console.info(response) unless window.__karma__
 
-getAjaxSettingsByEnv = (isLocal, baseUrl, setting, eventData) ->
-
+getAjaxSettingsByEnv = (baseUrl, setting, eventData) ->
   {data, change} = eventData
   apiSetting = _.pick(setting, 'url', 'method')
   apiSetting.dataType = 'json'
@@ -20,77 +26,65 @@ getAjaxSettingsByEnv = (isLocal, baseUrl, setting, eventData) ->
   if _.includes(METHODS_WITH_DATA, apiSetting.method)
     apiSetting.data = JSON.stringify(change or data)
 
-  if isLocal
-    apiSetting.url = "#{interpolate(apiSetting.url, data)}/#{apiSetting.method}.json"
-    apiSetting.method = 'GET'
-  else
-    if setting.useCredentials
-      apiSetting.xhrFields =
-        withCredentials: true
-    else if API_ACCESS_TOKEN
-      apiSetting.headers =
-        Authorization: "Bearer #{API_ACCESS_TOKEN}"
-    apiSetting.url = "#{baseUrl}/#{interpolate(apiSetting.url, data)}"
-
+  modifyApiSetting(baseUrl, apiSetting, setting, data, API_ACCESS_TOKEN)
   apiSetting
 
-getResponseDataByEnv = (isLocal, requestEvent, data) ->
-  if isLocal
-    datasToMerge = [{}, {data, query: requestEvent.query}]
-    if requestEvent.change?
-      datasToMerge.push(data: requestEvent.change)
-  else
-    datasToMerge = [{}, requestEvent, {data}]
-  deepMerge.apply {}, datasToMerge
+getResponseDataByEnv = (requestEvent, requestName, data) ->
+  query = getRequestQuery(requestEvent, data)
+  baseResponseData = getBaseResponseData(requestEvent)
+  deepMerge {}, baseResponseData, {data, query, requestName}
 
+getRequestQuery = (requestEvent, data) ->
+  {query} = requestEvent
+  query ?= data?.id or requestEvent.data?.id
 
 handleAPIEvent = (apiEventChannel, baseUrl, setting, requestEvent = {}) ->
+  requestName = setting.base or setting.eventName
+  apiSetting = getAjaxSettingsByEnv(baseUrl, setting, requestEvent)
+  query = getRequestQuery(requestEvent)
 
-  isLocal = window.__karma__ or setting.loadLocally
-  # simulate server delay
-  delay = if isLocal then 20 else 0
+  return if status.isPending(setting.eventName, query)
 
-  apiSetting = getAjaxSettingsByEnv(isLocal, baseUrl, setting, requestEvent)
-  if apiSetting.method is 'GET'
-    return if LOADING[apiSetting.url]
-    LOADING[apiSetting.url] = true
+  status.setPending(setting.eventName, query)
 
   _.delay ->
     $.ajax(apiSetting)
-      .done((responseData) ->
-        delete LOADING[apiSetting.url]
-        try
-          completedEvent = interpolate(setting.completedEvent, requestEvent.data)
-          completedData = getResponseDataByEnv(isLocal, requestEvent, responseData)
-          apiEventChannel.emit(completedEvent, completedData)
-        catch error
-          apiEventChannel.emit('error', {apiSetting, response: responseData, failedData: completedData, exception: error})
+      .done((response) ->
+        status.unsetPending(setting.eventName, query)
+        handleSuccess(response, apiEventChannel, apiSetting, requestName, requestEvent)
       ).fail((response) ->
-        delete LOADING[apiSetting.url]
-
-        {responseJSON} = response
-
-        failedData = getResponseDataByEnv(isLocal, requestEvent, responseJSON)
-        if _.isString(setting.failedEvent)
-          failedEvent = interpolate(setting.failedEvent, requestEvent.data)
-          apiEventChannel.emit(failedEvent, failedData)
-
-        defaultFail(response)
-        apiEventChannel.emit('error', {response, apiSetting, failedData})
-      ).always((response) ->
-        apiEventChannel.emit('completed')
+        status.unsetPending(setting.eventName, query)
+        handleFail(response, apiEventChannel, apiSetting, requestName, requestEvent)
       )
   , delay
 
-isPending = ->
-  not _.isEmpty(LOADING)
+handleSuccess = (response, apiEventChannel, apiSetting, requestName, requestEvent) ->
+  try
+    completedEvent = interpolate("#{requestName}.success", requestEvent.data)
+    completedData = getResponseDataByEnv(requestEvent, requestName, response)
+    apiEventChannel.emit(completedEvent, completedData)
+  catch error
+    defaultFail(error)
+    apiEventChannel.emit('error', {apiSetting, response, failedData: completedData, exception: error})
+
+
+handleFail = (response, apiEventChannel, apiSetting, requestName, requestEvent) ->
+  {responseJSON} = response
+
+  failedData = getResponseDataByEnv(requestEvent, requestName, responseJSON)
+  failedEvent = interpolate("#{requestName}.failure", requestEvent.data)
+  apiEventChannel.emit(failedEvent, failedData)
+
+  defaultFail(response)
+  apiEventChannel.emit('error', {response, apiSetting, failedData})
+
 
 loader = (apiEventChannel, settings) ->
   apiEventChannel.on 'set.access_token', (token) ->
     API_ACCESS_TOKEN = token
 
   _.each settings.endpoints, (setting, eventName) ->
+    setting.eventName = eventName
     apiEventChannel.on eventName, _.partial(handleAPIEvent, apiEventChannel, setting.baseUrl or settings.baseUrl, setting)
 
-
-module.exports = {loader, isPending}
+module.exports = {loader, isPending: status.isPending}

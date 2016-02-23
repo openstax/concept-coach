@@ -1,12 +1,9 @@
 React = require 'react'
-Course = require './model'
+courses = require './collection'
 
 ErrorList = React.createClass
-
-  propTypes:
-    course: React.PropTypes.instanceOf(Course).isRequired
-
   render: ->
+    return null
     return null unless @props.course.hasErrors()
     <div className="alert alert-danger">
       <ul className="errors">

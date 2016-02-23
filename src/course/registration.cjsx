@@ -5,7 +5,7 @@ ModifyCourseRegistration = require './modify-registration'
 EnrollOrLogin = require './enroll-or-login'
 
 UserStatus = require '../user/status-mixin'
-Course = require './model'
+courses = require '../course/collection'
 
 CourseRegistration = React.createClass
 
@@ -14,15 +14,35 @@ CourseRegistration = React.createClass
 
   mixins: [UserStatus]
 
+  # create a private copy of the course to operate on
+  getInitialState: ->
+    @getCurrentCourse()
+
+  componentWillMount: ->
+    {collectionUUID} = @props
+    courses.on("*.#{collectionUUID}", @onCourseChange)
+
+  componentWillUnmount: ->
+    {collectionUUID} = @props
+    courses.off("*.#{collectionUUID}", @onCourseChange)
+
+  getCurrentCourse: ->
+    {collectionUUID} = @props
+    course: courses.get(collectionUUID)
+
+  onCourseChange: ->
+    @setState(@getCurrentCourse())
+
   render: ->
+    {course} = @state
     user = @getUser()
-    course = user.getCourse(@props.collectionUUID)
-    body = if course and course.isRegistered()
-      <ModifyCourseRegistration {...@props} course={course} />
+
+    body = if course and course.isRegistered
+      <ModifyCourseRegistration {...@props} course={course}/>
     else if user.isLoggedIn()
-      <NewCourseRegistration {...@props} />
+      <NewCourseRegistration {...@props} course={course}/>
     else
-      <EnrollOrLogin {...@props} />
+      <EnrollOrLogin {...@props} course={course}/>
 
     <div className="row">
       {body}

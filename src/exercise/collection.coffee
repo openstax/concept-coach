@@ -1,64 +1,80 @@
-EventEmitter2 = require 'eventemitter2'
 api = require '../api'
-steps = {}
+{ApiLink} = require '../helpers/api-link'
+{CachedCollection} = require '../helpers/cache'
 
 _ = require 'underscore'
 
 user = require '../user/model'
 
-channel = new EventEmitter2 wildcard: true
-
 STEP_TYPES =
   'free-response': ['free_response']
   'multiple-choice': ['answer_id', 'is_completed']
 
-quickLoad = (stepId, data) ->
-  steps[stepId] = data
-  channel.emit("quickLoad.#{stepId}", {data})
+EXERCISE_OPTIONS =
+  apiNameSpace: 'exercise'
+  apiChannel: api.channel
 
-load = (stepId, data) ->
-  temp_free_response = steps[stepId].temp_free_response
-  steps[stepId] = _.extend({temp_free_response}, data)
-  channel.emit("load.#{stepId}", {data})
+class ExerciseApi extends ApiLink
+  init: ->
+    user.on 'logout.received', @reset.bind(@)
+    @_freeResponseCache = new CachedCollection()
+    super()
 
-update = (eventData) ->
-  {data} = eventData
-  load(data.id, data)
+  filterForTempFreeResponse: (topic, data) ->
+    {temp_free_response} = data
+    # Keep temp free response separate from main exercise data.
+    data = _.omit(data, 'temp_free_response')
 
-fetch = (stepId) ->
-  eventData = {data: {id: stepId}, status: 'loading'}
+    # If free response has been saved, clear cached free response.
+    if data.free_response?.length
+      @_freeResponseCache.unset(topic)
+    # Otherwise, if there is a temporary free response being loaded, cache it.
+    else if temp_free_response?.length
+      @_freeResponseCache.set(topic, temp_free_response)
 
-  channel.emit("fetch.#{stepId}", eventData)
-  api.channel.emit("exercise.#{stepId}.send.fetch", eventData)
+    data
 
-getCurrentPanel = (stepId) ->
-  panel = 'review'
+  quickLoad: (topic, data) ->
+    data = @filterForTempFreeResponse(topic, data)
+    @_data.set(topic, data)
+    @emit("quickLoad.#{topic}", {data})
 
-  step = steps[stepId]
-  question = step?.content?.questions?[0]
-  return panel unless question?
+  load: (topic, data) ->
+    data = @filterForTempFreeResponse(topic, data)
+    super(topic, data)
 
-  {formats} = question
+  get: (topic) ->
+    data = super(topic)
 
-  _.find(STEP_TYPES, (stepChecks, format) ->
-    return false unless format in formats
-    isStepCompleted = _.reduce(stepChecks, (isOtherCompleted, currentCheck) ->
-      step[currentCheck]? and step[currentCheck] and isOtherCompleted
-    , true)
+    # If there is not already a saved free-response,
+    # check for a cached free response.
+    unless data.free_response?.length
+      tempFreeResponse = @_freeResponseCache.get(topic)
+      if tempFreeResponse?.length
+        data.temp_free_response = tempFreeResponse
 
-    unless isStepCompleted
-      panel = format
-      true
-  )
-  panel
+    data
 
-get = (stepId) ->
-  steps[stepId]
+  getCurrentPanel: (topic) ->
+    panel = 'review'
 
-init = ->
-  user.channel.on 'logout.received', ->
-    steps = {}
+    step = @get(topic)
+    question = step?.content?.questions?[0]
+    return panel unless question?
 
-  api.channel.on("exercise.*.receive.*", update)
+    {formats} = question
 
-module.exports = {fetch, getCurrentPanel, get, init, channel, quickLoad}
+    _.find(STEP_TYPES, (stepChecks, format) ->
+      return false unless format in formats
+      isStepCompleted = _.reduce(stepChecks, (isOtherCompleted, currentCheck) ->
+        step[currentCheck]? and step[currentCheck] and isOtherCompleted
+      , true)
+
+      unless isStepCompleted
+        panel = format
+        true
+    )
+
+    panel
+
+module.exports = new ExerciseApi(EXERCISE_OPTIONS, ['save', 'complete'])

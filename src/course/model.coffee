@@ -81,7 +81,7 @@ class Course
     other.status = @status
     other.enrollment_code = @enrollment_code
     other.periods = [ @to?.period ]
-    user.onCourseUpdate(other)
+    user.fetch()
 
   _onValidated: (response) ->
     {data} = response
@@ -96,8 +96,8 @@ class Course
     payload = { id: @id }
     payload.student_identifier = studentId unless _.isEmpty(studentId)
     @isBusy = true
-    api.channel.once "course.#{@id}.receive.confirmation.*", @_onConfirmed
-    api.channel.emit("course.#{@id}.send.confirmation", data: payload)
+    api.channel.once "course.#{@id}.confirmation.*", @_onConfirmed
+    api.channel.emit("course.#{@id}.confirmation", data: payload)
     @channel.emit('change')
 
   _onConfirmed:  (response) ->
@@ -119,11 +119,11 @@ class Course
     data = {enrollment_code, book_uuid: @ecosystem_book_uuid}
     @isBusy = true
     if user.isLoggedIn()
-      api.channel.once "course.#{@ecosystem_book_uuid}.receive.registration.*", @_onRegistered
-      api.channel.emit("course.#{@ecosystem_book_uuid}.send.registration", {data})
+      api.channel.once "course.#{@ecosystem_book_uuid}.registration.*", @_onRegistered
+      api.channel.emit("course.#{@ecosystem_book_uuid}.registration", {data})
     else
-      api.channel.once "course.#{@ecosystem_book_uuid}.receive.prevalidation.*", @_onValidated
-      api.channel.emit("course.#{@ecosystem_book_uuid}.send.prevalidation", {data})
+      api.channel.once "course.#{@ecosystem_book_uuid}.prevalidation.*", @_onValidated
+      api.channel.emit("course.#{@ecosystem_book_uuid}.prevalidation", {data})
     @channel.emit('change')
 
   _onStudentUpdated: (response) ->
@@ -132,8 +132,8 @@ class Course
 
   updateStudent: (attributes) ->
     data = _.extend({}, attributes, id: @id)
-    api.channel.once "course.#{@ecosystem_book_uuid}.receive.studentUpdate.*", @_onStudentUpdated
-    api.channel.emit("course.#{@ecosystem_book_uuid}.send.studentUpdate", {data})
+    api.channel.once "course.#{@ecosystem_book_uuid}.studentUpdate.*", @_onStudentUpdated
+    api.channel.emit("course.#{@ecosystem_book_uuid}.studentUpdate", {data})
 
   _onRegistered: (response) ->
     throw new Error("response is empty in onRegistered") if _.isEmpty(response)

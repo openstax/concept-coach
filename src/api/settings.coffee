@@ -1,66 +1,68 @@
+
+getDefaultSettings = (apiNameSpace, {action, method, url}) ->
+  setting = {}
+  triggerEvent = "#{apiNameSpace}.*.#{action}"
+
+  setting[triggerEvent] =
+    url: url
+    method: method
+
 settings =
 
   endpoints:
-    'exercise.*.send.save':
+    'exercise.*.save':
       url: 'api/steps/{id}'
       method: 'PATCH'
-      completedEvent: 'exercise.{id}.receive.save'
+      base: 'exercise.{id}.save'
 
-    'exercise.*.send.complete':
+    'exercise.*.complete':
       url: 'api/steps/{id}/completed'
       method: 'PUT'
-      completedEvent: 'exercise.{id}.receive.complete'
+      base: 'exercise.{id}.complete'
 
-    'exercise.*.send.fetch':
+    'exercise.*.fetch':
       url: 'api/steps/{id}'
       method: 'GET'
-      completedEvent: 'exercise.{id}.receive.fetch'
+      base: 'exercise.{id}.fetch'
 
-    'task.*.send.fetch':
+    'task.*.fetch':
       url: 'api/tasks/{id}'
       method: 'GET'
-      completedEvent: 'task.{id}.receive.fetch'
-      failedEvent: 'task.{id}.receive.failure'
+      base: 'task.{id}.fetch'
 
-    'task.*.send.fetchByModule':
+    'task.*.fetchByModule':
       url: 'api/cc/tasks/{collectionUUID}/{moduleUUID}'
       method: 'GET'
-      completedEvent: 'task.{collectionUUID}/{moduleUUID}.receive.fetchByModule'
-      failedEvent: 'task.{collectionUUID}/{moduleUUID}.receive.failure'
+      base: 'task.{collectionUUID}/{moduleUUID}.fetchByModule'
 
-    'user.status.send.fetch':
+    'user.status.fetch':
       url: 'auth/status'
       method: 'GET'
       useCredentials: true
-      completedEvent: 'user.status.receive.fetch'
 
-    'courseDashboard.*.send.fetch':
+    'courseDashboard.*.fetch':
       url: 'api/courses/{id}/cc/dashboard'
       method: 'GET'
-      completedEvent: 'courseDashboard.{id}.receive.fetch'
+      base: 'courseDashboard.{id}.fetch'
 
-    'course.*.send.prevalidation':
+    'course.*.prevalidation':
       url: 'api/enrollment_changes/prevalidate'
       method: 'POST'
-      failedEvent: 'course.{book_uuid}.receive.prevalidation.failure'
-      completedEvent: 'course.{book_uuid}.receive.prevalidation.complete'
+      base: 'course.{book_uuid}.prevalidation'
 
-    'course.*.send.registration':
+    'course.*.registration':
       url: 'api/enrollment_changes'
       method: 'POST'
-      failedEvent: 'course.{book_uuid}.receive.registration.failure'
-      completedEvent: 'course.{book_uuid}.receive.registration.complete'
+      base: 'course.{book_uuid}.registration'
 
-    'course.*.send.confirmation':
+    'course.*.confirmation':
       url: 'api/enrollment_changes/{id}/approve'
       method: 'PUT'
-      failedEvent: 'course.{id}.receive.confirmation.failure'
-      completedEvent: 'course.{id}.receive.confirmation.complete'
+      base: 'course.{id}.confirmation'
 
-    'course.*.send.studentUpdate':
+    'course.*.studentUpdate':
       url: 'api/user/courses/{id}/student'
       method: 'PATCH'
-      failedEvent: 'course.*.send.studentUpdate.failure'
-      completedEvent: 'course.*.receive.studentUpdate.complete'
+      base: 'course.{id}.studentUpdate'
 
 module.exports = settings

@@ -19,11 +19,11 @@ BreadcrumbDynamic = React.createClass
 
   componentWillMount: ->
     {id} = @props.step
-    exercises.channel.on("load.#{id}", @update)
+    exercises.on("load.#{id}", @update)
 
   componentWillUnmount: ->
     {id} = @props.step
-    exercises.channel.off("load.#{id}", @update)
+    exercises.off("load.#{id}", @update)
 
   update: (eventData) ->
     @setState(step: eventData.data)

@@ -4,35 +4,39 @@ BS = require 'react-bootstrap'
 {AsyncButton} = require 'openstax-react-components'
 ENTER = 'Enter'
 
-Course = require './model'
+courses = require './collection'
 ErrorList = require './error-list'
 RequestStudentId = require './request-student-id'
 Navigation = require '../navigation/model'
 
 UpdateStudentIdentifer = React.createClass
+  propTypes:
+    collectionUUID: React.PropTypes.string.isRequired
+
+  getInitialState: ->
+    requestSuccess: false
+
   componentWillMount: ->
-    course = @props.course or
-      User.getCourse(@props.collectionUUID) or
-      new Course({ecosystem_book_uuid: @props.collectionUUID})
-    course.channel.on('change', @onCourseChange)
-    @setState({course})
+    {collectionUUID} = @props
+    courses.on("load.#{collectionUUID}", @onCourseChange)
 
   componentWillUnmount: ->
-    @state.course.channel.off('change', @onCourseChange)
+    {collectionUUID} = @props
+    courses.off("load.#{collectionUUID}", @onCourseChange)
 
-  onCourseChange: ->
-    if @props.course.student_identifier
+  onCourseChange: (eventData) ->
+    {collectionUUID} = @props
+    course = courses.get(collectionUUID)
+
+    if course.student_identifier
       @setState(requestSuccess: true)
-      delete @props.course.student_identifier
+      courses.change(collectionUUID, student_identifier: null)
       # wait 1.5 secs so our success message is briefly displayed, then call onComplete
       _.delay(@onCancel, 1500)
-    @forceUpdate()
 
-  propTypes:
-    course: React.PropTypes.instanceOf(Course).isRequired
-
-  startConfirmation: ->
-    @props.course.confirm(@refs.input.getValue())
+  startConfirmation: =>
+    {collectionUUID} = @props
+    courses.confirm(collectionUUID, @refs.input.getValue())
 
   onKeyPress: (ev) ->
     @startConfirmation() if ev.key is ENTER
@@ -41,10 +45,12 @@ UpdateStudentIdentifer = React.createClass
     @startConfirmation() if ev.key is ENTER
 
   cancelConfirmation: ->
-    @props.course.resetToBlankState()
+    {collectionUUID} = @props
+    courses.unsetRegistration()
 
   onSubmit: (studentId) ->
-    @props.course.updateStudent(student_identifier: studentId)
+    {collectionUUID} = @props
+    courses.updateStudent(collectionUUID, student_identifier: studentId)
 
   onCancel: ->
     Navigation.channel.emit('show.task', view: 'task')

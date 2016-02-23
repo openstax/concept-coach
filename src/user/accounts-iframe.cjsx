@@ -16,7 +16,7 @@ AccountsIframe = React.createClass
 
   pageLoad: (page) ->
     if page is "/login"
-      if User.isLoggingOut # we've logged out and are re-displaying login
+      if User.isLoggingOut() # we've logged out and are re-displaying login
         User._signalLogoutCompleted()
       @setState(isClosable: false)
     else # we're displaying a profile or settings related page
@@ -27,7 +27,7 @@ AccountsIframe = React.createClass
         # somehow we're displaying the profile page but we don't know we're logged in?
         if page is "/profile"
           # redisplaying the login page so we can pickup the login info
-          @sendCommand('displayLogin', User.endpoints.iframe_login)
+          @sendCommand('displayLogin', User.get('endpoints').iframe_login)
 
   # Note: we're currently not doing anything with the width because we want that to stay at 100%
   pageResize: ({width, height}) ->
@@ -69,7 +69,7 @@ AccountsIframe = React.createClass
   render: ->
     # the other side of the iframe will validate our address and then only send messages to it
     me = window.location.protocol + '//' + window.location.host
-    url = if @props.type is 'logout' then User.endpoints.logout else User.endpoints.accounts_iframe
+    url = if @props.type is 'logout' then User.get('endpoints').logout else User.get('endpoints').accounts_iframe
     url = "#{url}?parent=#{me}"
     className = classnames( 'accounts-iframe', @props.type )
     <div className={className}>

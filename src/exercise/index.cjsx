@@ -2,7 +2,7 @@ React = require 'react'
 _ = require 'underscore'
 {Exercise} = require 'openstax-react-components'
 
-{channel, getCurrentPanel} = exercises = require './collection'
+{getCurrentPanel} = exercises = require './collection'
 tasks = require '../task/collection'
 api = require '../api'
 {Reactive} = require '../reactive'
@@ -23,7 +23,7 @@ ExerciseBase = React.createClass
     {status} = @props
     {step} = @state
 
-    channel.emit("component.#{status}", status: status, step: step)
+    exercises.emit("component.#{status}", status: status, step: step)
 
   contextTypes:
     processHtmlAndMath: React.PropTypes.func
@@ -36,7 +36,7 @@ ExerciseBase = React.createClass
     exerciseProps =
       taskId: step.task_id
       step: step
-      getCurrentPanel: getCurrentPanel
+      getCurrentPanel: exercises.getCurrentPanel.bind(exercises)
       canReview: true
       freeResponseValue: step.temp_free_response
 
@@ -44,30 +44,29 @@ ExerciseBase = React.createClass
         step.answer_id = answerId
         eventData = change: step, data: step, status: 'saving'
 
-        channel.emit("change.#{step.id}", eventData)
-        api.channel.emit("exercise.#{step.id}.send.save", eventData)
+        exercises.save(step.id, eventData)
 
       setFreeResponseAnswer: (id, freeResponse) ->
         step.free_response = freeResponse
         eventData = change: step, data: step, status: 'saving'
-        channel.emit("change.#{step.id}", eventData)
-        api.channel.emit("exercise.#{step.id}.send.save", eventData)
+
+        exercises.save(step.id, eventData)
 
       onFreeResponseChange: (freeResponse) ->
         step.temp_free_response = freeResponse
+        exercises.quickLoad(step.id, step)
 
       onContinue: ->
         step.is_completed = true
         eventData = change: step, data: step, status: 'loading'
 
-        channel.emit("change.#{step.id}", eventData)
-        api.channel.emit("exercise.#{step.id}.send.complete", eventData)
+        exercises.complete(step.id, eventData)
 
       onStepCompleted: ->
-        channel.emit("completed.#{step.id}")
+        exercises.emit("completed.#{step.id}")
 
       onNextStep: ->
-        channel.emit("leave.#{step.id}")
+        exercises.emit("leave.#{step.id}")
 
     if taskId?
       wrapperProps =
@@ -88,4 +87,4 @@ ExerciseStep = React.createClass
       <ExerciseBase {...@props}/>
     </Reactive>
 
-module.exports = {ExerciseStep, channel}
+module.exports = {ExerciseStep, exercises}

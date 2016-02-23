@@ -21,8 +21,8 @@ Reactive = React.createClass
     getter: React.PropTypes.func
 
   getDefaultProps: ->
-    apiChannelPattern: '{apiChannelName}.{topic}.send.*'
-    channelUpdatePattern: 'load.*'
+    apiChannelPattern: '{apiChannelName}.{topic}.*'
+    channelUpdatePattern: 'load.{topic}'
 
   getInitialState: ->
     {channelUpdatePattern, apiChannelPattern} = @props
@@ -39,11 +39,11 @@ Reactive = React.createClass
     props ?= @props
     {topic, store, fetcher} = props
 
-    if _.isFunction(fetcher) then fetcher(props) else store.fetch(topic)
+    if _.isFunction(fetcher) then fetcher.call(store, props) else store.fetch(topic)
 
   getState: (eventData = {}, props) ->
     props ?= @props
-    {topic, store, getter} = props
+    {topic, store, getter, channelUpdatePattern, apiChannelPattern} = props
     {status} = eventData
     status ?= 'loaded'
 
@@ -52,6 +52,8 @@ Reactive = React.createClass
     item: getter?(topic) or store.get?(topic)
     status: status
     errors: errors
+    storeChannelUpdate: interpolate(channelUpdatePattern, props)
+    apiChannelSend: interpolate(apiChannelPattern, props)
 
   isForThisComponent: (eventData, props) ->
     props ?= @props
@@ -72,20 +74,32 @@ Reactive = React.createClass
     {status} = eventData
     @setState({status})
 
-  componentWillMount: ->
-    {store} = @props
-    {storeChannelUpdate, apiChannelSend} = @state
+  startListening: (props, state) ->
+    props ?= @props
+    state ?= @state
 
-    @fetchModel()
-    store.channel.on(storeChannelUpdate, @update)
+    {store} = props
+    {storeChannelUpdate, apiChannelSend} = state
+
+    store.on(storeChannelUpdate, @update)
     api.channel.on(apiChannelSend, @setStatus)
 
-  componentWillUnmount: ->
-    {topic, store} = @props
-    {storeChannelUpdate, apiChannelSend} = @state
+  stopListening: (props, state) ->
+    props ?= @props
+    state ?= @state
 
-    store.channel.off(storeChannelUpdate, @update)
+    {store} = props
+    {storeChannelUpdate, apiChannelSend} = state
+
+    store.off(storeChannelUpdate, @update)
     api.channel.off(apiChannelSend, @setStatus)
+
+  componentWillMount: ->
+    @startListening()
+    @fetchModel()
+
+  componentWillUnmount: ->
+    @stopListening()
 
   componentWillReceiveProps: (nextProps) ->
     if nextProps.topic isnt @props.topic
@@ -96,6 +110,10 @@ Reactive = React.createClass
 
       @update(stubDataForImmediateUpdate, nextProps)
       @fetchModel(nextProps)
+
+  componentDidUpdate: (prevProps, prevState) ->
+    @stopListening(prevProps, prevState)
+    @startListening()
 
   render: ->
     {status, item} = @state

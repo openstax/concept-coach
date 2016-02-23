@@ -86,7 +86,6 @@ loadApp = ->
     conceptCoachDemo.open(introSettings)
     true
 
-  window.conceptCoachDemo = conceptCoachDemo
   conceptCoachDemo.initialize(buttonA)
   buttonB.addEventListener 'click', showOtherCourse
   buttonC.addEventListener 'click', showIntro

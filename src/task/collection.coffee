@@ -1,118 +1,77 @@
-EventEmitter2 = require 'eventemitter2'
 interpolate = require 'interpolate'
 _ = require 'underscore'
+
 api = require '../api'
+{ApiLink} = require '../helpers/api-link'
+
 exercises = require '../exercise/collection'
-
-tasks = {}
-
 user = require '../user/model'
-
-channel = new EventEmitter2 wildcard: true
 
 ERRORS_TO_SILENCE = ['page_has_no_exercises']
 
-getUnhandledErrors = (errors) ->
-  otherErrors = _.reject errors, (error) ->
-    _.indexOf(ERRORS_TO_SILENCE, error.code) > -1
+TASK_OPTIONS =
+  apiNameSpace: 'task'
+  apiChannel: api.channel
+  errors:
+    silencers: ERRORS_TO_SILENCE
 
-handledAllErrors = (otherErrors) ->
-  _.isEmpty otherErrors
+class TaskApi extends ApiLink
+  load: (taskId, data) ->
+    _.each data?.steps, (step) ->
+      exercises.quickLoad(step.id, step)
+    super(taskId, data)
 
-checkFailure = (response) ->
-  if response.data?.errors
-    response.data.errors = getUnhandledErrors(response.data.errors)
-    response.stopErrorDisplay = handledAllErrors(response.data.errors)
+  init: ->
+    user.on 'logout.received', @reset.bind(@)
+    super()
 
-load = (taskId, data) ->
-  tasks[taskId] = data
+  fetchByModule: ({collectionUUID, moduleUUID}) ->
+    eventData = {data: {collectionUUID, moduleUUID}, status: 'loading'}
+    eventData.query = "#{collectionUUID}/#{moduleUUID}"
 
-  status = if not data or data.errors? then 'failed' else 'loaded'
+    @emit("fetch.#{collectionUUID}/#{moduleUUID}", eventData)
+    @apiChannel.emit("#{@apiNameSpace}.#{collectionUUID}/#{moduleUUID}.fetchByModule", eventData)
 
-  _.each data?.steps, (step) ->
-    exercises.quickLoad(step.id, step)
+  getCompleteSteps: (taskId) ->
+    _.filter(@get(taskId)?.steps, (step) ->
+      step? and step.is_completed
+    )
 
-  channel.emit("load.#{taskId}", {data, status})
+  getIncompleteSteps: (taskId) ->
+    _.filter(@get(taskId)?.steps, (step) ->
+      step? and not step.is_completed
+    )
 
-update = (eventData) ->
-  return unless eventData?
-  {data, query} = eventData
-  load(query, data)
+  getFirstIncompleteIndex: (taskId) ->
+    _.max [_.findIndex(@get(taskId)?.steps, {is_completed: false}), 0]
 
-fetch = (taskId) ->
-  eventData = {data: {id: taskId}, status: 'loading'}
-  eventData.query = taskId
+  getStepIndex: (taskId, stepId) ->
+    _.findIndex(@get(taskId)?.steps, id: stepId)
 
-  channel.emit("fetch.#{taskId}", eventData)
-  api.channel.emit("task.#{taskId}.send.fetch", eventData)
+  getModuleInfo: (taskId, cnxUrl = '') ->
+    task = @get(taskId)
+    return unless task?
 
-fetchByModule = ({collectionUUID, moduleUUID}) ->
-  eventData = {data: {collectionUUID, moduleUUID}, status: 'loading'}
-  eventData.query = "#{collectionUUID}/#{moduleUUID}"
+    moduleUrlPattern = '{cnxUrl}/contents/{collectionUUID}:{moduleUUID}'
+    {collectionUUID, moduleUUID} = task
 
-  channel.emit("fetch.#{collectionUUID}/#{moduleUUID}", eventData)
-  api.channel.emit("task.#{collectionUUID}/#{moduleUUID}.send.fetchByModule", eventData)
+    moduleInfo = _.clone(task.steps?[0].related_content?[0]) or {}
+    _.extend moduleInfo, _.pick(task, 'collectionUUID', 'moduleUUID')
+    moduleInfo.link = interpolate moduleUrlPattern, {cnxUrl, collectionUUID, moduleUUID}
 
-get = (taskId) ->
-  tasks[taskId]
+    moduleInfo
 
-getCompleteSteps = (taskId) ->
-  _.filter(tasks[taskId]?.steps, (step) ->
-    step? and step.is_completed
-  )
+  getAsPage: (taskId) ->
+    task = @get(taskId)
+    return unless task?
 
-getIncompleteSteps = (taskId) ->
-  _.filter(tasks[taskId]?.steps, (step) ->
-    step? and not step.is_completed
-  )
+    {moduleUUID, steps} = task
 
-getFirstIncompleteIndex = (taskId) ->
-  _.max [_.findIndex(tasks[taskId]?.steps, {is_completed: false}), 0]
+    page = _.pick task, 'last_worked_at', 'id'
+    _.extend page, _.first(_.first(steps).related_content)
+    page.exercises = steps
+    page.uuid = moduleUUID
 
-getStepIndex = (taskId, stepId) ->
-  _.findIndex(tasks[taskId]?.steps, id: stepId)
+    page
 
-getModuleInfo = (taskId, cnxUrl = '') ->
-  task = tasks[taskId]
-  return unless task?
-
-  moduleUrlPattern = '{cnxUrl}/contents/{collectionUUID}:{moduleUUID}'
-  {collectionUUID, moduleUUID} = task
-
-  moduleInfo = _.clone(task.steps?[0].related_content?[0]) or {}
-  _.extend moduleInfo, _.pick(task, 'collectionUUID', 'moduleUUID')
-  moduleInfo.link = interpolate moduleUrlPattern, {cnxUrl, collectionUUID, moduleUUID}
-
-  moduleInfo
-
-getAsPage = (taskId) ->
-  task = get(taskId)
-  {moduleUUID, steps} = task
-
-  page = _.pick task, 'last_worked_at', 'id'
-  _.extend page, _.first(_.first(steps).related_content)
-  page.exercises = steps
-  page.uuid = moduleUUID
-
-  page
-
-init = ->
-  user.channel.on 'logout.received', ->
-    tasks = {}
-  api.channel.on("task.*.receive.*", update)
-  api.channel.on('task.*.receive.failure', checkFailure)
-
-module.exports = {
-  init,
-  load,
-  fetch,
-  fetchByModule,
-  get,
-  getCompleteSteps,
-  getIncompleteSteps,
-  getFirstIncompleteIndex,
-  getStepIndex,
-  getModuleInfo,
-  getAsPage,
-  channel
-}
+module.exports = new TaskApi(TASK_OPTIONS)

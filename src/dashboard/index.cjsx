@@ -5,6 +5,7 @@ classnames = require 'classnames'
 {Reactive} = require '../reactive'
 {CourseListing} = require '../course/listing'
 User = require '../user/model'
+courses = require '../course/collection'
 
 apiChannelName = 'user'
 
@@ -18,7 +19,7 @@ DashboardBase = React.createClass
     <div className='concept-coach-courses'>
       <h1>Enrolled Courses</h1>
       <CourseListing
-        courses={item.courses}/>
+        courses={courses.getRegisteredCourses()}/>
     </div>
 
 Dashboard = React.createClass
@@ -28,8 +29,7 @@ Dashboard = React.createClass
       store={User}
       topic='status'
       fetcher={User.ensureStatusLoaded.bind(User)}
-      apiChannelName={apiChannelName}
-      channelUpdatePattern='change'>
+      apiChannelName={apiChannelName}>
       <DashboardBase cnxUrl={@props.cnxUrl}/>
     </Reactive>
 
