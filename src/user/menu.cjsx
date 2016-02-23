@@ -3,7 +3,6 @@ BS = require 'react-bootstrap'
 EventEmitter2 = require 'eventemitter2'
 
 Status = require './status-mixin'
-Course = require '../course/model'
 api = require '../api'
 
 UserMenu = React.createClass
@@ -14,7 +13,7 @@ UserMenu = React.createClass
     navigator: React.PropTypes.instanceOf(EventEmitter2)
 
   propTypes:
-    course: React.PropTypes.instanceOf(Course)
+    course: React.PropTypes.object.isRequired
 
   componentWillMount: ->
     @getUser().ensureStatusLoaded()
@@ -40,14 +39,14 @@ UserMenu = React.createClass
     @context.navigator.emit('show.registration', view: 'registration')
 
   renderCourseOption: ->
-    if @props.course?.isRegistered()
+    if @props.course?.isRegistered
       courseChangeText = 'Change Course'
     else
       courseChangeText = 'Register for Course'
     <BS.MenuItem onClick={@modifyCourse}>{courseChangeText}</BS.MenuItem>
 
   renderStudentIdOption: ->
-    return null unless @props.course?.isRegistered()
+    return null unless @props.course?.isRegistered
     <BS.MenuItem onClick={@updateStudentId}>Change student ID</BS.MenuItem>
 
   render: ->

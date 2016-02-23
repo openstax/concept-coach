@@ -132,8 +132,8 @@ class Course
 
   updateStudent: (attributes) ->
     data = _.extend({}, attributes, id: @id)
-    api.channel.once "course.#{@ecosystem_book_uuid}.receive.studentUpdate.*", @_onStudentUpdated
-    api.channel.emit("course.#{@ecosystem_book_uuid}.send.studentUpdate", {data})
+    api.channel.once "course.#{@ecosystem_book_uuid}.studentUpdate.*", @_onStudentUpdated
+    api.channel.emit("course.#{@ecosystem_book_uuid}.studentUpdate", {data})
 
   _onRegistered: (response) ->
     throw new Error("response is empty in onRegistered") if _.isEmpty(response)

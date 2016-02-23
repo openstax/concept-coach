@@ -1,7 +1,6 @@
 React = require 'react'
 
 NewCourseRegistration = require './new-registration'
-Course = require './model'
 LoginGateway = require '../user/login-gateway'
 
 EnrollOrLogin = React.createClass

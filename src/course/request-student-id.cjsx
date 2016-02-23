@@ -2,7 +2,7 @@ React = require 'react'
 BS = require 'react-bootstrap'
 ENTER = 'Enter'
 
-Course = require './model'
+courses = require './collection'
 ErrorList = require './error-list'
 {AsyncButton} = require 'openstax-react-components'
 
@@ -17,10 +17,11 @@ RequestStudentId = React.createClass
     ]).isRequired
     saveButtonLabel: React.PropTypes.string.isRequired
     title: React.PropTypes.string.isRequired
-    course: React.PropTypes.instanceOf(Course).isRequired
+    collectionUUID: React.PropTypes.string.isRequired
 
-  startConfirmation: ->
-    @props.course.confirm(@refs.input.getValue())
+  startConfirmation: =>
+    {collectionUUID} = @props
+    courses.confirm(collectionUUID, @refs.input.getValue())
 
   onKeyPress: (ev) ->
     @onSubmit() if ev.key is ENTER
@@ -29,10 +30,11 @@ RequestStudentId = React.createClass
     @props.onSubmit(@refs.input.getValue())
 
   render: ->
+    {collectionUUID} = @props
     button =
       <AsyncButton
         className="btn btn-success"
-        isWaiting={!!@props.course.isBusy}
+        isWaiting={!!courses.isBusy(collectionUUID)}
         waitingText={'Confirming…'}
         onClick={@onSubmit}
       >{@props.saveButtonLabel}</AsyncButton>
@@ -41,7 +43,7 @@ RequestStudentId = React.createClass
       <h3 className="text-center">
         {@props.title}
       </h3>
-      <ErrorList course={@props.course} />
+      <ErrorList collectionUUID={collectionUUID} />
       <div className='panels'>
         <div className='field'>
           <BS.Input type="text" ref="input" label={@props.label}

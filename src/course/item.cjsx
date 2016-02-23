@@ -27,7 +27,7 @@ CourseItem = React.createClass
 
   render: ->
     {course} = @props
-    return null unless course.isRegistered()
+    return null unless course.isRegistered
 
     {ecosystem_book_uuid} = course
     link = @getLink()
@@ -37,7 +37,7 @@ CourseItem = React.createClass
       <BS.ListGroupItem
         className='concept-coach-course-item'
         data-category={category}>
-          {course.description()}
+          {course.description}
       </BS.ListGroupItem>
     </BookLinkBase>
 

@@ -17,7 +17,7 @@ Navigation = React.createClass
     view: React.PropTypes.string
 
   propTypes:
-    course: React.PropTypes.instanceOf(Course)
+    course: React.PropTypes.object.isRequired
 
   componentWillMount: ->
     user.ensureStatusLoaded()
@@ -52,7 +52,7 @@ Navigation = React.createClass
         className='concept-coach-dashboard-nav -progress'>
         My Progress
       </BS.NavItem>
-    ] if course?.isRegistered()
+    ] if course?.isRegistered
 
     <BS.Navbar brand={brand} toggleNavKey={0} fixedTop fluid>
       <BS.CollapsibleNav eventKey={0} collapsible={true}>

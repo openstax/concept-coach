@@ -1,14 +1,13 @@
 React = require 'react'
 _ = require 'underscore'
 
-Course = require './model'
+courses = require './collection'
 User = require '../user/model'
 ENTER = 'Enter'
 
 InviteCodeInput = require './invite-code-input'
 ConfirmJoin = require './confirm-join'
 Navigation = require '../navigation/model'
-User = require '../user/model'
 
 NewCourseRegistration = React.createClass
 
@@ -16,56 +15,54 @@ NewCourseRegistration = React.createClass
     collectionUUID: React.PropTypes.string.isRequired
     validateOnly: React.PropTypes.bool
     title: React.PropTypes.string
-    course: React.PropTypes.instanceOf(Course)
 
   getDefaultProps: ->
     title: 'Register for this Concept Coach course'
 
-  componentWillMount: ->
-    course = @props.course or
-      User.getCourse(@props.collectionUUID) or
-      new Course({ecosystem_book_uuid: @props.collectionUUID})
-    course.channel.on('change', @onCourseChange)
-    @setState({course})
+  continue: ->
+    Navigation.channel.emit('show.panel', view: 'login')
 
-  componentWillUnmount: ->
-    @state.course.channel.off('change', @onCourseChange)
+  componentDidUpdate: ->
+    {course} = @props
+    if course.isRegistered
+      @onConfirmed()
+    else if course.isValidated
+      @onValidated()
 
-  onComplete: ->
-    @state.course.persist(User)
-    Navigation.channel.emit('show')
+  onConfirmed: ->
+    # wait 1.5 secs so our success message is briefly displayed, then call onComplete
+    _.delay(@continue, 1500)
 
-  onCourseChange: ->
-    if @state.course.isRegistered()
-      # wait 1.5 secs so our success message is briefly displayed, then call onComplete
-      _.delay(@onComplete, 1500)
-    else if @state.course.isValidated()
-      @onComplete()
-
-    @forceUpdate()
+  onValidated: ->
+    @continue()
 
   renderValidated: ->
     <p className="lead">Redirecting to login...</p>
 
   renderComplete: (course) ->
     <h3 className="text-center">
-      You have successfully joined {course.description()}
+      You have successfully joined {course.description}
     </h3>
 
   isTeacher: ->
-    User.isTeacherForCourse(@props.collectionUUID)
+    courses.isTeacherOf(@props.collectionUUID)
 
   renderCurrentStep: ->
-    {course} = @state
-    if course.isValidated()
+    {collectionUUID, course} = @props
+
+    if course.isValidated
       @renderValidated()
-    else if course.isIncomplete()
+    else if course.isIncomplete
       title = if @isTeacher() then '' else @props.title
-      <InviteCodeInput course={course} currentCourses={User.registeredCourses()} title={title} />
-    else if course.isPending()
+      <InviteCodeInput
+        collectionUUID={collectionUUID}
+        course={course}
+        currentCourses={courses.getRegisteredCourses()}
+        title={title} />
+    else if course.isPending
       <ConfirmJoin
-        title={"Would you like to join #{@state.course.description()}?"}
-        course={course} />
+        collectionUUID={collectionUUID}
+        title={"Would you like to join #{course.description}?"}/>
     else
       @renderComplete(course)
 

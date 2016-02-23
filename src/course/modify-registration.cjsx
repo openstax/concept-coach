@@ -2,57 +2,49 @@ React = require 'react'
 _ = require 'underscore'
 
 InviteCodeInput = require './invite-code-input'
-RequestStudentId = require './request-student-id'
 
 ConfirmJoin = require './confirm-join'
 User = require '../user/model'
-Course = require './model'
+courses = require '../course/collection'
 Navigation = require '../navigation/model'
 
 ModifyCourseRegistration = React.createClass
 
   propTypes:
-    course: React.PropTypes.instanceOf(Course)
-
-  # create a private copy of the course to operate on
-  getInitialState: ->
-    course = @props.course.clone()
-    course.channel.on('change', @onCourseChange)
-    {course, original: @props.course}
-
-  componentWillUnmount: ->
-    @state.course.channel.off('change', @onCourseChange)
-
-  onCourseChange: ->
-    if @state.course.isRegistered()
-      # wait 1.5 secs so our success message is briefly displayed, then call onComplete
-      _.delay(@onComplete, 1500)
-    @forceUpdate()
+    collectionUUID: React.PropTypes.string.isRequired
 
   showTasks: ->
     Navigation.channel.emit('show.panel', view: 'task')
 
-  onComplete: ->
-    @state.course.persist(User)
+  componentDidUpdate: ->
+    {course} = @props
+    @onConfirmed() if course.isRegistered
+
+  onConfirmed: ->
+    # wait 1.5 secs so our success message is briefly displayed, then call onComplete
+    _.delay(@showTasks, 1500)
+
+  onValidated: ->
     @showTasks()
 
   renderComplete: (course) ->
     <h3 className="text-center">
-      You have successfully modified your registration to be {course.description()}
+      You have successfully modified your registration to be {course.description}
     </h3>
 
   renderCurrentStep: ->
-    {course, original} = @state
+    {collectionUUID, course} = @props
 
-    if course.isIncomplete()
+    if course.isIncomplete
       <InviteCodeInput
         course={course}
-        title={"Leave #{original.description()} for new course/period"} />
-    else if course.isPending()
+        collectionUUID={collectionUUID}
+        title={"Leave #{course.description} for new course/period"} />
+    else if course.isPending
       <ConfirmJoin
-        course={course}
+        collectionUUID={collectionUUID}
         optionalStudentId
-        title={"Are you sure you want to switch your registration #{course.description()}?"}
+        title={"Are you sure you want to switch your registration #{course.description}?"}
       />
     else
       @renderComplete(course)

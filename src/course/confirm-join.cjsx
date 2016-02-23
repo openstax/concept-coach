@@ -3,7 +3,7 @@ BS = require 'react-bootstrap'
 ENTER = 'Enter'
 RequestStudentId = require './request-student-id'
 
-Course = require './model'
+courses = require './collection'
 ErrorList = require './error-list'
 {AsyncButton} = require 'openstax-react-components'
 
@@ -11,14 +11,16 @@ ConfirmJoin = React.createClass
 
   propTypes:
     title: React.PropTypes.string.isRequired
-    course: React.PropTypes.instanceOf(Course).isRequired
     optionalStudentId: React.PropTypes.bool
+    collectionUUID: React.PropTypes.string.isRequired
 
   onCancel: ->
-    @props.course.resetToBlankState()
+    {collectionUUID} = @props
+    courses.unsetRegistration(collectionUUID)
 
   startConfirmation: (studentId) ->
-    @props.course.confirm(studentId)
+    {collectionUUID} = @props
+    courses.confirm(collectionUUID, studentId)
 
   render: ->
     label = if @props.optionalStudentId

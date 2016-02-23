@@ -7,6 +7,7 @@ restAPI = require '../api'
 componentModel = require './model'
 navigation = require '../navigation/model'
 User = require '../user/model'
+course = require '../course/collection'
 exercise = require '../exercise/collection'
 progress = require '../progress/collection'
 task = require '../task/collection'
@@ -83,7 +84,7 @@ class ConceptCoachAPI extends EventEmitter2
     restAPI.init = _.partial restAPI.initialize, baseUrl
     navigation.init = _.partial navigation.initialize, navOptions
 
-    @models = [restAPI, navigation, User, exercise, progress, task, componentModel]
+    @models = [restAPI, navigation, User, course, exercise, progress, task, componentModel]
     initializeModels(@models)
 
     listenAndBroadcast(@)
