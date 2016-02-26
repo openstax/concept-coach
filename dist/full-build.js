@@ -23305,7 +23305,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 204 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var EventEmitter2, STEP_TYPES, _, api, channel, fetch, get, getCurrentPanel, init, load, quickLoad, steps, update, user,
+	var EventEmitter2, STEP_TYPES, _, api, cacheFreeResponse, channel, fetch, freeResponseCache, get, getCurrentPanel, init, load, quickLoad, steps, uncachedFreeResponse, update, user,
 	  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 	EventEmitter2 = __webpack_require__(4);
@@ -23313,6 +23313,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	api = __webpack_require__(161);
 
 	steps = {};
+
+	freeResponseCache = {};
 
 	_ = __webpack_require__(2);
 
@@ -23334,12 +23336,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  });
 	};
 
+	cacheFreeResponse = function(stepId, freeResponse) {
+	  return freeResponseCache[stepId] = freeResponse;
+	};
+
+	uncachedFreeResponse = function(stepId) {
+	  if (freeResponseCache[stepId] != null) {
+	    return delete freeResponseCache[stepId];
+	  }
+	};
+
 	load = function(stepId, data) {
-	  var temp_free_response;
-	  temp_free_response = steps[stepId].temp_free_response;
-	  steps[stepId] = _.extend({
-	    temp_free_response: temp_free_response
-	  }, data);
+	  steps[stepId] = data;
 	  return channel.emit("load." + stepId, {
 	    data: data
 	  });
@@ -23389,6 +23397,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	get = function(stepId) {
+	  if (steps[stepId].free_response != null) {
+	    uncachedFreeResponse(stepId);
+	  }
+	  steps[stepId].cachedFreeResponse = freeResponseCache[stepId];
 	  return steps[stepId];
 	};
 
@@ -23405,7 +23417,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  get: get,
 	  init: init,
 	  channel: channel,
-	  quickLoad: quickLoad
+	  quickLoad: quickLoad,
+	  cacheFreeResponse: cacheFreeResponse
 	};
 
 
@@ -36822,7 +36835,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      step: step,
 	      getCurrentPanel: getCurrentPanel,
 	      canReview: true,
-	      freeResponseValue: step.temp_free_response,
+	      freeResponseValue: step.cachedFreeResponse,
 	      setAnswerId: function(id, answerId) {
 	        var eventData;
 	        step.answer_id = answerId;
@@ -36846,7 +36859,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return api.channel.emit("exercise." + step.id + ".send.save", eventData);
 	      },
 	      onFreeResponseChange: function(freeResponse) {
-	        return step.temp_free_response = freeResponse;
+	        return exercises.cacheFreeResponse(step.id, freeResponse);
 	      },
 	      onContinue: function() {
 	        var eventData;
