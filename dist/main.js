@@ -15360,7 +15360,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  already_processed: 'The request has already been processed',
 	  already_approved: 'The request has already been approved',
 	  already_rejected: 'The request has been rejected',
-	  taken: 'The Student ID is already a member'
+	  taken: 'The Student ID is already a member',
+	  blank_student_identifer: 'Student Identifier cannot be blank'
 	};
 
 	Course = (function() {
@@ -15428,13 +15429,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  };
 
+	  Course.prototype.getStudentIdentifier = function() {
+	    var ref;
+	    return (ref = this.getStudentRecord()) != null ? ref.student_identifier : void 0;
+	  };
+
+	  Course.prototype.getStudentRecord = function() {
+	    if (_.isEmpty(this.students)) {
+	      this.students = [{}];
+	    }
+	    return _.first(this.students);
+	  };
+
 	  Course.prototype.hasErrors = function() {
 	    return !_.isEmpty(this.errors);
 	  };
 
 	  Course.prototype.errorMessages = function() {
 	    return _.map(this.errors, function(err) {
-	      return ERROR_MAP[err.code];
+	      return ERROR_MAP[err.code] || ("An unknown error with code " + err.code + " occured.");
 	    });
 	  };
 
@@ -15495,6 +15508,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      this.periods = [data.to.period];
 	    }
 	    this.errors = data != null ? data.errors : void 0;
+	    this.getStudentRecord().student_identifier = response.data.student_identifier;
 	    if (this.errors) {
 	      response.stopErrorDisplay = true;
 	    }
@@ -15531,7 +15545,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (response != null ? response.data : void 0) {
 	      _.extend(this, response.data);
 	    }
+	    this.getStudentRecord().student_identifier = response.data.student_identifier;
 	    return this.channel.emit('change');
+	  };
+
+	  Course.prototype.updateStudentIdentifier = function(newIdentifier) {
+	    if (_.isEmpty(newIdentifier)) {
+	      this.errors = [
+	        {
+	          code: 'blank_student_identifer'
+	        }
+	      ];
+	      return this.channel.emit('change');
+	    } else {
+	      return this.updateStudent({
+	        student_identifier: newIdentifier
+	      });
+	    }
 	  };
 
 	  Course.prototype.updateStudent = function(attributes) {
@@ -17269,13 +17299,15 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var AsyncButton, BS, Course, ENTER, ErrorList, React, RequestStudentId;
+	var AsyncButton, BS, Course, ENTER, ErrorList, React, RequestStudentId, User;
 
 	React = __webpack_require__(2);
 
 	BS = __webpack_require__(17);
 
 	ENTER = 'Enter';
+
+	User = __webpack_require__(79);
 
 	Course = __webpack_require__(80);
 
@@ -17327,6 +17359,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "label": this.props.label,
 	      "placeholder": "School issued ID",
 	      "autoFocus": true,
+	      "defaultValue": this.props.course.getStudentIdentifier(),
 	      "onKeyPress": this.onKeyPress,
 	      "buttonAfter": button
 	    })), React.createElement("div", {
@@ -17830,7 +17863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var AsyncButton, BS, Course, ENTER, ErrorList, Navigation, React, RequestStudentId, UpdateStudentIdentifer, _;
+	var AsyncButton, BS, Course, ENTER, Navigation, React, RequestStudentId, UpdateStudentIdentifer, _;
 
 	_ = __webpack_require__(3);
 
@@ -17843,8 +17876,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	ENTER = 'Enter';
 
 	Course = __webpack_require__(80);
-
-	ErrorList = __webpack_require__(100);
 
 	RequestStudentId = __webpack_require__(102);
 
@@ -17894,9 +17925,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return this.props.course.resetToBlankState();
 	  },
 	  onSubmit: function(studentId) {
-	    return this.props.course.updateStudent({
-	      student_identifier: studentId
-	    });
+	    return this.props.course.updateStudentIdentifier(studentId);
 	  },
 	  onCancel: function() {
 	    return Navigation.channel.emit('show.task', {
