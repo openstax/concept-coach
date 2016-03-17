@@ -17332,6 +17332,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return this.onSubmit();
 	    }
 	  },
+	  onCancel: function(ev) {
+	    ev.preventDefault();
+	    return this.props.onCancel();
+	  },
 	  onSubmit: function() {
 	    return this.props.onSubmit(this.refs.input.getValue());
 	  },
@@ -17364,9 +17368,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "buttonAfter": button
 	    })), React.createElement("div", {
 	      "className": "cancel"
-	    }, React.createElement("button", {
-	      "className": "btn",
-	      "onClick": this.props.onCancel
+	    }, React.createElement("a", {
+	      "href": '#',
+	      "onClick": this.onCancel
 	    }, "Cancel"))));
 	  }
 	});
