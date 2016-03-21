@@ -35403,9 +35403,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      disabled: !choicesEnabled,
 	      show_all_feedback: show_all_feedback
 	    };
-	    answersHtml = _.chain(answers).sortBy(function(answer) {
-	      return parseInt(answer.id);
-	    }).map(function(answer, i) {
+	    answersHtml = _.chain(answers).map(function(answer, i) {
 	      var additionalProps, answerProps, ref1;
 	      additionalProps = {
 	        answer: answer,
