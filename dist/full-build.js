@@ -23220,7 +23220,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    payload = {
 	      id: this.id
 	    };
-	    payload.student_identifier = studentId;
+	    if (studentId) {
+	      payload.student_identifier = studentId;
+	    }
 	    this.isBusy = true;
 	    api.channel.once("course." + this.id + ".receive.confirmation.*", this._onConfirmed);
 	    api.channel.emit("course." + this.id + ".send.confirmation", {
@@ -52248,7 +52250,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	ConfirmJoin = React.createClass({displayName: "ConfirmJoin",
 	  propTypes: {
-	    title: React.PropTypes.element.isRequired,
 	    course: React.PropTypes.instanceOf(Course).isRequired,
 	    optionalStudentId: React.PropTypes.bool
 	  },
@@ -52262,7 +52263,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  },
 	  onCancel: function(ev) {
 	    ev.preventDefault();
-	    return this.props.course.confirm('');
+	    return this.props.course.confirm();
 	  },
 	  onSubmit: function() {
 	    return this.props.course.confirm(this.refs.input.getValue());
