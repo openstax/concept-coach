@@ -53976,11 +53976,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "className": 'launcher-coffee-steam'
 	    }, React.createElement("path", {
 	      "fill-rule": "evenodd",
-	      "fill": "#000000",
+	      "fill": "#FFFFFF",
 	      "d": "M773.967,191.167c3.781,6.054-8.06,11.515-8.06,11.515s6.199-4.644,3.454-11.515 c-2.746-6.872,3.307-9.169,5.757-9.788C775.452,181.296,769.754,184.422,773.967,191.167z"
 	    }), React.createElement("path", {
 	      "fill-rule": "evenodd",
-	      "fill": "#000000",
+	      "fill": "#FFFFFF",
 	      "d": "M756.12,203.833 c0,0,7.693-5.226,4.605-13.243c-3.088-8.016,3.001-10.793,5.757-11.513c0.375-0.099-5.316,4.221-0.575,12.09 C770.161,198.23,756.12,203.833,756.12,203.833z"
 	    })), React.createElement("path", {
 	      "className": 'launcher-coffee-mug',
