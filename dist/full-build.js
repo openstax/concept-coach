@@ -54670,7 +54670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 479 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var BS, CloseButton, Course, EventEmitter2, React, Status, UserMenu, api, getWaitingText;
+	var BS, CloseButton, Course, EventEmitter2, GET_HELP_LINK, React, Status, UserMenu, api, getWaitingText;
 
 	React = __webpack_require__(6);
 
@@ -54685,6 +54685,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	Course = __webpack_require__(203);
 
 	api = __webpack_require__(161);
+
+	GET_HELP_LINK = 'http://openstax.force.com/support?l=en_US&c=Products%3AConcept_Coach';
 
 	getWaitingText = function(status) {
 	  return status + "…";
@@ -54769,6 +54771,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, this.renderCourseOption(), React.createElement(BS.MenuItem, {
 	      "onClick": this.showProfile
 	    }, "Account Profile"), this.renderStudentIdOption(), React.createElement(BS.MenuItem, {
+	      "divider": true,
+	      "key": 'dropdown-item-divider'
+	    }), React.createElement(BS.MenuItem, {
+	      "key": 'nav-help-link',
+	      "className": '-help-link',
+	      "target": '_blank',
+	      "href": GET_HELP_LINK
+	    }, "Get Help"), React.createElement(BS.MenuItem, {
 	      "onClick": this.logoutUser
 	    }, "Logout"));
 	  }
