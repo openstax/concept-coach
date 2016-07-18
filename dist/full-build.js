@@ -34949,7 +34949,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  displayName: 'QuestionHtml',
 	  propTypes: {
 	    html: React.PropTypes.string,
-	    type: React.PropTypes.string
+	    type: React.PropTypes.string,
+	    questionNumber: React.PropTypes.number
 	  },
 	  getDefaultProps: function() {
 	    return {
@@ -34970,7 +34971,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return React.createElement(ArbitraryHtmlAndMath, React.__spread({}, htmlAndMathProps, {
 	      "className": "question-" + type,
 	      "block": true,
-	      "html": html
+	      "html": html,
+	      "data-question-number": this.props.questionNumber
 	    }));
 	  }
 	});
@@ -35042,7 +35044,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "html": stimulus_html
 	    }), React.createElement(QuestionHtml, {
 	      "type": 'stem',
-	      "html": stem_html
+	      "html": stem_html,
+	      "questionNumber": questionNumber
 	    }), this.props.children, React.createElement(AnswersTable, React.__spread({}, this.props, {
 	      "hasCorrectAnswer": hasCorrectAnswer
 	    })), (this.props.displayFormats ? React.createElement(FormatsListing, {
@@ -51746,7 +51749,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 
 	  Email.prototype.sendConfirmation = function() {
-	    return this.makeRequest('resend_confirmation').then((function(_this) {
+	    return this.makeRequest('resend_confirmation', {
+	      send_pin: true
+	    }).then((function(_this) {
 	      return function(resp) {
 	        _this.verifyInProgress = resp.status === 204;
 	        return _this.emit('change');
@@ -53858,6 +53863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return null;
 	    }
 	    exerciseProps = {
+	      project: 'concept-coach',
 	      taskId: step.task_id,
 	      parts: [step],
 	      getCurrentPanel: getCurrentPanel,
@@ -55411,7 +55417,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (course.isIncomplete()) {
 	      return React.createElement(EnrollmentCodeInput, {
 	        "course": course,
-	        "title": "Leave " + (original.description()) + " for new course/period"
+	        "title": "Leave " + (original.description()) + " for new section"
 	      });
 	    } else if (course.isPending()) {
 	      return React.createElement(ConfirmJoin, {
@@ -55903,7 +55909,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 493 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var BS, ErrorNotification, React, _, api;
+	var BASE_CONTACT_LINK, BS, ErrorNotification, React, _, api, makeContactMessage, makeContactURL;
 
 	React = __webpack_require__(6);
 
@@ -55912,6 +55918,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	_ = __webpack_require__(2);
 
 	api = __webpack_require__(161);
+
+	BASE_CONTACT_LINK = 'http://openstax.force.com/support?l=en_US&c=Products%3AConcept_Coach&cu=1&fs=ContactUs&q=';
+
+	makeContactMessage = function(errors, userAgent, location) {
+	  var template;
+	  return template = "Hello!\nI ran into a problem while using Concept Coach on\n" + userAgent + " at " + location + ".\n\nHere is some additional info:\n" + (errors.join()) + ".";
+	};
+
+	makeContactURL = function(errors, windowContext) {
+	  var location, q, userAgent;
+	  userAgent = windowContext.navigator.userAgent;
+	  location = windowContext.location.href;
+	  q = encodeURIComponent(makeContactMessage(errors, userAgent, location));
+	  return "" + BASE_CONTACT_LINK + q;
+	};
 
 	ErrorNotification = React.createClass({displayName: "ErrorNotification",
 	  getInitialState: function() {
@@ -55993,7 +56014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      "className": 'modal-body'
 	    }, React.createElement("p", null, "An unexpected error has occured.  Please\nvisit ", React.createElement("a", {
 	      "target": "_blank",
-	      "href": "https://openstaxcc.zendesk.com/hc/en-us"
+	      "href": makeContactURL(this.state.errors, window)
 	    }, " our support site "), " so we can help to diagnose and correct the issue."), React.createElement("p", null, "When reporting the issue, it would be helpful if you could include the error details."), React.createElement(BS.Button, {
 	      "className": '-display-errors',
 	      "style": {
