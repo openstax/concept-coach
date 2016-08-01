@@ -19098,12 +19098,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	// shim for using process in browser
 
 	var process = module.exports = {};
+
+	// cached from whatever global is present so that test runners that stub it
+	// don't break things.  But we need to wrap it in a try catch in case it is
+	// wrapped in strict mode code which doesn't define any globals.  It's inside a
+	// function because try/catches deoptimize in certain engines.
+
+	var cachedSetTimeout;
+	var cachedClearTimeout;
+
+	(function () {
+	  try {
+	    cachedSetTimeout = setTimeout;
+	  } catch (e) {
+	    cachedSetTimeout = function () {
+	      throw new Error('setTimeout is not defined');
+	    }
+	  }
+	  try {
+	    cachedClearTimeout = clearTimeout;
+	  } catch (e) {
+	    cachedClearTimeout = function () {
+	      throw new Error('clearTimeout is not defined');
+	    }
+	  }
+	} ())
 	var queue = [];
 	var draining = false;
 	var currentQueue;
 	var queueIndex = -1;
 
 	function cleanUpNextTick() {
+	    if (!draining || !currentQueue) {
+	        return;
+	    }
 	    draining = false;
 	    if (currentQueue.length) {
 	        queue = currentQueue.concat(queue);
@@ -19119,7 +19147,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (draining) {
 	        return;
 	    }
-	    var timeout = setTimeout(cleanUpNextTick);
+	    var timeout = cachedSetTimeout.call(null, cleanUpNextTick);
 	    draining = true;
 
 	    var len = queue.length;
@@ -19136,7 +19164,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    currentQueue = null;
 	    draining = false;
-	    clearTimeout(timeout);
+	    cachedClearTimeout.call(null, timeout);
 	}
 
 	process.nextTick = function (fun) {
@@ -19148,7 +19176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	    queue.push(new Item(fun, args));
 	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
+	        cachedSetTimeout.call(null, drainQueue, 0);
 	    }
 	};
 
@@ -32762,15 +32790,15 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 223 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Exercise, ExerciseBase, ExerciseStep, React, Reactive, _, api, apiChannelName, channel, exercises, getCurrentPanel, ref, tasks;
+	var ChapterSectionMixin, Exercise, ExerciseBase, ExerciseStep, React, Reactive, _, api, apiChannelName, channel, exercises, getCurrentPanel, ref, ref1, tasks;
 
 	React = __webpack_require__(2);
 
 	_ = __webpack_require__(3);
 
-	Exercise = __webpack_require__(6).Exercise;
+	ref = __webpack_require__(6), Exercise = ref.Exercise, ChapterSectionMixin = ref.ChapterSectionMixin;
 
-	ref = exercises = __webpack_require__(219), channel = ref.channel, getCurrentPanel = ref.getCurrentPanel;
+	ref1 = exercises = __webpack_require__(219), channel = ref1.channel, getCurrentPanel = ref1.getCurrentPanel;
 
 	tasks = __webpack_require__(180);
 
@@ -32785,6 +32813,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  getInitialState: function() {
 	    return this.getStepState();
 	  },
+	  mixins: [ChapterSectionMixin],
 	  getStepState: function(props) {
 	    var item;
 	    if (props == null) {
@@ -32813,6 +32842,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  contextTypes: {
 	    processHtmlAndMath: React.PropTypes.func
 	  },
+	  renderHelpLink: function(sections) {
+	    var section;
+	    if (!(sections != null ? sections.length : void 0)) {
+	      return;
+	    }
+	    section = _.first(sections);
+	    return React.createElement("div", {
+	      "key": 'task-help-links',
+	      "className": 'task-help-links'
+	    }, "Comes from ", this.sectionFormat(section.chapter_section), " - ", section.title);
+	  },
 	  render: function() {
 	    var exerciseProps, htmlAndMathProps, step, taskId, wrapperProps;
 	    step = this.state.step;
@@ -32827,6 +32867,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      getCurrentPanel: getCurrentPanel,
 	      canReview: true,
 	      freeResponseValue: step.cachedFreeResponse,
+	      helpLink: this.renderHelpLink(step.related_content),
 	      setAnswerId: function(id, answerId) {
 	        var eventData;
 	        step.answer_id = answerId;
@@ -33813,9 +33854,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  renderCourseOption: function() {
 	    var courseChangeText, ref;
 	    if ((ref = this.props.course) != null ? ref.isRegistered() : void 0) {
-	      courseChangeText = 'Change Course';
+	      courseChangeText = 'Change Section';
 	    } else {
-	      courseChangeText = 'Register for Course';
+	      courseChangeText = 'Register for Section';
 	    }
 	    return React.createElement(BS.MenuItem, {
 	      "onClick": this.modifyCourse
